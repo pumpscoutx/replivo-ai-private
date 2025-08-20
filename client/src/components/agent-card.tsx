@@ -47,11 +47,12 @@ export default function AgentCard({ agent }: AgentCardProps) {
 
   return (
     <motion.div
-      className="agent-card bg-white rounded-3xl shadow-xl hover:shadow-2xl border border-gray-100 group overflow-hidden"
+      className="agent-card bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl border border-gray-700 group overflow-hidden cursor-pointer"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ y: -12, scale: 1.03 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
+      onClick={() => window.location.href = '/marketplace'}
     >
       {/* Agent Image Header */}
       <div className="relative h-48 overflow-hidden">
@@ -64,16 +65,16 @@ export default function AgentCard({ agent }: AgentCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         <motion.div 
-          className="absolute top-4 left-4 w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30"
+          className="absolute top-4 left-4 w-16 h-16 bg-gray-800/60 backdrop-blur-md rounded-2xl flex items-center justify-center border border-gray-600/50"
           animate={isHovered ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <i className={`${agent.icon} text-white text-2xl`}></i>
+          <i className={`${agent.icon} text-gray-300 text-2xl`}></i>
         </motion.div>
         
         {/* Featured Badge */}
         {agent.featured && (
-          <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 text-xs font-bold">
+          <div className="absolute top-4 right-4 bg-gray-700 text-gray-300 rounded-full px-3 py-1 text-xs font-bold border border-gray-600">
             <i className="fas fa-crown mr-1"></i>
             FEATURED
           </div>
@@ -81,15 +82,15 @@ export default function AgentCard({ agent }: AgentCardProps) {
       </div>
 
       <div className="p-8">
-        <h3 className="text-2xl font-display font-bold text-gray-900 mb-3">{agent.name}</h3>
-        <p className="text-gray-600 mb-6 leading-relaxed">{agent.description}</p>
+        <h3 className="text-2xl font-nano font-bold text-white mb-3">{agent.name.toUpperCase()}</h3>
+        <p className="text-gray-400 mb-6 leading-relaxed">{agent.description}</p>
       
       {/* Ratings */}
       <div className="flex items-center mb-4">
         <div className="flex mr-2">
           {renderStars(agent.rating)}
         </div>
-        <span className="text-sm text-secondary">
+        <span className="text-sm text-gray-400">
           ({formatRating(agent.rating)}) • {agent.reviewCount} reviews
         </span>
       </div>
@@ -104,16 +105,16 @@ export default function AgentCard({ agent }: AgentCardProps) {
             transition={{ duration: 0.3 }}
             className="mb-4"
           >
-            <div className="bg-gray-50 rounded-lg p-3 text-sm space-y-1">
+            <div className="bg-gray-700/50 rounded-lg p-3 text-sm space-y-1 border border-gray-600/30">
               {agent.tasks?.slice(0, 3).map((task, index) => (
                 <motion.div
                   key={index}
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center text-secondary"
+                  className="flex items-center text-gray-300"
                 >
-                  <i className={`fas fa-${index === 0 ? 'check-circle text-green-500' : index === 1 ? 'clock text-yellow-500' : 'chart-line text-blue-500'} mr-2`}></i>
+                  <i className={`fas fa-${index === 0 ? 'check-circle text-gray-400' : index === 1 ? 'clock text-gray-400' : 'chart-line text-gray-400'} mr-2`}></i>
                   <span>{task}</span>
                 </motion.div>
               ))}
@@ -125,16 +126,16 @@ export default function AgentCard({ agent }: AgentCardProps) {
         <div className="flex justify-between items-center">
           <Button 
             asChild
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:scale-105"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-nano font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700"
           >
-            <Link href={`/hire/${agent.id}`}>
-              <i className="fas fa-rocket mr-2"></i>
-              Hire Now
+            <Link href="/marketplace">
+              <i className="fas fa-shopping-cart mr-2"></i>
+              VIEW AGENTS
             </Link>
           </Button>
           <div className="text-right">
-            <span className="text-3xl font-display font-black text-gray-900">{formatPrice(agent.price)}</span>
-            <span className="text-gray-500 font-medium">/mo</span>
+            <span className="text-3xl font-nano font-black text-white">{formatPrice(agent.price)}</span>
+            <span className="text-gray-400 font-medium">/mo</span>
           </div>
         </div>
       </div>

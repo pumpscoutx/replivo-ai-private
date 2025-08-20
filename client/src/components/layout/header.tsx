@@ -5,34 +5,34 @@ export default function Header() {
   const [location] = useLocation();
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+    <nav className="bg-black/95 backdrop-blur-md shadow-lg border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <i className="fas fa-robot text-white text-lg"></i>
+            <div className="w-10 h-10 bg-gray-800 rounded-2xl flex items-center justify-center shadow-lg border border-gray-600">
+              <i className="fas fa-robot text-gray-300 text-lg"></i>
             </div>
-            <span className="text-2xl font-display font-black text-gray-900">Replivo</span>
+            <span className="text-2xl font-nano font-black text-white">REPLIVO</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className={`${location === "/" ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"} transition-colors font-medium text-lg`}>
-              Agents
+            <Link href="/" className={`${location === "/" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+              AGENTS
             </Link>
-            <Link href="/marketplace" className={`${location === "/marketplace" ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"} transition-colors font-medium text-lg`}>
-              Marketplace
+            <Link href="/marketplace" className={`${location === "/marketplace" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+              MARKETPLACE
             </Link>
-            <Link href="/custom-agent" className={`${location === "/custom-agent" ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"} transition-colors font-medium text-lg`}>
-              Custom Builder
+            <Link href="/custom-agent" className={`${location === "/custom-agent" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+              CUSTOM BUILDER
             </Link>
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:scale-105">
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-nano font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700">
               <i className="fas fa-rocket mr-2"></i>
-              Get Started
+              GET STARTED
             </Button>
           </div>
 
-          <button className="md:hidden p-3 hover:bg-gray-100 rounded-xl transition-colors">
-            <i className="fas fa-bars text-gray-900 text-xl"></i>
+          <button className="md:hidden p-3 hover:bg-gray-800 rounded-xl transition-colors">
+            <i className="fas fa-bars text-gray-300 text-xl"></i>
           </button>
         </div>
       </div>

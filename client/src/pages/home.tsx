@@ -20,14 +20,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-hero pt-16 pb-32">
+      <section className="relative overflow-hidden bg-black pt-16 pb-32">
         <div className="absolute inset-0 bg-gradient-mesh floating-shapes"></div>
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
@@ -41,37 +41,37 @@ export default function Home() {
               transition={{ duration: 1 }}
             >
               <motion.div
-                className="inline-block bg-white/20 backdrop-blur-md rounded-full px-6 py-2 mb-6 border border-white/30"
+                className="inline-block bg-gray-800/40 backdrop-blur-md rounded-full px-6 py-2 mb-6 border border-gray-600/30"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1 }}
               >
-                <span className="text-white font-medium text-sm">🚀 Trusted by 10,000+ businesses worldwide</span>
+                <span className="text-gray-300 font-medium text-sm">⚡ Trusted by 10,000+ businesses worldwide</span>
               </motion.div>
               
               <motion.h1 
-                className="text-5xl md:text-7xl font-display font-black text-white mb-6 leading-tight"
+                className="text-5xl md:text-7xl font-nano font-black text-white mb-6 leading-tight"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                Hire Smart
+                HIRE SMART
                 <br />
-                <span className="text-gradient bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                  AI Agents
+                <span className="text-gradient bg-gradient-to-r from-gray-300 to-gray-500 bg-clip-text text-transparent">
+                  AI AGENTS
                 </span>
                 <br />
-                That Work 24/7
+                THAT WORK 24/7
               </motion.h1>
               
               <motion.p 
-                className="text-xl text-white/90 mb-10 leading-relaxed max-w-lg font-medium"
+                className="text-xl text-gray-300 mb-10 leading-relaxed max-w-lg font-medium"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
                 Transform your business with intelligent agents that automate marketing, analytics, support, and more. 
-                <span className="font-bold text-yellow-300">Save 40+ hours per week</span> on repetitive tasks.
+                <span className="font-bold text-gray-100">Save 40+ hours per week</span> on repetitive tasks.
               </motion.p>
               
               <motion.div 
@@ -82,17 +82,17 @@ export default function Home() {
               >
                 <Button 
                   onClick={scrollToAgents}
-                  className="bg-white text-purple-900 hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-4 rounded-lg font-nano font-bold text-lg transition-all transform hover:scale-105 shadow-xl border border-gray-700"
                 >
                   <i className="fas fa-rocket mr-2"></i>
-                  Browse Agents
+                  BROWSE AGENTS
                 </Button>
                 <Button 
                   variant="outline"
-                  className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-md px-8 py-4 rounded-xl font-bold text-lg transition-all"
+                  className="border-2 border-gray-600 text-gray-300 hover:bg-gray-800/50 backdrop-blur-md px-8 py-4 rounded-lg font-nano font-bold text-lg transition-all"
                 >
                   <i className="fas fa-play mr-2"></i>
-                  Watch Demo
+                  WATCH DEMO
                 </Button>
               </motion.div>
 
@@ -112,15 +112,15 @@ export default function Home() {
                     />
                   ))}
                 </div>
-                <div className="text-white">
+                <div className="text-gray-300">
                   <p className="font-semibold">10,000+ happy customers</p>
                   <div className="flex items-center">
-                    <div className="flex text-yellow-400 mr-2">
+                    <div className="flex text-gray-400 mr-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <i key={star} className="fas fa-star text-sm"></i>
                       ))}
                     </div>
-                    <span className="text-sm text-white/80">4.9/5 rating</span>
+                    <span className="text-sm text-gray-400">4.9/5 rating</span>
                   </div>
                 </div>
               </motion.div>
@@ -134,9 +134,9 @@ export default function Home() {
             >
               <div className="relative">
                 <motion.img 
-                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                  src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
                   alt="AI Dashboard"
-                  className="rounded-3xl shadow-2xl border-4 border-white/30 backdrop-blur-sm"
+                  className="rounded-3xl shadow-2xl border-4 border-gray-600/50 backdrop-blur-sm"
                   animate={{ y: [-10, 10, -10] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 />
@@ -178,36 +178,34 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Trusted By Section */}
+        {/* Trusted By Section - Moving Logos */}
         <motion.div 
-          className="mt-20 text-center bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 max-w-4xl mx-auto"
+          className="mt-20 text-center bg-gray-900/60 backdrop-blur-md rounded-3xl p-8 border border-gray-700/50 max-w-6xl mx-auto overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <p className="text-white/80 mb-8 text-sm uppercase tracking-wider font-semibold">Trusted by Industry Leaders</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {COMPANY_LOGOS.map((company, index) => (
-              <motion.div
-                key={company.name}
-                className="flex flex-col items-center space-y-2 group"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
-                whileHover={{ scale: 1.1 }}
-              >
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/30 transition-all">
-                  <i className={`${company.icon} text-3xl text-white`}></i>
+          <p className="text-gray-300 mb-8 text-sm uppercase tracking-wider font-semibold font-nano">TRUSTED BY INDUSTRY LEADERS</p>
+          <div className="relative">
+            <div className="flex space-x-12 moving-logos">
+              {[...COMPANY_LOGOS, ...COMPANY_LOGOS].map((company, index) => (
+                <div
+                  key={`${company.name}-${index}`}
+                  className="flex flex-col items-center space-y-2 group flex-shrink-0"
+                >
+                  <div className="w-16 h-16 bg-gray-800/50 rounded-2xl flex items-center justify-center group-hover:bg-gray-700/50 transition-all border border-gray-600/30">
+                    <i className={`${company.icon} text-3xl text-gray-300`}></i>
+                  </div>
+                  <span className="font-semibold text-gray-400 text-sm font-nano">{company.name}</span>
                 </div>
-                <span className="font-semibold text-white text-sm">{company.name}</span>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
         </motion.div>
       </section>
 
       {/* Main Agents Section */}
-      <section id="agents" className="py-32 bg-gray-50 relative">
+      <section id="agents" className="py-32 bg-gray-900 relative">
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
@@ -223,61 +221,54 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <motion.div
-              className="inline-block bg-purple-100 text-purple-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              className="inline-block bg-gray-800/50 text-gray-300 rounded-full px-6 py-2 mb-6 font-semibold text-sm border border-gray-600/30"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
             >
               <i className="fas fa-star mr-2"></i>
-              Most Popular Agents
+              MOST POPULAR AGENTS
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
-              Meet Your New
+            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+              MEET YOUR NEW
               <br />
-              <span className="text-gradient">AI Workforce</span>
+              <span className="text-gradient">AI WORKFORCE</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
               Our elite AI agents work around the clock to transform your business operations. 
               Each bundle contains specialized sub-agents that collaborate seamlessly.
             </p>
           </motion.div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
-                  <div className="w-16 h-16 bg-gray-200 rounded-xl mb-6"></div>
-                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-6"></div>
-                  <div className="flex justify-between items-center">
-                    <div className="h-10 w-24 bg-gray-200 rounded"></div>
-                    <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
             </div>
           ) : (
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {featuredAgents?.map((agent, index) => (
-                <motion.div
-                  key={agent.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <AgentCard agent={agent} />
-                </motion.div>
-              ))}
-            </motion.div>
+            <div className="overflow-hidden mb-12">
+              <motion.div 
+                className="flex space-x-8 card-slide"
+                style={{ width: 'calc(300% + 4rem)' }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                {[...featuredAgents || [], ...featuredAgents || [], ...featuredAgents || []].map((agent, index) => (
+                  <motion.div
+                    key={`${agent.id}-${index}`}
+                    className="flex-shrink-0 w-80"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <AgentCard agent={agent} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
           )}
 
           {/* CTA for Custom Agent */}
@@ -288,37 +279,37 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <div className="relative bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
-              <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+            <div className="relative bg-gradient-to-r from-gray-800 to-gray-700 rounded-3xl p-12 overflow-hidden border border-gray-600">
+              <div className="absolute inset-0 opacity-30" style={{
+                backgroundImage: "url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
                 backgroundSize: "cover",
                 backgroundPosition: "center"
               }}></div>
               <div className="relative">
                 <motion.div
-                  className="inline-block bg-white/20 rounded-full px-6 py-2 mb-6"
+                  className="inline-block bg-gray-700/40 rounded-full px-6 py-2 mb-6 border border-gray-600/30"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <span className="text-white font-bold text-sm">
+                  <span className="text-gray-300 font-bold text-sm font-nano">
                     <i className="fas fa-magic mr-2"></i>
-                    Custom Solutions Available
+                    CUSTOM SOLUTIONS AVAILABLE
                   </span>
                 </motion.div>
-                <h3 className="text-4xl font-display font-black text-white mb-4">
-                  Need Something Unique?
+                <h3 className="text-4xl font-nano font-black text-white mb-4">
+                  NEED SOMETHING UNIQUE?
                 </h3>
-                <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
                   Our AI experts will design and build a custom agent tailored specifically to your business needs. 
                   From concept to deployment in just 48 hours.
                 </p>
                 <Button 
                   asChild
-                  className="bg-white text-purple-900 hover:bg-gray-100 px-10 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-10 py-4 rounded-lg font-nano font-bold text-lg shadow-xl transition-all transform hover:scale-105 border border-gray-700"
                 >
                   <Link href="/custom-agent">
                     <i className="fas fa-wand-magic-sparkles mr-2"></i>
-                    Build Custom Agent
+                    BUILD CUSTOM AGENT
                   </Link>
                 </Button>
               </div>

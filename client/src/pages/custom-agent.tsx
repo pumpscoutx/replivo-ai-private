@@ -88,11 +88,11 @@ export default function CustomAgent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <Header />
       
       {/* Custom Agent Builder Section */}
-      <section className="py-32 bg-gradient-to-br from-purple-50 to-pink-50 relative">
+      <section className="py-32 bg-black relative">
         <div className="absolute inset-0 opacity-15" style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
@@ -107,20 +107,20 @@ export default function CustomAgent() {
             transition={{ duration: 0.6 }}
           >
             <motion.div
-              className="inline-block bg-purple-100 text-purple-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              className="inline-block bg-gray-800/50 text-gray-300 rounded-full px-6 py-2 mb-6 font-semibold text-sm border border-gray-600/30"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <i className="fas fa-magic mr-2"></i>
-              Custom AI Solutions
+              CUSTOM AI SOLUTIONS
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
-              Create Your Perfect
+            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+              CREATE YOUR PERFECT
               <br />
-              <span className="text-gradient">AI Assistant</span>
+              <span className="text-gradient">AI ASSISTANT</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
               Our expert team will design and build a custom AI agent tailored specifically to your unique business requirements. 
               From concept to deployment in just 48 hours.
             </p>

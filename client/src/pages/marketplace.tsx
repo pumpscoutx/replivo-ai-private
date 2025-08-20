@@ -30,11 +30,11 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <Header />
       
       {/* Marketplace Section */}
-      <section className="py-32 bg-gradient-to-br from-gray-50 to-blue-50 relative">
+      <section className="py-32 bg-black relative">
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
@@ -49,20 +49,20 @@ export default function Marketplace() {
             transition={{ duration: 0.6 }}
           >
             <motion.div
-              className="inline-block bg-blue-100 text-blue-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              className="inline-block bg-gray-800/50 text-gray-300 rounded-full px-6 py-2 mb-6 font-semibold text-sm border border-gray-600/30"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <i className="fas fa-store mr-2"></i>
-              AI Specialist Marketplace
+              AI SPECIALIST MARKETPLACE
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
-              Build Your Dream
+            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+              BUILD YOUR DREAM
               <br />
-              <span className="text-gradient">AI Team</span>
+              <span className="text-gradient">AI TEAM</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8 leading-relaxed">
               Mix and match specialized AI agents to create the perfect workforce for your business. 
               Each agent excels in specific tasks and integrates seamlessly with others.
             </p>

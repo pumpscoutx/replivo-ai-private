@@ -52,7 +52,7 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
 
   return (
     <motion.div
-      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-100"
+      className="bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-700"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ scale: 1.05, y: -8 }}
@@ -78,8 +78,8 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
       </div>
 
       <div className="p-5">
-        <h4 className="text-lg font-display font-bold text-gray-900 mb-2">{subAgent.name}</h4>
-        <p className="text-sm text-gray-600 mb-4 leading-relaxed">{subAgent.description}</p>
+        <h4 className="text-lg font-nano font-bold text-white mb-2">{subAgent.name.toUpperCase()}</h4>
+        <p className="text-sm text-gray-400 mb-4 leading-relaxed">{subAgent.description}</p>
       
       {/* Animated task preview */}
       {subAgent.currentTask && (
@@ -101,15 +101,15 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
       
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-xl font-display font-black text-gray-900">{formatPrice(subAgent.price)}</span>
-            <span className="text-gray-500 text-sm font-medium">/mo</span>
+            <span className="text-xl font-nano font-black text-white">{formatPrice(subAgent.price)}</span>
+            <span className="text-gray-400 text-sm font-medium">/mo</span>
           </div>
           <Button 
             onClick={() => onAdd?.(subAgent)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg transition-all transform hover:scale-105"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-nano font-bold shadow-lg transition-all transform hover:scale-105 border border-gray-700"
           >
             <i className="fas fa-plus mr-1"></i>
-            Add
+            ADD
           </Button>
         </div>
       </div>
