@@ -92,23 +92,37 @@ export default function CustomAgent() {
       <Header />
       
       {/* Custom Agent Builder Section */}
-      <section className="py-20 bg-gray-50 relative">
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+      <section className="py-32 bg-gradient-to-br from-purple-50 to-pink-50 relative">
+        <div className="absolute inset-0 opacity-15" style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
         
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
-            className="text-center mb-12"
+            className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-dark mb-4">Custom Agent Builder</h2>
-            <p className="text-xl text-secondary">
-              Can't find what you need? Tell us about your requirements and we'll build a custom agent for you
+            <motion.div
+              className="inline-block bg-purple-100 text-purple-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <i className="fas fa-magic mr-2"></i>
+              Custom AI Solutions
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
+              Create Your Perfect
+              <br />
+              <span className="text-gradient">AI Assistant</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Our expert team will design and build a custom AI agent tailored specifically to your unique business requirements. 
+              From concept to deployment in just 48 hours.
             </p>
           </motion.div>
           

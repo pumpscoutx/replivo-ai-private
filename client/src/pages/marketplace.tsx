@@ -34,23 +34,37 @@ export default function Marketplace() {
       <Header />
       
       {/* Marketplace Section */}
-      <section className="py-20 bg-gray-50 relative">
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+      <section className="py-32 bg-gradient-to-br from-gray-50 to-blue-50 relative">
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-dark mb-4">Sub-Agent Marketplace</h2>
-            <p className="text-xl text-secondary max-w-2xl mx-auto mb-8">
-              Browse individual AI specialists and build your own custom agent bundle
+            <motion.div
+              className="inline-block bg-blue-100 text-blue-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <i className="fas fa-store mr-2"></i>
+              AI Specialist Marketplace
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
+              Build Your Dream
+              <br />
+              <span className="text-gradient">AI Team</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
+              Mix and match specialized AI agents to create the perfect workforce for your business. 
+              Each agent excels in specific tasks and integrates seamlessly with others.
             </p>
             
             {/* Filters */}

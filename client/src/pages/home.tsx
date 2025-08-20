@@ -24,82 +24,182 @@ export default function Home() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 pt-16 pb-24">
-        <div className="absolute inset-0 bg-mesh"></div>
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+      <section className="relative overflow-hidden bg-gradient-hero pt-16 pb-32">
+        <div className="absolute inset-0 bg-gradient-mesh floating-shapes"></div>
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div 
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.h1 
-              className="text-5xl md:text-6xl font-bold text-dark mb-6 leading-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Hire Intelligent <span className="text-primary">AI Agents</span> for Your Business
-            </motion.h1>
-            
-            <motion.p 
-              className="text-xl text-secondary mb-10 leading-relaxed max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Transform your workflow with smart AI agents that handle everything from content creation to data analysis. 
-              Browse our marketplace or create custom agents tailored to your needs.
-            </motion.p>
-            
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[70vh]">
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-left"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1 }}
             >
-              <Button 
-                onClick={scrollToAgents}
-                className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105"
+              <motion.div
+                className="inline-block bg-white/20 backdrop-blur-md rounded-full px-6 py-2 mb-6 border border-white/30"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
               >
-                Browse Agents
-              </Button>
-              <Button 
-                variant="outline"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all"
+                <span className="text-white font-medium text-sm">🚀 Trusted by 10,000+ businesses worldwide</span>
+              </motion.div>
+              
+              <motion.h1 
+                className="text-5xl md:text-7xl font-display font-black text-white mb-6 leading-tight"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
-                Watch Demo
-              </Button>
+                Hire Smart
+                <br />
+                <span className="text-gradient bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+                  AI Agents
+                </span>
+                <br />
+                That Work 24/7
+              </motion.h1>
+              
+              <motion.p 
+                className="text-xl text-white/90 mb-10 leading-relaxed max-w-lg font-medium"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                Transform your business with intelligent agents that automate marketing, analytics, support, and more. 
+                <span className="font-bold text-yellow-300">Save 40+ hours per week</span> on repetitive tasks.
+              </motion.p>
+              
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              >
+                <Button 
+                  onClick={scrollToAgents}
+                  className="bg-white text-purple-900 hover:bg-gray-100 px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+                >
+                  <i className="fas fa-rocket mr-2"></i>
+                  Browse Agents
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-md px-8 py-4 rounded-xl font-bold text-lg transition-all"
+                >
+                  <i className="fas fa-play mr-2"></i>
+                  Watch Demo
+                </Button>
+              </motion.div>
+
+              <motion.div 
+                className="flex items-center mt-8 space-x-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <img 
+                      key={i}
+                      src={`https://images.unsplash.com/photo-${1500000000000 + i * 100000000}?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`}
+                      className="w-10 h-10 rounded-full border-2 border-white shadow-lg"
+                      alt="User"
+                    />
+                  ))}
+                </div>
+                <div className="text-white">
+                  <p className="font-semibold">10,000+ happy customers</p>
+                  <div className="flex items-center">
+                    <div className="flex text-yellow-400 mr-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i key={star} className="fas fa-star text-sm"></i>
+                      ))}
+                    </div>
+                    <span className="text-sm text-white/80">4.9/5 rating</span>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
+
+            <motion.div 
+              className="relative"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.3 }}
+            >
+              <div className="relative">
+                <motion.img 
+                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                  alt="AI Dashboard"
+                  className="rounded-3xl shadow-2xl border-4 border-white/30 backdrop-blur-sm"
+                  animate={{ y: [-10, 10, -10] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                {/* Floating Cards */}
+                <motion.div 
+                  className="absolute -top-6 -left-6 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-gray-200"
+                  animate={{ y: [-5, 5, -5] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-chart-line text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-800">Revenue Up</p>
+                      <p className="text-green-600 font-bold">+234%</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="absolute -bottom-6 -right-6 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-gray-200"
+                  animate={{ y: [5, -5, 5] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <i className="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-800">AI Agents</p>
+                      <p className="text-blue-600 font-bold">24/7 Active</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Trusted By Section */}
         <motion.div 
-          className="mt-20 text-center"
+          className="mt-20 text-center bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <p className="text-secondary mb-8 text-sm uppercase tracking-wider">Trusted by</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+          <p className="text-white/80 mb-8 text-sm uppercase tracking-wider font-semibold">Trusted by Industry Leaders</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {COMPANY_LOGOS.map((company, index) => (
               <motion.div
                 key={company.name}
-                className="flex items-center space-x-2"
+                className="flex flex-col items-center space-y-2 group"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
                 whileHover={{ scale: 1.1 }}
               >
-                <i className={`${company.icon} text-2xl text-gray-400`}></i>
-                <span className="font-medium text-gray-600">{company.name}</span>
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/30 transition-all">
+                  <i className={`${company.icon} text-3xl text-white`}></i>
+                </div>
+                <span className="font-semibold text-white text-sm">{company.name}</span>
               </motion.div>
             ))}
           </div>
@@ -107,24 +207,39 @@ export default function Home() {
       </section>
 
       {/* Main Agents Section */}
-      <section id="agents" className="py-20 bg-white relative">
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+      <section id="agents" className="py-32 bg-gray-50 relative">
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold text-dark mb-4">Featured AI Agents</h2>
-            <p className="text-xl text-secondary max-w-2xl mx-auto">
-              Discover our most popular agent bundles, each containing specialized sub-agents for comprehensive task automation
+            <motion.div
+              className="inline-block bg-purple-100 text-purple-800 rounded-full px-6 py-2 mb-6 font-semibold text-sm"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <i className="fas fa-star mr-2"></i>
+              Most Popular Agents
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl font-display font-black text-gray-900 mb-6 leading-tight">
+              Meet Your New
+              <br />
+              <span className="text-gradient">AI Workforce</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Our elite AI agents work around the clock to transform your business operations. 
+              Each bundle contains specialized sub-agents that collaborate seamlessly.
             </p>
           </motion.div>
 
@@ -173,15 +288,40 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200">
-              <h3 className="text-2xl font-bold text-dark mb-3">Didn't find the agent you need?</h3>
-              <p className="text-secondary mb-6">Tell us what you're looking for and we'll create a custom agent bundle just for you.</p>
-              <Button 
-                asChild
-                className="bg-accent hover:bg-yellow-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
-              >
-                <Link href="/custom-agent">Request Custom Agent</Link>
-              </Button>
+            <div className="relative bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
+              <div className="absolute inset-0 opacity-20" style={{
+                backgroundImage: "url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
+                backgroundSize: "cover",
+                backgroundPosition: "center"
+              }}></div>
+              <div className="relative">
+                <motion.div
+                  className="inline-block bg-white/20 rounded-full px-6 py-2 mb-6"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <span className="text-white font-bold text-sm">
+                    <i className="fas fa-magic mr-2"></i>
+                    Custom Solutions Available
+                  </span>
+                </motion.div>
+                <h3 className="text-4xl font-display font-black text-white mb-4">
+                  Need Something Unique?
+                </h3>
+                <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+                  Our AI experts will design and build a custom agent tailored specifically to your business needs. 
+                  From concept to deployment in just 48 hours.
+                </p>
+                <Button 
+                  asChild
+                  className="bg-white text-purple-900 hover:bg-gray-100 px-10 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105"
+                >
+                  <Link href="/custom-agent">
+                    <i className="fas fa-wand-magic-sparkles mr-2"></i>
+                    Build Custom Agent
+                  </Link>
+                </Button>
+              </div>
             </div>
           </motion.div>
         </div>
