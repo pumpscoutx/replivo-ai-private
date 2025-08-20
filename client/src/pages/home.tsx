@@ -50,7 +50,7 @@ export default function Home() {
               </motion.div>
               
               <motion.h1 
-                className="text-5xl md:text-7xl font-nano font-black text-white mb-6 leading-tight"
+                className="text-5xl md:text-7xl font-neiko font-black text-white mb-6 leading-tight"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -82,14 +82,14 @@ export default function Home() {
               >
                 <Button 
                   onClick={scrollToAgents}
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-4 rounded-lg font-nano font-bold text-lg transition-all transform hover:scale-105 shadow-xl border border-gray-700"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-4 rounded-lg font-neiko font-bold text-lg transition-all transform hover:scale-105 shadow-xl border border-gray-700"
                 >
                   <i className="fas fa-rocket mr-2"></i>
                   BROWSE AGENTS
                 </Button>
                 <Button 
                   variant="outline"
-                  className="border-2 border-gray-600 text-gray-300 hover:bg-gray-800/50 backdrop-blur-md px-8 py-4 rounded-lg font-nano font-bold text-lg transition-all"
+                  className="border-2 border-gray-600 text-gray-300 hover:bg-gray-800/50 backdrop-blur-md px-8 py-4 rounded-lg font-neiko font-bold text-lg transition-all"
                 >
                   <i className="fas fa-play mr-2"></i>
                   WATCH DEMO
@@ -185,7 +185,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <p className="text-gray-300 mb-8 text-sm uppercase tracking-wider font-semibold font-nano">TRUSTED BY INDUSTRY LEADERS</p>
+          <p className="text-gray-300 mb-8 text-sm uppercase tracking-wider font-semibold font-neiko">TRUSTED BY INDUSTRY LEADERS</p>
           <div className="relative">
             <div className="flex space-x-12 moving-logos">
               {[...COMPANY_LOGOS, ...COMPANY_LOGOS].map((company, index) => (
@@ -196,7 +196,7 @@ export default function Home() {
                   <div className="w-16 h-16 bg-gray-800/50 rounded-2xl flex items-center justify-center group-hover:bg-gray-700/50 transition-all border border-gray-600/30">
                     <i className={`${company.icon} text-3xl text-gray-300`}></i>
                   </div>
-                  <span className="font-semibold text-gray-400 text-sm font-nano">{company.name}</span>
+                  <span className="font-semibold text-gray-400 text-sm font-neiko">{company.name}</span>
                 </div>
               ))}
             </div>
@@ -230,7 +230,7 @@ export default function Home() {
               <i className="fas fa-star mr-2"></i>
               MOST POPULAR AGENTS
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+            <h2 className="text-5xl md:text-6xl font-neiko font-black text-white mb-6 leading-tight">
               MEET YOUR NEW
               <br />
               <span className="text-gradient">AI WORKFORCE</span>
@@ -246,29 +246,25 @@ export default function Home() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
             </div>
           ) : (
-            <div className="overflow-hidden mb-12">
-              <motion.div 
-                className="flex space-x-8 card-slide"
-                style={{ width: 'calc(300% + 4rem)' }}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                viewport={{ once: true }}
-              >
-                {[...featuredAgents || [], ...featuredAgents || [], ...featuredAgents || []].map((agent, index) => (
-                  <motion.div
-                    key={`${agent.id}-${index}`}
-                    className="flex-shrink-0 w-80"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <AgentCard agent={agent} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              {featuredAgents?.map((agent, index) => (
+                <motion.div
+                  key={agent.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <AgentCard agent={agent} />
+                </motion.div>
+              ))}
+            </motion.div>
           )}
 
           {/* CTA for Custom Agent */}
@@ -291,12 +287,12 @@ export default function Home() {
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <span className="text-gray-300 font-bold text-sm font-nano">
+                  <span className="text-gray-300 font-bold text-sm font-neiko">
                     <i className="fas fa-magic mr-2"></i>
                     CUSTOM SOLUTIONS AVAILABLE
                   </span>
                 </motion.div>
-                <h3 className="text-4xl font-nano font-black text-white mb-4">
+                <h3 className="text-4xl font-neiko font-black text-white mb-4">
                   NEED SOMETHING UNIQUE?
                 </h3>
                 <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -305,7 +301,7 @@ export default function Home() {
                 </p>
                 <Button 
                   asChild
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-10 py-4 rounded-lg font-nano font-bold text-lg shadow-xl transition-all transform hover:scale-105 border border-gray-700"
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-10 py-4 rounded-lg font-neiko font-bold text-lg shadow-xl transition-all transform hover:scale-105 border border-gray-700"
                 >
                   <Link href="/custom-agent">
                     <i className="fas fa-wand-magic-sparkles mr-2"></i>

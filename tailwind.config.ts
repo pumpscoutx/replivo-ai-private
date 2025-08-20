@@ -71,7 +71,7 @@ export default {
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
         inter: ["Inter", "sans-serif"],
-        nano: ["NANO", "Space Grotesk", "sans-serif"],
+        neiko: ["Neiko", "Space Grotesk", "sans-serif"],
         space: ["Space Grotesk", "monospace"],
       },
       keyframes: {

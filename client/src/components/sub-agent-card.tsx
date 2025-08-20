@@ -78,7 +78,7 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
       </div>
 
       <div className="p-5">
-        <h4 className="text-lg font-nano font-bold text-white mb-2">{subAgent.name.toUpperCase()}</h4>
+        <h4 className="text-lg font-neiko font-bold text-white mb-2">{subAgent.name.toUpperCase()}</h4>
         <p className="text-sm text-gray-400 mb-4 leading-relaxed">{subAgent.description}</p>
       
       {/* Animated task preview */}
@@ -101,12 +101,12 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
       
         <div className="flex justify-between items-center">
           <div>
-            <span className="text-xl font-nano font-black text-white">{formatPrice(subAgent.price)}</span>
+            <span className="text-xl font-neiko font-black text-white">{formatPrice(subAgent.price)}</span>
             <span className="text-gray-400 text-sm font-medium">/mo</span>
           </div>
           <Button 
             onClick={() => onAdd?.(subAgent)}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-nano font-bold shadow-lg transition-all transform hover:scale-105 border border-gray-700"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-neiko font-bold shadow-lg transition-all transform hover:scale-105 border border-gray-700"
           >
             <i className="fas fa-plus mr-1"></i>
             ADD

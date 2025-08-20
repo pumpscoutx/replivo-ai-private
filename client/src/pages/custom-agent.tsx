@@ -115,7 +115,7 @@ export default function CustomAgent() {
               <i className="fas fa-magic mr-2"></i>
               CUSTOM AI SOLUTIONS
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+            <h2 className="text-5xl md:text-6xl font-neiko font-black text-white mb-6 leading-tight">
               CREATE YOUR PERFECT
               <br />
               <span className="text-gradient">AI ASSISTANT</span>

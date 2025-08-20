@@ -12,20 +12,20 @@ export default function Header() {
             <div className="w-10 h-10 bg-gray-800 rounded-2xl flex items-center justify-center shadow-lg border border-gray-600">
               <i className="fas fa-robot text-gray-300 text-lg"></i>
             </div>
-            <span className="text-2xl font-nano font-black text-white">REPLIVO</span>
+            <span className="text-2xl font-neiko font-black text-white">REPLIVO</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className={`${location === "/" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+            <Link href="/" className={`${location === "/" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-neiko`}>
               AGENTS
             </Link>
-            <Link href="/marketplace" className={`${location === "/marketplace" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+            <Link href="/marketplace" className={`${location === "/marketplace" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-neiko`}>
               MARKETPLACE
             </Link>
-            <Link href="/custom-agent" className={`${location === "/custom-agent" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-nano`}>
+            <Link href="/custom-agent" className={`${location === "/custom-agent" ? "text-white font-bold" : "text-gray-400 hover:text-white"} transition-colors font-medium text-lg font-neiko`}>
               CUSTOM BUILDER
             </Link>
-            <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-nano font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700">
+            <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-neiko font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700">
               <i className="fas fa-rocket mr-2"></i>
               GET STARTED
             </Button>

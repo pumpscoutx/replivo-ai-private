@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.cdnfonts.com/css/nano');
+@import url('https://fonts.cdnfonts.com/css/neiko');
 
 @font-face {
-  font-family: 'NANO';
-  src: url('https://fonts.cdnfonts.com/s/19234/Nano.woff2') format('woff2'),
-       url('https://fonts.cdnfonts.com/s/19234/Nano.woff') format('woff');
+  font-family: 'Neiko';
+  src: url('https://fonts.cdnfonts.com/s/76854/Neiko.woff2') format('woff2'),
+       url('https://fonts.cdnfonts.com/s/76854/Neiko.woff') format('woff');
   font-weight: 400;
   font-display: swap;
 }
@@ -48,7 +48,7 @@
   --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
   --sidebar-ring: hsl(214.7, 87.8%, 59.2%);
   --font-sans: 'Inter', sans-serif;
-  --font-display: 'NANO', 'Space Grotesk', sans-serif;
+  --font-display: 'Neiko', 'Space Grotesk', sans-serif;
   --font-mono: 'Space Grotesk', monospace;
   --font-serif: Georgia, serif;
   --radius: 1.3rem;
@@ -152,16 +152,16 @@
     }
   }
 
-  .card-slide {
-    animation: slideCards 20s linear infinite;
+  .subagent-text-slide {
+    animation: slideText 15s linear infinite;
   }
 
-  @keyframes slideCards {
+  @keyframes slideText {
     0% {
-      transform: translateX(0);
+      transform: translateX(100%);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translateX(-100%);
     }
   }
 

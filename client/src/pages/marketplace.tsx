@@ -57,7 +57,7 @@ export default function Marketplace() {
               <i className="fas fa-store mr-2"></i>
               AI SPECIALIST MARKETPLACE
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-nano font-black text-white mb-6 leading-tight">
+            <h2 className="text-5xl md:text-6xl font-neiko font-black text-white mb-6 leading-tight">
               BUILD YOUR DREAM
               <br />
               <span className="text-gradient">AI TEAM</span>

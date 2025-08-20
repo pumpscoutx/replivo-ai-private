@@ -45,6 +45,17 @@ export default function AgentCard({ agent }: AgentCardProps) {
     return imageMap[agentName] || "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300";
   };
 
+  const getSubagentNames = (agentName: string) => {
+    const subagentMap: Record<string, string> = {
+      "Marketing Agent": "Social Media Specialist • Email Marketing Expert • Content Creator • Analytics Analyst • SEO Specialist • Campaign Manager",
+      "Development Team": "Frontend Developer • Backend Developer • Database Expert • DevOps Engineer • UI/UX Designer • QA Specialist",
+      "Customer Support": "Live Chat Agent • Ticket Manager • Knowledge Base Manager • Social Support Agent • Phone Support Agent • Escalation Specialist",
+      "Data Analytics": "Data Scientist • Business Intelligence Analyst • Reporting Specialist • Predictive Modeler • Data Visualizer • Statistical Analyst",
+      "Sales Team": "Lead Generator • Sales Qualifier • Demo Specialist • Follow-up Agent • Deal Closer • Account Manager"
+    };
+    return subagentMap[agentName] || "AI Specialist • Task Automator • Process Manager • Data Handler • Communication Expert • Quality Controller";
+  };
+
   return (
     <motion.div
       className="agent-card bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl border border-gray-700 group overflow-hidden cursor-pointer"
@@ -82,8 +93,18 @@ export default function AgentCard({ agent }: AgentCardProps) {
       </div>
 
       <div className="p-8">
-        <h3 className="text-2xl font-nano font-bold text-white mb-3">{agent.name.toUpperCase()}</h3>
-        <p className="text-gray-400 mb-6 leading-relaxed">{agent.description}</p>
+        <h3 className="text-2xl font-neiko font-bold text-white mb-3">{agent.name.toUpperCase()}</h3>
+        <p className="text-gray-400 mb-4 leading-relaxed">{agent.description}</p>
+        
+        {/* Moving Subagent Names */}
+        <div className="mb-4 overflow-hidden bg-gray-700/30 rounded-lg p-2 border border-gray-600/30">
+          <div className="text-xs text-gray-500 mb-1 font-neiko">INCLUDES:</div>
+          <div className="relative h-4 overflow-hidden">
+            <div className="subagent-text-slide text-sm text-gray-400 font-medium whitespace-nowrap">
+              {getSubagentNames(agent.name)}
+            </div>
+          </div>
+        </div>
       
       {/* Ratings */}
       <div className="flex items-center mb-4">
@@ -126,7 +147,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
         <div className="flex justify-between items-center">
           <Button 
             asChild
-            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-nano font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-neiko font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700"
           >
             <Link href="/marketplace">
               <i className="fas fa-shopping-cart mr-2"></i>
@@ -134,7 +155,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
             </Link>
           </Button>
           <div className="text-right">
-            <span className="text-3xl font-nano font-black text-white">{formatPrice(agent.price)}</span>
+            <span className="text-3xl font-neiko font-black text-white">{formatPrice(agent.price)}</span>
             <span className="text-gray-400 font-medium">/mo</span>
           </div>
         </div>
