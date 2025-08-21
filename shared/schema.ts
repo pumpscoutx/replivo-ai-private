@@ -82,6 +82,76 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   createdAt: true
 });
 
+// Enhanced schema for browser extension and device control
+export const userPermissions = pgTable("user_permissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  agentId: varchar("agent_id").notNull(),
+  scope: text("scope").notNull(), // browser:fill, browser:read, email:send, etc.
+  domain: text("domain"), // specific domain for browser permissions
+  autonomyLevel: text("autonomy_level").notNull(), // suggest, confirm, autonomous
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: text("expires_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const extensionPairings = pgTable("extension_pairings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  extensionId: text("extension_id").notNull(),
+  pairingCode: text("pairing_code").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  lastSeen: text("last_seen").default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const commandLog = pgTable("command_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  agentId: varchar("agent_id").notNull(),
+  requestId: text("request_id").notNull(),
+  capability: text("capability").notNull(),
+  args: jsonb("args"),
+  result: jsonb("result"),
+  status: text("status").notNull(), // pending, success, failed, rejected
+  signature: text("signature").notNull(),
+  executedAt: text("executed_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const voiceInteractions = pgTable("voice_interactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  agentId: varchar("agent_id").notNull(),
+  transcript: text("transcript").notNull(),
+  intent: text("intent"),
+  response: text("response"),
+  audioUrl: text("audio_url"), // optional audio storage
+  duration: integer("duration"), // in milliseconds
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertExtensionPairingSchema = createInsertSchema(extensionPairings).omit({
+  id: true,
+  createdAt: true,
+  lastSeen: true
+});
+
+export const insertCommandLogSchema = createInsertSchema(commandLog).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertVoiceInteractionSchema = createInsertSchema(voiceInteractions).omit({
+  id: true,
+  createdAt: true
+});
+
 export type InsertAgent = z.infer<typeof insertAgentSchema>;
 export type Agent = typeof agents.$inferSelect;
 export type InsertSubAgent = z.infer<typeof insertSubAgentSchema>;
@@ -92,3 +162,12 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+
+export type UserPermission = typeof userPermissions.$inferSelect;
+export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+export type ExtensionPairing = typeof extensionPairings.$inferSelect;
+export type InsertExtensionPairing = z.infer<typeof insertExtensionPairingSchema>;
+export type CommandLog = typeof commandLog.$inferSelect;
+export type InsertCommandLog = z.infer<typeof insertCommandLogSchema>;
+export type VoiceInteraction = typeof voiceInteractions.$inferSelect;
+export type InsertVoiceInteraction = z.infer<typeof insertVoiceInteractionSchema>;

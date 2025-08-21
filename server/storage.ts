@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest } from "@shared/schema";
+import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -18,6 +18,24 @@ export interface IStorage {
   
   createCustomRequest(request: InsertCustomRequest): Promise<CustomRequest>;
   getAllCustomRequests(): Promise<CustomRequest[]>;
+  
+  // Extension and permission management
+  createUserPermission(permission: InsertUserPermission): Promise<UserPermission>;
+  getUserPermissions(userId: string): Promise<UserPermission[]>;
+  updateUserPermission(id: string, updates: Partial<UserPermission>): Promise<void>;
+  
+  createExtensionPairing(pairing: InsertExtensionPairing): Promise<ExtensionPairing>;
+  getExtensionPairings(userId: string): Promise<ExtensionPairing[]>;
+  getPairingByCode(code: string): Promise<ExtensionPairing | undefined>;
+  updateExtensionPairing(id: string, updates: Partial<ExtensionPairing>): Promise<void>;
+  updateExtensionLastSeen(id: string): Promise<void>;
+  
+  createCommandLog(command: InsertCommandLog): Promise<CommandLog>;
+  getCommandLog(userId: string, limit?: number, offset?: number): Promise<CommandLog[]>;
+  updateCommandResult(requestId: string, updates: { status: string; result?: any; error?: string; executedAt: string }): Promise<void>;
+  
+  createVoiceInteraction(interaction: InsertVoiceInteraction): Promise<VoiceInteraction>;
+  getVoiceInteractions(userId: string, limit?: number): Promise<VoiceInteraction[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -25,12 +43,20 @@ export class MemStorage implements IStorage {
   private agents: Map<string, Agent>;
   private subAgents: Map<string, SubAgent>;
   private customRequests: Map<string, CustomRequest>;
+  private userPermissions: Map<string, UserPermission>;
+  private extensionPairings: Map<string, ExtensionPairing>;
+  private commandLogs: Map<string, CommandLog>;
+  private voiceInteractions: Map<string, VoiceInteraction>;
 
   constructor() {
     this.users = new Map();
     this.agents = new Map();
     this.subAgents = new Map();
     this.customRequests = new Map();
+    this.userPermissions = new Map();
+    this.extensionPairings = new Map();
+    this.commandLogs = new Map();
+    this.voiceInteractions = new Map();
     this.initializeData();
   }
 
@@ -341,6 +367,110 @@ export class MemStorage implements IStorage {
 
   async getAllCustomRequests(): Promise<CustomRequest[]> {
     return Array.from(this.customRequests.values());
+  }
+
+  // Extension and permission management implementation
+  async createUserPermission(insertPermission: InsertUserPermission): Promise<UserPermission> {
+    const id = randomUUID();
+    const permission: UserPermission = { 
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      ...insertPermission, 
+      id 
+    };
+    this.userPermissions.set(id, permission);
+    return permission;
+  }
+
+  async getUserPermissions(userId: string): Promise<UserPermission[]> {
+    return Array.from(this.userPermissions.values()).filter(p => p.userId === userId);
+  }
+
+  async updateUserPermission(id: string, updates: Partial<UserPermission>): Promise<void> {
+    const permission = this.userPermissions.get(id);
+    if (permission) {
+      this.userPermissions.set(id, { ...permission, ...updates });
+    }
+  }
+
+  async createExtensionPairing(insertPairing: InsertExtensionPairing): Promise<ExtensionPairing> {
+    const id = randomUUID();
+    const pairing: ExtensionPairing = { 
+      isActive: true,
+      lastSeen: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...insertPairing, 
+      id 
+    };
+    this.extensionPairings.set(id, pairing);
+    return pairing;
+  }
+
+  async getExtensionPairings(userId: string): Promise<ExtensionPairing[]> {
+    return Array.from(this.extensionPairings.values()).filter(p => p.userId === userId);
+  }
+
+  async getPairingByCode(code: string): Promise<ExtensionPairing | undefined> {
+    return Array.from(this.extensionPairings.values()).find(p => p.pairingCode === code);
+  }
+
+  async updateExtensionPairing(id: string, updates: Partial<ExtensionPairing>): Promise<void> {
+    const pairing = this.extensionPairings.get(id);
+    if (pairing) {
+      this.extensionPairings.set(id, { ...pairing, ...updates });
+    }
+  }
+
+  async updateExtensionLastSeen(id: string): Promise<void> {
+    const pairing = this.extensionPairings.get(id);
+    if (pairing) {
+      this.extensionPairings.set(id, { ...pairing, lastSeen: new Date().toISOString() });
+    }
+  }
+
+  async createCommandLog(insertCommand: InsertCommandLog): Promise<CommandLog> {
+    const id = randomUUID();
+    const command: CommandLog = { 
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      ...insertCommand, 
+      id 
+    };
+    this.commandLogs.set(id, command);
+    return command;
+  }
+
+  async getCommandLog(userId: string, limit = 50, offset = 0): Promise<CommandLog[]> {
+    const userCommands = Array.from(this.commandLogs.values())
+      .filter(c => c.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    return userCommands.slice(offset, offset + limit);
+  }
+
+  async updateCommandResult(requestId: string, updates: { status: string; result?: any; error?: string; executedAt: string }): Promise<void> {
+    const command = Array.from(this.commandLogs.values()).find(c => c.requestId === requestId);
+    if (command) {
+      this.commandLogs.set(command.id, { ...command, ...updates });
+    }
+  }
+
+  async createVoiceInteraction(insertInteraction: InsertVoiceInteraction): Promise<VoiceInteraction> {
+    const id = randomUUID();
+    const interaction: VoiceInteraction = { 
+      createdAt: new Date().toISOString(),
+      ...insertInteraction, 
+      id 
+    };
+    this.voiceInteractions.set(id, interaction);
+    return interaction;
+  }
+
+  async getVoiceInteractions(userId: string, limit = 50): Promise<VoiceInteraction[]> {
+    return Array.from(this.voiceInteractions.values())
+      .filter(v => v.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
   }
 }
 

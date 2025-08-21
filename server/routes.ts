@@ -96,6 +96,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Extension API routes
+  app.post("/api/extension/pair", async (req, res) => {
+    try {
+      const { code, extensionId } = req.body;
+      
+      if (!code || !extensionId) {
+        return res.status(400).json({ error: 'Code and extensionId required' });
+      }
+
+      const pairing = await storage.getPairingByCode(code);
+      if (!pairing || !pairing.isActive) {
+        return res.status(404).json({ error: 'Invalid or expired pairing code' });
+      }
+
+      await storage.updateExtensionPairing(pairing.id, { extensionId });
+
+      res.json({
+        success: true,
+        userId: pairing.userId,
+        websocketUrl: `/extension-ws`
+      });
+
+    } catch (error) {
+      console.error('Extension pairing error:', error);
+      res.status(500).json({ error: 'Pairing failed' });
+    }
+  });
+
+  app.post("/api/extension/generate-code", async (req, res) => {
+    try {
+      const userId = req.body.userId || 'demo-user';
+      const pairingCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+      
+      const pairing = await storage.createExtensionPairing({
+        userId,
+        extensionId: '',
+        pairingCode,
+        isActive: true
+      });
+
+      res.json({
+        pairingCode,
+        pairingId: pairing.id,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      });
+
+    } catch (error) {
+      console.error('Code generation error:', error);
+      res.status(500).json({ error: 'Failed to generate pairing code' });
+    }
+  });
+
+  app.get("/api/extension/status/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const pairings = await storage.getExtensionPairings(userId);
+      const activePairings = pairings.filter(p => p.isActive);
+
+      res.json({
+        hasPairedExtension: activePairings.length > 0,
+        extensions: activePairings.map(p => ({
+          id: p.id,
+          extensionId: p.extensionId,
+          lastSeen: p.lastSeen,
+          isOnline: p.lastSeen && new Date(p.lastSeen).getTime() > Date.now() - 5 * 60 * 1000
+        }))
+      });
+
+    } catch (error) {
+      console.error('Status check error:', error);
+      res.status(500).json({ error: 'Failed to check status' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

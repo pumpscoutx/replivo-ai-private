@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Marketplace from "@/pages/marketplace";
 import CustomAgent from "@/pages/custom-agent";
 import AgentDetails from "@/pages/agent-details";
+import AgentHiring from "@/pages/agent-hiring";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/custom-agent" component={CustomAgent} />
       <Route path="/agent/:id" component={AgentDetails} />
+      <Route path="/hire/:id" component={AgentHiring} />
       <Route component={NotFound} />
     </Switch>
   );

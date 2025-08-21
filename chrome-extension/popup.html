@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Replivo Helper</title>
+  <style>
+    body {
+      width: 350px;
+      min-height: 200px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: white;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #404040;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+      border-radius: 8px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-connected {
+      background-color: #10b981;
+    }
+
+    .status-disconnected {
+      background-color: #ef4444;
+    }
+
+    .status-text {
+      font-size: 14px;
+      color: #d1d5db;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #f3f4f6;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #404040;
+      border-radius: 6px;
+      background: #2d2d2d;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .button:disabled {
+      background: #404040;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .button-secondary {
+      background: transparent;
+      border: 1px solid #404040;
+      color: #d1d5db;
+    }
+
+    .button-secondary:hover {
+      background: #2d2d2d;
+      border-color: #525252;
+      box-shadow: none;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.4;
+      margin-top: 10px;
+    }
+
+    .error-text {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 5px;
+    }
+
+    .success-text {
+      font-size: 12px;
+      color: #10b981;
+      margin-top: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #404040;
+      border-top: 2px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .paired-info {
+      background: #1e3a8a;
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .paired-user {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .paired-time {
+      font-size: 12px;
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">R</div>
+      <h1 class="title">Replivo Helper</h1>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Not Paired State -->
+    <div id="not-paired" class="hidden">
+      <div class="status">
+        <div class="status-indicator status-disconnected"></div>
+        <span class="status-text">Not connected</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Pair with Account</div>
+        <div class="input-group">
+          <input type="text" id="pairing-code" class="input" placeholder="Enter pairing code" maxlength="8">
+          <div id="pairing-error" class="error-text hidden"></div>
+        </div>
+        <button id="pair-button" class="button">Connect to Replivo</button>
+        <div class="info-text">
+          Get your pairing code from the Replivo web app when hiring an agent.
+        </div>
+      </div>
+    </div>
+
+    <!-- Paired State -->
+    <div id="paired" class="hidden">
+      <div class="status">
+        <div class="status-indicator status-connected"></div>
+        <span class="status-text">Connected</span>
+      </div>
+
+      <div class="paired-info">
+        <div class="paired-user" id="paired-user">Connected to account</div>
+        <div class="paired-time" id="paired-time">Last seen: Just now</div>
+      </div>
+
+      <div class="section">
+        <button id="open-dashboard" class="button">Open Dashboard</button>
+        <button id="disconnect-button" class="button button-secondary" style="margin-top: 8px;">Disconnect</button>
+      </div>
+
+      <div class="info-text">
+        Your Replivo agents can now interact with web pages on your behalf. All actions are logged and can be reviewed in your dashboard.
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden">
+      <div class="status">
+        <div class="status-indicator status-disconnected"></div>
+        <span class="status-text">Connection error</span>
+      </div>
+
+      <div class="section">
+        <button id="retry-button" class="button">Retry Connection</button>
+        <div class="info-text">
+          Unable to connect to Replivo. Please check your internet connection and try again.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

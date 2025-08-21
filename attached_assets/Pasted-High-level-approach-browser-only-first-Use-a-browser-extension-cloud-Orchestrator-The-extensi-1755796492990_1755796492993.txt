@@ -1,0 +1,313 @@
+High-level approach (browser-only first)
+
+Use a browser extension + cloud Orchestrator.
+
+The extension performs web automation (open tab, fill forms, click, read DOM) inside the user’s browser only after explicit per-site and per-scope consent.
+
+The Orchestrator (server) uses a private LLM API key (store in env) to plan steps and issues signed commands to the extension over an authenticated channel (WebSocket or server-sent events).
+
+Flow summary
+
+User hires sub-agent → UI shows requested scopes and example actions → user installs/activates extension and grants per-site consent → extension pairs with server → server sends signed commands → extension executes them and returns results/logs → agent reports progress (voice/text).
+
+Security constraints
+
+API keys only on server.
+
+All commands signed and checked.
+
+User must opt-in per scope and per target domain.
+
+Provide kill-switch, audit logs, and retraceable artifacts (DOM snippets/screenshots if consented).
+
+Architecture components (browser-first)
+
+Frontend Web UI — hire flow, permission screens, “Your Hired Agents”, voice control UI.
+
+Cloud Orchestrator (server) — planner (LLM calls), policy engine, command signer, audit log, user accounts, WebSocket server.
+
+Browser Extension — background service worker + content scripts + UI (popup/options). Performs DOM actions, collects data, streams events to server.
+
+Integrations — OAuth systems (Gmail/Calendar/Drive/Slack) for non-browser API tasks (later).
+
+Permission model & UX (exact user flow / copy)
+
+When user clicks Hire Now (sub-agent):
+
+Login / Signup (if needed).
+
+Company details form (single page; minimal fields: company name, site(s) the agent will interact with, contact).
+
+Permissions screen (MANDATORY) — show each scope in plain language and example actions. Let user toggle per-domain consent. Example copy:
+
+[AgentName] is requesting the following permissions
+• Browse on your behalf (open pages, click links) — Example: “Open CRM dashboard and search ticket #123.”
+• Fill and submit forms on allowed domains — Example: “Log into CRM page and update ticket.”
+• Read page content (DOM) on allowed domains — Example: “Extract order ID and status.”
+• Download/upload files to selected folders (browser downloads) — Example: “Download invoice.pdf and attach to email.”
+• Capture screenshots (optional) — Example: “Take a screenshot of the confirmation page.”
+Choose autonomy: [Suggest] [Confirm] [Autonomous (critical actions still require confirmation)]
+[Run Safe Demo] [Accept & Install Extension]
+
+Install / Activate extension if not present.
+
+Pairing: extension displays one-time code → user inputs into web UI or scans QR.
+
+Per-site consent: Extension asks user to confirm domains it will work on (checkbox list).
+
+Run safe demo: Orchestrator issues a benign command (open https://example.com
+) and extension shows a visual confirmation.
+
+Always log consent timestamp + scope.
+
+Browser extension design (concrete)
+Manifest (Chrome MV3 example)
+{
+  "manifest_version": 3,
+  "name": "Replivo Helper",
+  "version": "1.0.0",
+  "description": "Execute Replivo agent tasks on allowed domains",
+  "permissions": ["scripting", "tabs", "storage", "activeTab", "downloads", "alarms"],
+  "host_permissions": ["https://*.yourdomain.com/*","https://*.trusted-domain.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}
+
+
+host_permissions must be set conservatively; the extension will request more domains only after user action.
+
+Background service worker (simplified sketch)
+// background.js
+let ws = null;
+let pairedAccount = null;
+
+chrome.runtime.onInstalled.addListener(() => {
+  // initial setup
+});
+
+// Pairing flow: exchange code with server -> store JWT
+chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+  if (msg.type === 'PAIR') {
+    const code = msg.code;
+    const res = await fetch('https://orchestrator.example.com/api/pair', {
+      method:'POST', body: JSON.stringify({code}), headers:{'Content-Type':'application/json'}
+    });
+    const body = await res.json();
+    if (body.ok) {
+      await chrome.storage.local.set({ token: body.token, accountId: body.accountId });
+      connectWebSocket(body.token);
+    }
+    sendResponse(body);
+  }
+  return true;
+});
+
+function connectWebSocket(token) {
+  ws = new WebSocket(`wss://orchestrator.example.com/ws?token=${token}`);
+  ws.onmessage = (evt) => handleCommand(JSON.parse(evt.data));
+  ws.onopen = () => console.log('connected');
+}
+
+async function handleCommand(cmd) {
+  // Basic verification: check signature (server-signed) - (pseudocode)
+  if (!verifySignature(cmd)) return sendResult(cmd.request_id, {status:'rejected','reason':'invalid signature'});
+
+  if (cmd.capability === 'open_url') {
+    chrome.tabs.create({url: cmd.args.url}, tab => sendResult(cmd.request_id, {status:'ok', tabId:tab.id}));
+  } else if (cmd.capability === 'fill_form') {
+    // inject content script to fill form in target tab
+    chrome.scripting.executeScript({
+      target: { tabId: cmd.args.tabId },
+      func: fillForm,
+      args: [cmd.args.selectors, cmd.args.values]
+    }, (res) => sendResult(cmd.request_id, {status:'ok', result: res}));
+  } else if (cmd.capability === 'click_selector') {
+    chrome.scripting.executeScript({
+      target: { tabId: cmd.args.tabId },
+      func: clickSelector,
+      args: [cmd.args.selector]
+    }, (res) => sendResult(cmd.request_id, {status:'ok', result: res}));
+  }
+  // handle other capabilities similarly
+}
+
+function sendResult(requestId, payload) {
+  ws.send(JSON.stringify({type:'result', request_id: requestId, payload}));
+}
+
+// injectable content script helpers
+function fillForm(selectors, values) {
+  for (const field in selectors) {
+    const el = document.querySelector(selectors[field]);
+    if (el) el.value = values[field];
+  }
+  // optionally submit
+}
+function clickSelector(selector) {
+  const el = document.querySelector(selector);
+  if (el) el.click();
+}
+
+Content script (for reading DOM)
+
+A content script executed in page context can extract content:
+
+// content.js
+function extractOrderInfo() {
+  const order = document.querySelector('.order-id')?.innerText;
+  return { order };
+}
+
+Popup & Options UI
+
+Popup shows connection status, current paired account, domains allowed, quick kill switch.
+
+Options page lists per-domain toggles and audit logs.
+
+Message / Command schema (signed)
+
+Server signs commands; extension verifies signature before running.
+
+Command example
+
+{
+  "request_id": "req-abc-123",
+  "agent_id": "ops.customer_success_manager",
+  "issued_at": "2025-08-21T12:00:00Z",
+  "capability": "fill_and_submit",
+  "args": {
+    "tabId": 123,
+    "url": "https://crm.example.com/ticket/428",
+    "selectors": { "replyBox": "#reply", "submitBtn": ".send" },
+    "values": { "replyBox": "Thanks — we've scheduled your shipment." },
+    "submit": true
+  },
+  "expiry": "2025-08-21T12:05:00Z",
+  "signature": "BASE64_SIGNATURE"
+}
+
+
+expiry prevents replay attacks.
+
+signature created by Orchestrator with server private key; extension verifies using server public key.
+
+Server-side (Orchestrator) responsibilities
+
+Keep LLM API keys secret (server env). Never send them to client.
+
+LLM step: user goal → planner generates ordered steps with required capabilities and target domains. Example: “Compose email to client@example.com
+ and attach invoice.pdf” → planner outputs two commands: upload/download + fill email compose form.
+
+Policy engine: check requested steps vs granted scopes; if autonomy requires confirmation, return plan for user approval.
+
+Command signer: sign JSON commands and send to paired extension via WebSocket.
+
+Audit log: store commands, signed tokens, results, screenshots (if allowed), transcripts.
+
+Node.js sketch (command signing)
+
+import jwt from 'jsonwebtoken';
+const PRIVATE_KEY = process.env.COMMAND_SIGN_KEY;
+
+function signCommand(cmd) {
+  // use asymmetric signing; or HMAC with shared secret
+  const token = jwt.sign(cmd, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '5m' });
+  return token;
+}
+
+Voice-first UX (browser)
+
+Microphone capture on web UI (WebRTC/MediaStream). Stream audio to server STT or use client-side STT for privacy.
+
+LLM interprets voice → returns action plan; server reads plan aloud via TTS or extension plays audio.
+
+Provide a spoken confirmation before critical operations.
+
+Consent & safety features (must-have)
+
+Per-agent scope dashboard — allow revoke & timebox.
+
+Kill switch in web UI and extension popup (immediate stop).
+
+Human-in-the-loop defaults: Suggest or Confirm modes on by default. Autonomous only if user explicitly opts-in.
+
+Transparency: show exact steps the agent will do before executing.
+
+Replayable audit for each hire showing actions taken, timestamps, artifacts.
+
+Example step-by-step scenario (customer call assistant → browser flow)
+
+User hires Customer Success Manager sub-agent with scopes: browser (CRM domain), email.send, calendar.create.
+
+UI shows scopes and examples → user installs extension and grants https://crm.example.com/* permission.
+
+Orchestrator plans:
+
+Open ticket page.
+
+Read ticket details.
+
+Draft follow-up email.
+
+Schedule call.
+
+If autonomy = Confirm → server asks user to confirm plan in UI (voice/text).
+
+Once approved, server signs commands and sends to extension.
+
+Extension opens ticket URL (chrome.tabs.create), injects content script to read ticket info, returns content.
+
+LLM composes email (on server) → server signs command to fill and submit CRM email compose form. Extension executes, returns result (screenshot optional).
+
+Calendar event creation can be done via OAuth (preferred) or by filling calendar UI in browser.
+
+Agent logs all steps in audit. Agent uses TTS to say “I scheduled the call for Aug 25 10:00 AM — confirm?” If autonomous, proceeds.
+
+Testing & verification
+
+Unit tests for command signing, expiry, and policy checks.
+
+Integration tests with a test extension that simulates actions.
+
+Beta with opt-in testers using non-critical tasks.
+
+Monitor for failed commands / unexpected DOM changes.
+
+Implementation checklist (developer-ready)
+
+Build Orchestrator (Node/Express): user auth, agent schemas, LLM planner (wrap OpenRouter/OpenAI keys server-side), policy engine, WS server.
+
+Create Chrome MV3 extension: background.js, popup, options, content scripts for action helpers, pairing UI.
+
+Implement pairing + secure WebSocket (JWT or mTLS).
+
+Implement command signer & verifier (server signs, extension verifies).
+
+Create permission UX and per-domain consent flow in web UI.
+
+Implement voice stack (WebRTC STT/TTS) and UI controls.
+
+Add audit logs, kill switch, and explicit revoke.
+
+Test with staged users and iterate before enabling more powerful capabilities.
+
+Important security/legal notes (must follow)
+
+Never ship keys in client code or extension. Keep LLM keys on server.
+
+Implement clear Terms & Consent — the user must knowingly allow device control.
+
+Mask or redact any sensitive fields in screenshots or logs unless user opted in.
+
+Ensure compliance with local privacy laws (GDPR, CCPA, etc.) and call-recording laws.
+
+Provide users a way to request rollback where possible.
