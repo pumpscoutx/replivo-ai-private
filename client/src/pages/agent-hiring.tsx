@@ -1,354 +1,524 @@
-import { useState } from "react";
-import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Star, Shield, Clock, CheckCircle, AlertCircle, Chrome } from "lucide-react";
-import ExtensionSetup from "@/components/extension-setup";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useRoute } from "wouter";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import BackgroundEffects from "@/components/background-effects";
-import { useToast } from "@/hooks/use-toast";
-import type { SubAgent } from "@shared/schema";
-
-interface Permission {
-  scope: string;
-  domain?: string;
-  description: string;
-  example: string;
-}
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Check, X, Globe, Chrome, Shield, Activity, MessageSquare, Zap } from "lucide-react";
+import type { Agent, SubAgent } from "@shared/schema";
 
 export default function AgentHiring() {
-  const { id } = useParams();
-  const { toast } = useToast();
-  
+  const [, params] = useRoute("/hire/:agentId");
   const [step, setStep] = useState(1);
-  const [companyName, setCompanyName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const [autonomyLevel, setAutonomyLevel] = useState<"suggest" | "confirm" | "autonomous">("confirm");
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [showExtensionSetup, setShowExtensionSetup] = useState(false);
-
-  const { data: agent, isLoading } = useQuery<SubAgent>({
-    queryKey: [`/api/sub-agents/${id}`],
-    enabled: !!id
+  const [selectedSubAgents, setSelectedSubAgents] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState({
+    browserAccess: false,
+    emailAccess: false,
+    calendarAccess: false,
+    socialMedia: false
   });
+  const [domains, setDomains] = useState("");
+  const [autonomyLevel, setAutonomyLevel] = useState<"suggest" | "confirm" | "autonomous">("confirm");
+  const [extensionStatus, setExtensionStatus] = useState<{ paired: boolean; online: boolean }>({ paired: false, online: false });
+
+  const { data: agent, isLoading } = useQuery<Agent>({
+    queryKey: ["/api/agents", params?.agentId],
+    enabled: !!params?.agentId
+  });
+
+  const { data: subAgents } = useQuery<SubAgent[]>({
+    queryKey: ["/api/sub-agents"],
+    enabled: !!agent?.subAgentIds?.length
+  });
+
+  const { data: extensionStatusData } = useQuery({
+    queryKey: ["/api/extension/status", "demo-user"],
+    refetchInterval: 5000,
+    select: (data: any) => ({
+      paired: data.hasPairedExtension,
+      online: data.extensions?.[0]?.isOnline || false
+    })
+  });
+
+  const generatePairingCodeMutation = useMutation({
+    mutationFn: () => apiRequest("/api/extension/generate-code", "POST", { userId: "demo-user" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/extension/status"] });
+    }
+  });
+
+  const hireAgentMutation = useMutation({
+    mutationFn: async (hireData: any) => {
+      // Grant permissions for each selected capability
+      for (const permission of hireData.permissions) {
+        await apiRequest("/api/extension/permissions/demo-user/grant", "POST", permission);
+      }
+      
+      // Execute initial agent task
+      return apiRequest("/api/agents/hire", "POST", {
+        agentType: getAgentType(agent?.category || ""),
+        subAgent: agent?.name,
+        task: "I've been hired! Ready to help with your tasks.",
+        context: "Initial agent setup and introduction",
+        userId: "demo-user"
+      });
+    },
+    onSuccess: () => {
+      setStep(4); // Success step
+      queryClient.invalidateQueries({ queryKey: ["/api/agents/hired"] });
+    }
+  });
+
+  useEffect(() => {
+    if (extensionStatusData) {
+      setExtensionStatus(extensionStatusData);
+    }
+  }, [extensionStatusData]);
+
+  const getAgentType = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      "growth": "business-growth",
+      "operations": "operations",
+      "people-finance": "people-finance"
+    };
+    return categoryMap[category] || "business-growth";
+  };
+
+  const agentSubAgents = subAgents?.filter(sa => 
+    agent?.subAgentIds?.includes(sa.id)
+  ) || [];
+
+  const handleHire = async () => {
+    if (!agent) return;
+
+    const permissionsToGrant = [];
+    
+    if (permissions.browserAccess) {
+      permissionsToGrant.push({
+        agentId: agent.id,
+        scope: "browser:all",
+        domain: domains || "*",
+        autonomyLevel: autonomyLevel
+      });
+    }
+    
+    if (permissions.emailAccess) {
+      permissionsToGrant.push({
+        agentId: agent.id,
+        scope: "email:send",
+        autonomyLevel: autonomyLevel
+      });
+    }
+
+    if (permissions.calendarAccess) {
+      permissionsToGrant.push({
+        agentId: agent.id,
+        scope: "calendar:create",
+        autonomyLevel: autonomyLevel
+      });
+    }
+
+    if (permissions.socialMedia) {
+      permissionsToGrant.push({
+        agentId: agent.id,
+        scope: "social:post",
+        autonomyLevel: autonomyLevel
+      });
+    }
+
+    await hireAgentMutation.mutateAsync({
+      agent,
+      selectedSubAgents,
+      permissions: permissionsToGrant,
+      autonomyLevel
+    });
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading agent details...</div>
+      <div className="min-h-screen bg-black">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!agent) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Agent not found</div>
+      <div className="min-h-screen bg-black">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">Agent Not Found</h1>
+            <p className="text-gray-400">The agent you're trying to hire doesn't exist.</p>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
-  // Mock permissions based on agent category
-  const requestedPermissions: Permission[] = [
-    {
-      scope: "browser:navigate",
-      description: "Navigate between web pages",
-      example: "Open CRM dashboard and customer records"
-    },
-    {
-      scope: "browser:fill",
-      domain: "*.crm.example.com",
-      description: "Fill and submit forms on CRM domains",
-      example: "Update customer information and ticket status"
-    },
-    {
-      scope: "browser:read",
-      domain: "*.crm.example.com",
-      description: "Read page content on allowed domains",
-      example: "Extract customer data and order information"
-    },
-    {
-      scope: "email:send",
-      description: "Send emails on your behalf",
-      example: "Send follow-up emails to customers"
-    }
-  ];
-
-  const handleDomainToggle = (domain: string) => {
-    setSelectedDomains(prev =>
-      prev.includes(domain)
-        ? prev.filter(d => d !== domain)
-        : [...prev, domain]
-    );
-  };
-
-  const handleStartHiring = () => {
-    if (!companyName || !contactEmail) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all company details.",
-        variant: "destructive"
-      });
-      return;
-    }
-    setStep(2);
-  };
-
-  const handleGrantPermissions = () => {
-    if (!agreedToTerms) {
-      toast({
-        title: "Terms Required",
-        description: "Please agree to the terms and conditions.",
-        variant: "destructive"
-      });
-      return;
-    }
-    setShowExtensionSetup(true);
-  };
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <Card className="bg-gray-900 border-gray-700 max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center">
-                  {agent.icon}
-                </div>
-                Hiring {agent.name}
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Provide your company details to get started
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="company" className="text-white">Company Name</Label>
-                  <Input
-                    id="company"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Enter your company name"
-                    className="bg-gray-800 border-gray-600 text-white"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email" className="text-white">Contact Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="your@company.com"
-                    className="bg-gray-800 border-gray-600 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h4 className="text-white font-medium mb-2">Agent Details</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Price:</span>
-                    <span className="text-white">${(agent.price / 100).toFixed(2)}/month</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Category:</span>
-                    <span className="text-white">{agent.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Rating:</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-white">{(agent.rating / 10).toFixed(1)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleStartHiring}
-                className="w-full"
-                data-testid="button-start-hiring"
-              >
-                Continue to Permissions
-              </Button>
-            </CardContent>
-          </Card>
-        );
-
-      case 2:
-        return (
-          <Card className="bg-gray-900 border-gray-700 max-w-4xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-3">
-                <Shield className="w-6 h-6 text-blue-500" />
-                Permission Request
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                {agent.name} is requesting the following permissions to work effectively
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                {requestedPermissions.map((permission, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-gray-800 rounded-lg p-4 border border-gray-700"
-                  >
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="bg-blue-600/20 text-blue-400">
-                            {permission.scope}
-                          </Badge>
-                          {permission.domain && (
-                            <Badge variant="outline" className="text-gray-400">
-                              {permission.domain}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-white text-sm mb-1">{permission.description}</p>
-                        <p className="text-gray-500 text-xs">Example: "{permission.example}"</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              <Separator className="bg-gray-700" />
-
-              <div className="space-y-4">
-                <h4 className="text-white font-medium">Choose Autonomy Level</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    {
-                      level: "suggest" as const,
-                      title: "Suggest",
-                      description: "Agent proposes actions for your approval"
-                    },
-                    {
-                      level: "confirm" as const,
-                      title: "Confirm",
-                      description: "Agent groups actions and asks for batch approval"
-                    },
-                    {
-                      level: "autonomous" as const,
-                      title: "Autonomous",
-                      description: "Agent works independently (critical actions still require approval)"
-                    }
-                  ].map((option) => (
-                    <div
-                      key={option.level}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                        autonomyLevel === option.level
-                          ? "border-blue-500 bg-blue-600/10"
-                          : "border-gray-600 bg-gray-800"
-                      }`}
-                      onClick={() => setAutonomyLevel(option.level)}
-                    >
-                      <h5 className="text-white font-medium mb-1">{option.title}</h5>
-                      <p className="text-gray-400 text-xs">{option.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                  <div>
-                    <h5 className="text-yellow-400 font-medium mb-1">Browser Extension Required</h5>
-                    <p className="text-yellow-200 text-sm">
-                      To enable these capabilities, you'll need to install the Replivo Helper browser extension.
-                      The extension is code-signed and verified for security.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="rounded"
-                />
-                <Label htmlFor="terms" className="text-sm text-gray-300">
-                  I agree to the terms and conditions and grant these permissions to {agent.name}
-                </Label>
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                  Back
-                </Button>
-                <Button 
-                  onClick={handleGrantPermissions}
-                  className="flex-1"
-                  data-testid="button-grant-permissions"
-                >
-                  <Chrome className="w-4 h-4 mr-2" />
-                  Install Extension & Grant Access
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-black">
-      <BackgroundEffects />
       <Header />
       
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Hire Your AI Agent
-            </h1>
-            <p className="text-xl text-gray-400">
-              Step {step} of 2: Set up {agent.name} for your business
-            </p>
-          </motion.div>
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Hire {agent.name}
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Set up your AI agent with secure browser control
+          </p>
+        </motion.div>
 
-          {renderStep()}
+        {/* Progress Steps */}
+        <div className="flex justify-center mb-12">
+          <div className="flex items-center space-x-4">
+            {[1, 2, 3, 4].map((stepNum) => (
+              <div key={stepNum} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  stepNum <= step ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-400'
+                }`}>
+                  {stepNum < step ? <Check className="w-4 h-4" /> : stepNum}
+                </div>
+                {stepNum < 4 && (
+                  <div className={`w-12 h-0.5 ${stepNum < step ? 'bg-blue-600' : 'bg-gray-600'}`} />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
 
-      <ExtensionSetup
-        isOpen={showExtensionSetup}
-        onClose={() => setShowExtensionSetup(false)}
-        agentName={agent.name}
-        requestedPermissions={requestedPermissions}
-      />
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="bg-gray-900 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Chrome className="w-5 h-5" />
+                    Chrome Extension Setup
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                    <div>
+                      <h3 className="text-white font-medium">Extension Status</h3>
+                      <p className="text-gray-400 text-sm">
+                        {extensionStatus.paired 
+                          ? extensionStatus.online 
+                            ? "Connected and online" 
+                            : "Paired but offline"
+                          : "Not paired"
+                        }
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        extensionStatus.paired && extensionStatus.online 
+                          ? 'bg-green-500' 
+                          : extensionStatus.paired 
+                            ? 'bg-yellow-500' 
+                            : 'bg-red-500'
+                      }`} />
+                      <span className={`text-sm ${
+                        extensionStatus.paired && extensionStatus.online 
+                          ? 'text-green-400' 
+                          : 'text-gray-400'
+                      }`}>
+                        {extensionStatus.paired && extensionStatus.online ? 'Online' : 'Offline'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {!extensionStatus.paired && (
+                    <div className="space-y-4">
+                      <p className="text-gray-300">
+                        Install the Replivo Chrome extension to enable device control for your agents.
+                      </p>
+                      <div className="flex gap-4">
+                        <Button
+                          onClick={() => window.open('/chrome-extension/manifest.json', '_blank')}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Chrome className="w-4 h-4 mr-2" />
+                          Download Extension
+                        </Button>
+                        <Button
+                          onClick={() => generatePairingCodeMutation.mutate()}
+                          variant="outline"
+                          className="border-gray-600 text-gray-300"
+                          disabled={generatePairingCodeMutation.isPending}
+                        >
+                          Generate Pairing Code
+                        </Button>
+                      </div>
+                      {generatePairingCodeMutation.data && (
+                        <div className="bg-gray-800 p-4 rounded-lg">
+                          <p className="text-white font-mono text-lg text-center">
+                            {generatePairingCodeMutation.data.pairingCode}
+                          </p>
+                          <p className="text-gray-400 text-sm text-center mt-2">
+                            Enter this code in the extension
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={() => setStep(2)}
+                    disabled={!extensionStatus.paired}
+                    className="w-full bg-gray-800 hover:bg-gray-700"
+                  >
+                    Continue to Permissions
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="bg-gray-900 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Security & Permissions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">Browser Control</h3>
+                        <p className="text-gray-400 text-sm">Allow agent to interact with web pages</p>
+                      </div>
+                      <Switch
+                        checked={permissions.browserAccess}
+                        onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, browserAccess: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">Email Access</h3>
+                        <p className="text-gray-400 text-sm">Send emails on your behalf</p>
+                      </div>
+                      <Switch
+                        checked={permissions.emailAccess}
+                        onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, emailAccess: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">Calendar Access</h3>
+                        <p className="text-gray-400 text-sm">Create and manage calendar events</p>
+                      </div>
+                      <Switch
+                        checked={permissions.calendarAccess}
+                        onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, calendarAccess: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">Social Media</h3>
+                        <p className="text-gray-400 text-sm">Post content to social platforms</p>
+                      </div>
+                      <Switch
+                        checked={permissions.socialMedia}
+                        onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, socialMedia: checked }))}
+                      />
+                    </div>
+                  </div>
+
+                  {permissions.browserAccess && (
+                    <div>
+                      <label className="text-white font-medium block mb-2">Allowed Domains</label>
+                      <Input
+                        value={domains}
+                        onChange={(e) => setDomains(e.target.value)}
+                        placeholder="example.com, *.mycompany.com (leave empty for all domains)"
+                        className="bg-gray-800 border-gray-600 text-white"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-white font-medium block mb-2">Autonomy Level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: "suggest" as const, label: "Suggest", desc: "Ask before every action" },
+                        { value: "confirm" as const, label: "Confirm", desc: "Ask for important actions" },
+                        { value: "autonomous" as const, label: "Autonomous", desc: "Act independently" }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setAutonomyLevel(option.value)}
+                          className={`p-3 rounded-lg border text-left ${
+                            autonomyLevel === option.value
+                              ? 'border-blue-500 bg-blue-600/20 text-blue-300'
+                              : 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          <div className="font-medium">{option.label}</div>
+                          <div className="text-xs opacity-75">{option.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <Button onClick={() => setStep(1)} variant="outline" className="flex-1 border-gray-600">
+                      Back
+                    </Button>
+                    <Button onClick={() => setStep(3)} className="flex-1 bg-gray-800 hover:bg-gray-700">
+                      Continue
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="bg-gray-900 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Confirm Hiring
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-gray-800 p-6 rounded-lg">
+                    <h3 className="text-white font-bold text-xl mb-2">{agent.name}</h3>
+                    <p className="text-gray-400 mb-4">{agent.description}</p>
+                    <div className="flex items-center gap-4">
+                      <Badge className="bg-blue-600/20 text-blue-300">
+                        ${(agent.price / 100).toFixed(0)}/month
+                      </Badge>
+                      <Badge className="bg-gray-700 text-gray-300">
+                        {agentSubAgents.length} Sub-agents
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-white font-medium">Granted Permissions:</h4>
+                    <div className="space-y-1">
+                      {permissions.browserAccess && (
+                        <div className="flex items-center gap-2 text-green-400">
+                          <Check className="w-4 h-4" />
+                          <span>Browser Control {domains && `(${domains})`}</span>
+                        </div>
+                      )}
+                      {permissions.emailAccess && (
+                        <div className="flex items-center gap-2 text-green-400">
+                          <Check className="w-4 h-4" />
+                          <span>Email Access</span>
+                        </div>
+                      )}
+                      {permissions.calendarAccess && (
+                        <div className="flex items-center gap-2 text-green-400">
+                          <Check className="w-4 h-4" />
+                          <span>Calendar Access</span>
+                        </div>
+                      )}
+                      {permissions.socialMedia && (
+                        <div className="flex items-center gap-2 text-green-400">
+                          <Check className="w-4 h-4" />
+                          <span>Social Media Access</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <Button onClick={() => setStep(2)} variant="outline" className="flex-1 border-gray-600">
+                      Back
+                    </Button>
+                    <Button 
+                      onClick={handleHire}
+                      disabled={hireAgentMutation.isPending}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      {hireAgentMutation.isPending ? 'Hiring...' : 'Hire Agent'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className="bg-gray-900 border-gray-700">
+                <CardContent className="text-center py-12">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6"
+                  >
+                    <Check className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Agent Hired Successfully!</h3>
+                  <p className="text-gray-400 mb-6">
+                    {agent.name} is now active and ready to help you. You can start giving it tasks through the Chrome extension.
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                    <Button onClick={() => window.location.href = "/marketplace"} variant="outline" className="border-gray-600">
+                      Back to Marketplace
+                    </Button>
+                    <Button onClick={() => window.location.href = "/dashboard"} className="bg-blue-600 hover:bg-blue-700">
+                      Go to Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <Footer />
     </div>
   );
 }
+

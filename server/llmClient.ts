@@ -76,17 +76,14 @@ export async function callBusinessGrowthAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are Replivo's "${subAgent || 'Business Growth'}" agent.
-You MAY use the following browser capabilities: open_url, read_dom, fill_form, click_selector, capture_screenshot, create_calendar_event.
-Output exactly as JSON: { "plan": [ { "capability": "open_url", "args": {...} }, ... ], "explain": "one-line explanation"}
-Do NOT include any user secrets in the output. Each plan step must be atomic and include estimated time and required user confirmation flag.`;
+  const systemPrompt = `You are ${subAgent || 'Business Growth'} agent. Help with marketing, sales, and growth tasks. Respond in plain English with actionable advice.`;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: context ? `Context: ${context}\n\nTask: ${userPrompt}` : userPrompt }
+    { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('business-growth', messages);
+  const response = await callAgentLLM('business-growth', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
 
@@ -95,17 +92,14 @@ export async function callOperationsAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are Replivo's "${subAgent || 'Operations'}" agent.
-You MAY use the following browser capabilities: open_url, read_dom, fill_form, click_selector, capture_screenshot, create_calendar_event.
-Output exactly as JSON: { "plan": [ { "capability": "open_url", "args": {...} }, ... ], "explain": "one-line explanation"}
-Do NOT include any user secrets in the output. Each plan step must be atomic and include estimated time and required user confirmation flag.`;
+  const systemPrompt = `You are ${subAgent || 'Operations'} agent. Help with workflow automation, data analysis, and operational efficiency. Respond with clear, practical solutions.`;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: context ? `Context: ${context}\n\nTask: ${userPrompt}` : userPrompt }
+    { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('operations', messages);
+  const response = await callAgentLLM('operations', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
 
@@ -114,16 +108,13 @@ export async function callPeopleFinanceAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are Replivo's "${subAgent || 'People & Finance'}" agent.
-You MAY use the following browser capabilities: open_url, read_dom, fill_form, click_selector, capture_screenshot, create_calendar_event.
-Output exactly as JSON: { "plan": [ { "capability": "open_url", "args": {...} }, ... ], "explain": "one-line explanation"}
-Do NOT include any user secrets in the output. Each plan step must be atomic and include estimated time and required user confirmation flag.`;
+  const systemPrompt = `You are ${subAgent || 'People & Finance'} agent. Help with HR, recruiting, payroll, and financial management. Provide helpful guidance and solutions.`;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: context ? `Context: ${context}\n\nTask: ${userPrompt}` : userPrompt }
+    { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('people-finance', messages);
+  const response = await callAgentLLM('people-finance', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
