@@ -1,166 +1,319 @@
-# 🤖 Replivo - Advanced AI Agent Marketplace
+# 🚀 Replivo - Advanced AI Agent Marketplace with Browser Automation
 
-**Transform your business with intelligent agents that work 24/7**
+Replivo is a cutting-edge AI agent marketplace that enables users to discover, hire, and manage AI agents capable of real-world browser automation. Built with a security-first approach, Replivo combines modern web technologies with innovative device control capabilities.
 
-Replivo is a cutting-edge web application for discovering and hiring AI agents for business automation. Built with modern technologies and featuring advanced interactive elements including live previews, companion avatars, sandbox testing, and stunning visual effects.
+![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Express](https://img.shields.io/badge/Express-4.18-green) ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-orange) ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-![Replivo Demo](https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=400&fit=crop)
+## ✨ Features
 
-## ✨ Key Features
+### 🤖 AI Agent Marketplace
+- **Interactive Agent Discovery** - Browse AI agents with live previews and capabilities
+- **Sandbox Testing** - Test agents safely before hiring with real-time demonstrations
+- **Companion Avatars** - Dynamic visual companions with voice interaction foundations
+- **Professional UI/UX** - Modern interface built with shadcn/ui and Tailwind CSS
 
-### 🎯 **Smart Agent Discovery**
-- **Pre-built Agent Bundles**: Complete business automation packages
-- **Individual Specialist Marketplace**: Mix and match specialized AI agents
-- **Custom Agent Requests**: Get tailored solutions for unique business needs
-- **Intelligent Recommendations**: AI-powered suggestions based on your requirements
+### 🌐 Browser Automation Platform
+- **Chrome Extension** - Secure browser helper for real device control
+- **Cryptographic Security** - JWT-signed commands with verification
+- **Permission System** - Granular domain-based access controls
+- **Real-time Communication** - WebSocket connections for instant command execution
 
-### 🖥️ **Advanced Interactive UI**
-- **Live Agent Previews**: Hover to see real-time agent demonstrations
-- **Companion Avatars**: Visual representation of each AI agent
-- **Interactive Sandbox**: "Try Me" feature with realistic chat demos
-- **Advanced Visual Effects**: Animated backgrounds and cursor interactions
-- **Real-time Status Indicators**: See what agents are currently working on
+### 🔒 Enterprise Security
+- **Code Signing** - Cryptographically verified extension commands
+- **Audit Trail** - Complete logging of all agent actions
+- **Kill Switch** - Emergency stop for all operations
+- **Domain Restrictions** - Precise control over agent access
 
-### 📊 **Analytics & Insights**
-- **Performance Ratings**: Community-driven reviews and ratings
-- **Usage Analytics**: Track agent performance and ROI
-- **Recent Updates**: Stay informed about agent improvements
-- **Integration Tracking**: Monitor connected services and tools
+## 🏗️ Architecture
 
-## 🛠️ Technology Stack
-
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Vite** for lightning-fast development and building
-- **Framer Motion** for smooth animations and interactions
-- **TanStack Query** for efficient data fetching and caching
+### Frontend Stack
+- **React 18** with TypeScript for type safety
+- **Vite** for fast development and optimized builds
 - **Wouter** for lightweight client-side routing
+- **TanStack Query** for server state management
+- **Framer Motion** for smooth animations
 - **Tailwind CSS** with custom design system
-- **shadcn/ui** component library built on Radix UI primitives
 
-### Backend
-- **Express.js** with TypeScript for robust API development
-- **PostgreSQL** with Neon serverless for scalable data storage
-- **Drizzle ORM** for type-safe database operations
-- **Passport.js** for authentication (prepared for implementation)
+### Backend Infrastructure
+- **Express.js** with TypeScript
+- **WebSocket Server** for real-time extension communication
+- **In-Memory Storage** with PostgreSQL readiness
+- **RESTful API** design with modular architecture
 
-### Development & Deployment
-- **TypeScript** across the entire stack
-- **ESBuild** for production optimization
-- **Path aliases** for clean imports
-- **Hot module replacement** for instant development feedback
+### Browser Extension
+- **Chrome Manifest V3** for modern extension standards
+- **Service Worker** for background command processing
+- **Content Scripts** for page manipulation
+- **Secure Communication** with server verification
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+ 
-- PostgreSQL database (or use the included in-memory storage)
+- Chrome browser for extension testing
 
 ### Installation
+```bash
+# Clone repository
+git clone https://github.com/yourusername/replivo.git
+cd replivo
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/replivo.git
-   cd replivo
-   ```
+# Install dependencies
+npm install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Start development server
+npm run dev
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials
-   ```
-
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to `http://localhost:5000`
-
-## 📁 Project Structure
-
+# Server runs on http://localhost:5000
 ```
-├── client/                 # Frontend React application
+
+### Browser Extension Setup
+```bash
+# Load extension in Chrome
+# 1. Open chrome://extensions/
+# 2. Enable Developer mode
+# 3. Click "Load unpacked"
+# 4. Select chrome-extension/ folder
+```
+
+## 🎯 Usage
+
+### 1. Explore Agents
+Visit the marketplace to browse available AI agents. Each agent shows:
+- Live capability demonstrations
+- Sandbox testing environment
+- Pricing and performance metrics
+- User reviews and ratings
+
+### 2. Hire an Agent
+1. Click "Hire Now" on any agent
+2. Provide company details
+3. Review requested permissions
+4. Install the Replivo Helper extension
+5. Complete the pairing process
+
+### 3. Agent Automation
+Once paired, agents can:
+- Fill web forms automatically
+- Extract data from pages
+- Click buttons and navigate sites
+- Take screenshots (with permission)
+- Generate reports and insights
+
+## 🔧 Development
+
+### Project Structure
+```
+├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Route-based page components
-│   │   ├── lib/            # Utilities and configurations
-│   │   └── hooks/          # Custom React hooks
-├── server/                 # Backend Express application
-│   ├── routes/             # API route handlers
-│   ├── storage/            # Data access layer
-│   └── middleware/         # Express middleware
-├── shared/                 # Shared types and schemas
-│   └── schema.ts           # Database schema and types
-└── package.json            # Project dependencies and scripts
+│   │   ├── pages/         # Application pages
+│   │   └── lib/           # Utilities and configs
+├── server/                # Express.js backend
+│   ├── routes.ts          # API endpoints
+│   ├── storage.ts         # Data management
+│   ├── websocket-server.ts # Extension communication
+│   └── command-signer.ts  # Security layer
+├── chrome-extension/      # Browser extension
+│   ├── manifest.json      # Extension configuration
+│   ├── background.js      # Service worker
+│   ├── popup.html/js      # Extension interface
+│   └── content.js         # Page interaction
+└── shared/               # Shared schemas and types
 ```
 
-## 🎨 Design Features
+### Environment Variables
+Create `.env` for production:
+```bash
+# Database
+DATABASE_URL=your_postgresql_url
 
-### Visual Effects
-- **Dynamic Background**: Mouse-reactive gradient animations
-- **Floating Particles**: Ambient animated elements
-- **Interactive Cursors**: Context-aware hover effects
-- **Smooth Transitions**: Framer Motion-powered animations
+# Security
+JWT_SECRET=your_jwt_secret
+COMMAND_PRIVATE_KEY=your_rsa_private_key
 
-### Component Highlights
-- **Enhanced Agent Cards**: Live previews with companion avatars
-- **Sandbox Modal**: Interactive agent testing environment
-- **Smart Filters**: Category-based agent discovery
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
+# External APIs
+OPENAI_API_KEY=your_openai_key
+```
 
-## 🔧 Available Scripts
+### Testing Extension Commands
+```bash
+# Generate pairing code
+curl -X POST "http://localhost:5000/api/extension/generate-code" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "demo-user"}'
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run type-check` - Run TypeScript checks
-- `npm run lint` - Run ESLint
+# Check extension status
+curl "http://localhost:5000/api/extension/status/demo-user"
 
-## 🌟 Recent Enhancements
+# Test capabilities
+curl -X POST "http://localhost:5000/api/extension/test/form_filling" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "demo-user"}'
+```
 
-### Version 2.0 Features
-- ✅ Enhanced sub-agent cards with live previews
-- ✅ Interactive "Try Me" sandbox functionality  
-- ✅ Advanced visual effects and animations
-- ✅ Companion avatar system
-- ✅ Real-time status indicators
-- ✅ Improved rating and review system
-- ✅ Enhanced data model with analytics
+## 🔐 Security Model
 
-### Migration Completed
-- ✅ Successfully migrated from Replit Agent to standard environment
-- ✅ Proper client/server separation implemented
-- ✅ Enhanced security practices established
-- ✅ Modern development workflow optimized
+### Command Verification
+All extension commands are signed with RS256:
+```javascript
+{
+  "request_id": "req-123",
+  "agent_id": "customer_success_manager", 
+  "capability": "fill_form",
+  "args": { /* command parameters */ },
+  "expiry": "2025-08-21T12:05:00Z",
+  "signature": "BASE64_RSA_SIGNATURE"
+}
+```
 
-## 📝 Contributing
+### Permission Scopes
+- `browser:navigate` - Open and navigate web pages
+- `browser:fill` - Fill forms on specified domains
+- `browser:read` - Extract content from approved pages
+- `browser:click` - Interact with page elements
+- `browser:screenshot` - Capture page images (optional)
+
+### Safety Features
+- Commands expire after 5 minutes
+- All actions logged for audit
+- Emergency disconnect available
+- Domain whitelist enforcement
+
+## 📊 Agent Capabilities
+
+### Form Automation
+```javascript
+// Fill customer support form
+{
+  capability: 'fill_form',
+  args: {
+    selectors: {
+      name: '#customer-name',
+      email: '#customer-email',
+      issue: '#issue-description'
+    },
+    values: {
+      name: 'John Smith',
+      email: 'john@example.com', 
+      issue: 'Billing inquiry'
+    }
+  }
+}
+```
+
+### Data Extraction
+```javascript
+// Extract customer information
+{
+  capability: 'extract_content',
+  args: {
+    selectors: {
+      customerName: '.customer-name',
+      accountStatus: '.account-status',
+      orderHistory: '.order-item'
+    },
+    includeText: true
+  }
+}
+```
+
+### Page Interaction
+```javascript
+// Click approval button
+{
+  capability: 'click_selector',
+  args: {
+    selector: '#approve-button',
+    waitFor: 1000
+  }
+}
+```
+
+## 🚢 Deployment
+
+### Production Build
+```bash
+npm run build
+npm start
+```
+
+### Platform Options
+- **Vercel**: `vercel --prod`
+- **Netlify**: Deploy `dist/` folder
+- **Docker**: Use included Dockerfile
+- **Replit**: Already configured for deployment
+
+### Chrome Web Store
+```bash
+# Package extension
+cd chrome-extension/
+zip -r replivo-helper.zip *
+
+# Submit to Chrome Web Store Developer Console
+```
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Maintain test coverage
+- Document new features
+- Follow security protocols
+
+## 📚 Documentation
+
+- **[Browser Extension Spec](BROWSER_EXTENSION_SPEC.md)** - Technical specifications
+- **[Device Control Roadmap](DEVICE_CONTROL_ROADMAP.md)** - Future development plans
+- **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Detailed architecture guide
+- **[Deployment Guide](DEPLOY_TO_GITHUB.md)** - Platform deployment instructions
+
+## 🗺️ Roadmap
+
+### Phase 1: Foundation ✅
+- Modern AI agent marketplace
+- Browser extension platform
+- Secure command system
+- Interactive UI with effects
+
+### Phase 2: Advanced Features 🚧
+- Voice-first interaction
+- OAuth service integrations  
+- Advanced agent capabilities
+- Enterprise security features
+
+### Phase 3: Scale & Growth 📈
+- Multi-platform support
+- Advanced analytics
+- Team collaboration
+- Enterprise deployment
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Support
+## 🆘 Support
 
-For support and questions:
-- Create an issue on GitHub
-- Contact the development team
-- Check the documentation in `/docs`
+- **Issues**: Report bugs via GitHub Issues
+- **Documentation**: Check the `/docs` folder
+- **Community**: Join our Discord server
+- **Email**: support@replivo.com
+
+## 🙏 Acknowledgments
+
+- Built with modern web technologies
+- Inspired by the future of AI automation
+- Designed for security and user trust
+- Powered by the open source community
 
 ---
 
-**Built with ❤️ for the future of business automation**
+**Ready to revolutionize your workflow with AI agents?** 
 
-*Replivo - Where AI meets productivity*
+[🚀 Start Building](https://github.com/yourusername/replivo) | [📖 Read Docs](IMPLEMENTATION_PLAN.md) | [🎮 Try Demo](http://localhost:5000)

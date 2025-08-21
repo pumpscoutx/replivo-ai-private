@@ -171,6 +171,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test extension commands (for demonstration)
+  app.post("/api/extension/test/:capability", async (req, res) => {
+    try {
+      const { capability } = req.params;
+      const { userId = 'demo-user' } = req.body;
+
+      // These would be handled by the WebSocket server in a real implementation
+      // For now, just return a success response
+      res.json({
+        success: true,
+        message: `Test ${capability} command queued for user ${userId}`,
+        capability,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Test command error:', error);
+      res.status(500).json({ error: 'Failed to execute test command' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

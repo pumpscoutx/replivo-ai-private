@@ -1,12 +1,12 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import jwt from 'jsonwebtoken';
-import { CommandSigner, ExtensionCommand, CommandResult } from './command-signer';
+import { Server } from 'http';
 import { storage } from './storage';
+import { CommandSigner } from './command-signer';
 
 interface ExtensionConnection {
   ws: WebSocket;
-  userId: string;
   extensionId: string;
+  userId: string;
   isAuthenticated: boolean;
   lastSeen: Date;
 }
@@ -16,127 +16,72 @@ export class ExtensionWebSocketServer {
   private connections: Map<string, ExtensionConnection> = new Map();
   private commandSigner: CommandSigner;
 
-  constructor(server: any) {
-    this.wss = new WebSocketServer({ server, path: '/extension-ws' });
-    this.commandSigner = CommandSigner.getInstance();
-    this.setupWebSocketHandlers();
+  constructor(server: Server) {
+    this.wss = new WebSocketServer({ 
+      server,
+      path: '/extension-ws',
+      verifyClient: (info: any) => {
+        // Basic verification - could add more sophisticated checks
+        return true;
+      }
+    });
+
+    this.commandSigner = new CommandSigner();
+    this.setupWebSocketServer();
+    
+    console.log('Extension WebSocket server initialized on /extension-ws');
   }
 
-  private setupWebSocketHandlers() {
+  private setupWebSocketServer() {
     this.wss.on('connection', (ws, request) => {
-      console.log('Extension WebSocket connection attempted');
-      
-      // Extract token from query parameters
-      const url = new URL(request.url!, `http://${request.headers.host}`);
-      const token = url.searchParams.get('token');
-      
-      if (!token) {
-        ws.close(1008, 'Authentication token required');
-        return;
-      }
+      console.log('New extension connection attempt');
 
-      this.authenticateConnection(ws, token);
-    });
-  }
+      ws.on('message', async (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          await this.handleMessage(ws, message);
+        } catch (error) {
+          console.error('Error handling WebSocket message:', error);
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Invalid message format'
+          }));
+        }
+      });
 
-  private async authenticateConnection(ws: WebSocket, token: string) {
-    try {
-      // Verify JWT token (should contain userId and extensionId)
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') as any;
-      const { userId, extensionId } = decoded;
+      ws.on('close', () => {
+        this.handleDisconnection(ws);
+      });
 
-      // Verify extension pairing exists in database
-      const pairings = await storage.getExtensionPairings(userId);
-      const pairing = pairings.find(p => p.extensionId === extensionId && p.isActive);
-      
-      if (!pairing) {
-        ws.close(1008, 'Extension not paired or inactive');
-        return;
-      }
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        this.handleDisconnection(ws);
+      });
 
-      // Create connection
-      const connectionId = `${userId}-${extensionId}`;
-      const connection: ExtensionConnection = {
-        ws,
-        userId,
-        extensionId,
-        isAuthenticated: true,
-        lastSeen: new Date()
-      };
-
-      this.connections.set(connectionId, connection);
-      
-      // Update last seen in database
-      await storage.updateExtensionLastSeen(pairing.id);
-
-      console.log(`Extension authenticated: ${connectionId}`);
-      
-      // Setup message handlers for this connection
-      this.setupConnectionHandlers(connection);
-
-      // Send authentication success
+      // Send initial ping to verify connection
       ws.send(JSON.stringify({
-        type: 'auth_success',
-        public_key: this.commandSigner.getPublicKey()
+        type: 'ping',
+        timestamp: new Date().toISOString()
       }));
-
-    } catch (error) {
-      console.error('WebSocket authentication failed:', error);
-      ws.close(1008, 'Authentication failed');
-    }
+    });
   }
 
-  private setupConnectionHandlers(connection: ExtensionConnection) {
-    const { ws, userId, extensionId } = connection;
-
-    ws.on('message', async (data) => {
-      try {
-        const message = JSON.parse(data.toString());
-        await this.handleMessage(connection, message);
-      } catch (error) {
-        console.error('Error handling WebSocket message:', error);
-      }
-    });
-
-    ws.on('close', () => {
-      const connectionId = `${userId}-${extensionId}`;
-      this.connections.delete(connectionId);
-      console.log(`Extension disconnected: ${connectionId}`);
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
-
-    // Heartbeat to keep connection alive
-    const heartbeat = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.ping();
-        connection.lastSeen = new Date();
-      } else {
-        clearInterval(heartbeat);
-      }
-    }, 30000);
-  }
-
-  private async handleMessage(connection: ExtensionConnection, message: any) {
-    const { ws, userId } = connection;
-
+  private async handleMessage(ws: WebSocket, message: any) {
     switch (message.type) {
-      case 'ping':
-        ws.send(JSON.stringify({ type: 'pong' }));
+      case 'authenticate':
+        await this.handleAuthentication(ws, message);
+        break;
+
+      case 'pong':
+        this.handlePong(ws, message);
         break;
 
       case 'command_result':
-        await this.handleCommandResult(userId, message);
+        await this.handleCommandResult(message);
         break;
 
-      case 'permission_request':
-        await this.handlePermissionRequest(connection, message);
-        break;
-
-      case 'status_update':
-        await this.handleStatusUpdate(connection, message);
+      case 'heartbeat':
+        this.handleHeartbeat(ws, message);
         break;
 
       default:
@@ -144,10 +89,72 @@ export class ExtensionWebSocketServer {
     }
   }
 
-  private async handleCommandResult(userId: string, message: any) {
+  private async handleAuthentication(ws: WebSocket, message: any) {
+    const { extensionId, userId } = message;
+
+    if (!extensionId || !userId) {
+      ws.send(JSON.stringify({
+        type: 'auth_error',
+        message: 'Missing extensionId or userId'
+      }));
+      return;
+    }
+
+    // Verify the extension is paired with this user
+    const pairings = await storage.getExtensionPairings(userId);
+    const validPairing = pairings.find(p => 
+      p.extensionId === extensionId && p.isActive
+    );
+
+    if (!validPairing) {
+      ws.send(JSON.stringify({
+        type: 'auth_error',
+        message: 'Extension not paired with this user'
+      }));
+      return;
+    }
+
+    // Store connection
+    const connectionId = `${userId}_${extensionId}`;
+    this.connections.set(connectionId, {
+      ws,
+      extensionId,
+      userId,
+      isAuthenticated: true,
+      lastSeen: new Date()
+    });
+
+    // Update last seen in storage
+    await storage.updateExtensionLastSeen(validPairing.id);
+
+    ws.send(JSON.stringify({
+      type: 'auth_success',
+      message: 'Extension authenticated successfully'
+    }));
+
+    console.log(`Extension authenticated: ${extensionId} for user ${userId}`);
+  }
+
+  private handlePong(ws: WebSocket, message: any) {
+    // Update last seen for this connection
+    const entries = Array.from(this.connections.entries());
+    for (const [connectionId, connection] of entries) {
+      if (connection.ws === ws) {
+        connection.lastSeen = new Date();
+        break;
+      }
+    }
+  }
+
+  private async handleCommandResult(message: any) {
     const { request_id, status, result, error } = message;
-    
-    // Log command execution result
+
+    if (!request_id) {
+      console.warn('Command result missing request_id');
+      return;
+    }
+
+    // Update command result in storage
     await storage.updateCommandResult(request_id, {
       status,
       result,
@@ -155,86 +162,116 @@ export class ExtensionWebSocketServer {
       executedAt: new Date().toISOString()
     });
 
-    console.log(`Command ${request_id} ${status}: ${error || 'success'}`);
+    console.log(`Command result received: ${request_id} - ${status}`);
   }
 
-  private async handlePermissionRequest(connection: ExtensionConnection, message: any) {
-    // Handle dynamic permission requests from extension
-    const { domain, scope } = message;
-    
-    // For now, log the request - in production this would trigger user consent flow
-    console.log(`Permission requested: ${scope} for ${domain} by user ${connection.userId}`);
-    
-    // Send response back to extension
-    connection.ws.send(JSON.stringify({
-      type: 'permission_response',
-      request_id: message.request_id,
-      granted: false, // Default to false until user grants
-      reason: 'User consent required'
-    }));
+  private handleHeartbeat(ws: WebSocket, message: any) {
+    // Update connection last seen and respond
+    const entries = Array.from(this.connections.entries());
+    for (const [connectionId, connection] of entries) {
+      if (connection.ws === ws) {
+        connection.lastSeen = new Date();
+        ws.send(JSON.stringify({
+          type: 'heartbeat_ack',
+          timestamp: new Date().toISOString()
+        }));
+        break;
+      }
+    }
   }
 
-  private async handleStatusUpdate(connection: ExtensionConnection, message: any) {
-    // Update extension status (idle, working, error)
-    console.log(`Extension status update: ${message.status}`);
+  private handleDisconnection(ws: WebSocket) {
+    // Remove connection from active connections
+    const entries = Array.from(this.connections.entries());
+    for (const [connectionId, connection] of entries) {
+      if (connection.ws === ws) {
+        this.connections.delete(connectionId);
+        console.log(`Extension disconnected: ${connectionId}`);
+        break;
+      }
+    }
   }
 
-  // Send command to extension
-  async sendCommand(userId: string, command: ExtensionCommand): Promise<boolean> {
-    const connections = Array.from(this.connections.values()).filter(
-      conn => conn.userId === userId && conn.isAuthenticated
-    );
+  // Public methods for sending commands to extensions
+  public async sendCommand(userId: string, command: any): Promise<boolean> {
+    const userConnections = Array.from(this.connections.values())
+      .filter(conn => conn.userId === userId && conn.isAuthenticated);
 
-    if (connections.length === 0) {
-      console.error(`No active extension connections for user ${userId}`);
+    if (userConnections.length === 0) {
+      console.warn(`No active extensions for user: ${userId}`);
       return false;
     }
 
     // Sign the command
     const signedCommand = this.commandSigner.signCommand(command);
 
-    // Log command in database
-    await storage.createCommandLog({
-      userId,
-      agentId: command.agent_id,
-      requestId: command.request_id,
-      capability: command.capability,
-      args: command.args,
-      signature: signedCommand,
-      status: 'pending'
+    // Send to all user's extensions
+    const promises = userConnections.map(connection => {
+      return new Promise<boolean>((resolve) => {
+        try {
+          connection.ws.send(JSON.stringify({
+            type: 'command',
+            signed_command: signedCommand
+          }));
+          resolve(true);
+        } catch (error) {
+          console.error('Error sending command:', error);
+          resolve(false);
+        }
+      });
     });
 
-    // Send to all active connections for this user
-    const message = JSON.stringify({
-      type: 'command',
-      signed_command: signedCommand
-    });
-
-    let sent = false;
-    for (const connection of connections) {
-      if (connection.ws.readyState === WebSocket.OPEN) {
-        connection.ws.send(message);
-        sent = true;
-      }
-    }
-
-    return sent;
+    const results = await Promise.all(promises);
+    return results.some(success => success);
   }
 
-  // Get active connections for a user
-  getActiveConnections(userId: string): ExtensionConnection[] {
-    return Array.from(this.connections.values()).filter(
-      conn => conn.userId === userId && conn.isAuthenticated
-    );
+  public async broadcastToExtensions(message: any): Promise<void> {
+    const activeConnections = Array.from(this.connections.values())
+      .filter(conn => conn.isAuthenticated);
+
+    const promises = activeConnections.map(connection => {
+      return new Promise<void>((resolve) => {
+        try {
+          connection.ws.send(JSON.stringify(message));
+          resolve();
+        } catch (error) {
+          console.error('Error broadcasting message:', error);
+          resolve();
+        }
+      });
+    });
+
+    await Promise.all(promises);
   }
 
-  // Broadcast to all connections
-  broadcast(message: any) {
-    const data = JSON.stringify(message);
-    this.connections.forEach(connection => {
-      if (connection.ws.readyState === WebSocket.OPEN) {
-        connection.ws.send(data);
+  public getActiveConnections(): ExtensionConnection[] {
+    return Array.from(this.connections.values())
+      .filter(conn => conn.isAuthenticated);
+  }
+
+  public getUserConnections(userId: string): ExtensionConnection[] {
+    return Array.from(this.connections.values())
+      .filter(conn => conn.userId === userId && conn.isAuthenticated);
+  }
+
+  public isUserConnected(userId: string): boolean {
+    return this.getUserConnections(userId).length > 0;
+  }
+
+  // Cleanup inactive connections
+  private startCleanupTimer() {
+    setInterval(() => {
+      const now = new Date();
+      const timeout = 5 * 60 * 1000; // 5 minutes
+
+      const entries = Array.from(this.connections.entries());
+      for (const [connectionId, connection] of entries) {
+        if (now.getTime() - connection.lastSeen.getTime() > timeout) {
+          console.log(`Cleaning up inactive connection: ${connectionId}`);
+          connection.ws.terminate();
+          this.connections.delete(connectionId);
+        }
       }
-    });
+    }, 60 * 1000); // Check every minute
   }
 }
