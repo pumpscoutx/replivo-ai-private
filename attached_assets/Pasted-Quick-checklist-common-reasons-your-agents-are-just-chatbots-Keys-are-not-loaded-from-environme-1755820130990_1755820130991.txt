@@ -1,0 +1,212 @@
+Quick checklist — common reasons your agents are “just chatbots”
+
+Keys are not loaded from environment (server reading undefined and falling back to mock).
+
+Frontend is calling the LLM directly (client-side) and using a local stub instead of the server.
+
+Code uses a mock executor or canned responses when extension/worker is missing.
+
+LLM call is failing (401/403) and your code returns fallback text. Check server logs.
+
+Output parsing is wrong — LLM returned a JSON plan but your code shows the raw prompt.
+
+Wrong endpoint/headers — provider requires different path or header.
+
+Rate-limited / key expired — provider returns an error and you handle it quietly.
+
+If any of these sounds likely, fix the server-side integration first.
+
+2) Where to store keys on Replit (do this right now)
+
+Replit → Tools → Secrets → Add:
+
+REPLIVO_AGENT1_KEY
+
+REPLIVO_AGENT2_KEY
+
+REPLIVO_AGENT3_KEY
+
+COMMAND_SIGN_PRIVATE_KEY (if used)
+
+Do not put keys into client code or extension. Only server reads process.env.
+
+3) Minimal working Node.js example (server-side)
+
+Copy this into your Replit index.js. It demonstrates:
+
+mapping agent → env key
+
+calling OpenRouter-like endpoint (replace URL if your provider differs)
+
+error handling and logging
+
+returning JSON plan
+
+// index.js (Node/Express)
+import express from 'express';
+import fetch from 'node-fetch'; // or global fetch on newer Node
+import bodyParser from 'body-parser';
+
+const app = express();
+app.use(bodyParser.json());
+
+// Map agent id -> env var name
+const AGENT_KEY_MAP = {
+  "business_growth": process.env.REPLIVO_AGENT1_KEY,
+  "operations": process.env.REPLIVO_AGENT2_KEY,
+  "people_finance": process.env.REPLIVO_AGENT3_KEY
+};
+
+function getAgentKey(agentId) {
+  const key = AGENT_KEY_MAP[agentId];
+  if (!key) throw new Error(`No API key configured for agentId=${agentId}`);
+  return key;
+}
+
+// Generic LLM call wrapper (OpenRouter style)
+async function callLLM(agentId, messages, model = "gpt-4o-mini") {
+  const key = getAgentKey(agentId);
+  const url = "https://api.openrouter.ai/v1/chat/completions"; // adjust if different
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`
+    },
+    body: JSON.stringify({
+      model,
+      messages
+    }),
+  });
+
+  const text = await resp.text();
+  let json;
+  try { json = JSON.parse(text); } catch(e) {
+    console.error("LLM non-JSON response:", text);
+    throw new Error(`LLM returned non-JSON: ${resp.status} ${text}`);
+  }
+
+  if (!resp.ok) {
+    console.error("LLM ERROR", resp.status, json);
+    throw new Error(`LLM error: ${resp.status} ${JSON.stringify(json)}`);
+  }
+  return json;
+}
+
+// Example endpoint to run an agent plan
+app.post("/api/run-agent", async (req, res) => {
+  try {
+    const { agentId, userGoal, context } = req.body;
+    if (!agentId || !userGoal) return res.status(400).json({error:"agentId & userGoal required"});
+
+    // Build messages with strict system prompt to enforce structured plan
+    const messages = [
+      { role: "system", content:
+`You are Replivo agent "${agentId}". Allowed capabilities: open_url, read_dom, fill_form, click_selector.
+Output MUST be valid JSON with an object: {"plan":[{ "capability": "...", "args": { ... } }], "explain":"one-line"}.
+Do not output any additional text.`},
+      { role: "user", content: `User goal: ${userGoal}\nContext: ${JSON.stringify(context || {})}` }
+    ];
+
+    const json = await callLLM(agentId, messages);
+    // safety: make sure model returned the expected field
+    const modelContent = json?.choices?.[0]?.message?.content;
+    if (!modelContent) throw new Error("LLM returned no message content");
+
+    // Parse model content (it should be JSON string)
+    let planObj;
+    try { planObj = JSON.parse(modelContent); } catch(e) {
+      console.error("Failed to parse model content as JSON:", modelContent);
+      return res.status(500).json({ error: "LLM returned unparsable plan", raw: modelContent });
+    }
+
+    // At this point planObj.plan should contain steps; send to executor (extension)
+    return res.json({ ok:true, plan: planObj });
+  } catch (err) {
+    console.error("run-agent error:", err.message || err);
+    return res.status(500).json({ error: err.message || String(err) });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, ()=> console.log(`Server listening on ${PORT}`));
+
+
+Key points:
+
+Server uses AGENT_KEY_MAP to pick the correct key per agent.
+
+The system prompt forces JSON output (reduce hallucinations).
+
+The server parses the returned choices[0].message.content as JSON and errors if not valid.
+
+4) How to test it locally / on Replit
+
+Ensure env vars are set in Replit.
+
+Deploy index.js.
+
+Use curl to test:
+
+curl -X POST https://<your-repl-url>/api/run-agent \
+  -H "Content-Type: application/json" \
+  -d '{"agentId":"business_growth","userGoal":"Create a 3-step ad campaign to promote our new product on Meta","context":{"site":"https://ads.facebook.com"}}'
+
+
+If you get LLM returned non-JSON or LLM error 401, inspect the server logs (Replit console).
+
+Successful response: JSON with plan array.
+
+5) If response is “pre-integrated” or canned: debug these places
+
+Server logs: add console.log("LLM response:", json) after callLLM to inspect raw LLM output.
+
+Check for fallback code: search your codebase for phrases like return { plan: [...] } or if (!extension) return cannedResponse. Remove test stubs.
+
+Check that frontend calls your server: verify network tab in browser DevTools — the request to /api/run-agent should be done; response should contain plan. If instead the client directly calls OpenAI/OpenRouter with a static key or a mock file — fix it.
+
+Verify keys are valid: In Replit console, run node -e "console.log(process.env.REPLIVO_AGENT1_KEY ? 'OK' : 'MISSING')" (do not print the key itself publicly).
+
+6) Ensure your executor (extension) executes plans
+
+The server must sign commands and send them to the extension. If your extension is offline, code might return the plan as text to the user (that looks like "chatbot reply"). Ensure the executor pipeline is implemented:
+
+Server: generates plan → signs → sends to extension WS.
+
+Extension: verifies signature → executes step-by-step → returns status/artifacts.
+
+If you don’t have the extension yet, your app must make that explicit and not pretend the agent executed anything. For testing, you can create a simple fake executor that logs commands as executed.
+
+7) Good prompt template to reduce hallucination and enforce execution plan
+
+Use a strict system prompt like the Node example. Add an output schema to force deterministic JSON:
+
+SYSTEM: You are a Replivo browser-control agent. ONLY output JSON with schema:
+{ "plan":[{"id":1,"capability":"open_url","args":{"url":"..."},"requires_confirmation":false}, ...], "explain":"short"}
+
+
+If the model returns plain text, your parser will catch it and you’ll get an error — safer than showing canned text.
+
+8) Logging & monitoring (must have)
+
+Log: request_id, agentId, userId, promptHash, LLM_response (full), parsedPlan, executorResults.
+
+Show last 10 LLM responses for admin only (no keys).
+
+Add alerts for LLM 4xx/5xx.
+
+9) If provider is OpenRouter / Deepseek — provider specifics
+
+Use the exact endpoint and required JSON body shape from their docs. The example uses https://api.openrouter.ai/v1/chat/completions. If your provider uses a different path or requires different request keys (e.g., messages vs input), adapt code accordingly. Check provider docs and Replit logs for 401/403 error responses — they often include exact cause.
+
+10) Final quick sanity checklist to run now
+
+Confirm env vars exist in Replit (secrets).
+
+Deploy the server code above.
+
+Run the curl test and inspect the server console for the raw LLM response.
+
+If you get 401, check keys; if you get non-JSON, the model output not matching schema → adjust system prompt.
+
+After plan returned, ensure your executor (extension or mock) receives signed plan and executes.

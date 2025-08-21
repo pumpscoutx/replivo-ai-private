@@ -48,7 +48,10 @@ export default function AgentHiring() {
   });
 
   const generatePairingCodeMutation = useMutation({
-    mutationFn: () => apiRequest("/api/extension/generate-code", "POST", { userId: "demo-user" }),
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/extension/generate-code", { userId: "demo-user" });
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/extension/status"] });
     }
@@ -58,17 +61,18 @@ export default function AgentHiring() {
     mutationFn: async (hireData: any) => {
       // Grant permissions for each selected capability
       for (const permission of hireData.permissions) {
-        await apiRequest("/api/extension/permissions/demo-user/grant", "POST", permission);
+        await apiRequest("POST", "/api/extension/permissions/demo-user/grant", permission);
       }
       
       // Execute initial agent task
-      return apiRequest("/api/agents/hire", "POST", {
+      const response = await apiRequest("POST", "/api/agents/hire", {
         agentType: getAgentType(agent?.category || ""),
         subAgent: agent?.name,
         task: "I've been hired! Ready to help with your tasks.",
         context: "Initial agent setup and introduction",
         userId: "demo-user"
       });
+      return await response.json();
     },
     onSuccess: () => {
       setStep(4); // Success step

@@ -24,16 +24,21 @@ export interface LLMResponse {
 
 // Map agent types to their corresponding API keys
 function getAgentAPIKey(agentType: AgentType): string {
-  switch (agentType) {
-    case 'business-growth':
-      return process.env.OPENAI_API_KEY_FIRST_AGENT!;
-    case 'operations':
-      return process.env.OPENAI_API_KEY_SECOND_AGENT!;
-    case 'people-finance':
-      return process.env.OPENAI_API_KEY_THIRD_AGENT!;
-    default:
-      throw new Error(`Unknown agent type: ${agentType}`);
+  const keyMap: Record<AgentType, string | undefined> = {
+    'business-growth': process.env.OPENAI_API_KEY_FIRST_AGENT,
+    'operations': process.env.OPENAI_API_KEY_SECOND_AGENT,
+    'people-finance': process.env.OPENAI_API_KEY_THIRD_AGENT
+  };
+
+  const key = keyMap[agentType];
+  if (!key) {
+    console.error(`No API key found for agent type: ${agentType}`);
+    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENAI_API_KEY')).join(', ')}`);
+    throw new Error(`No API key configured for agent type: ${agentType}`);
   }
+  
+  console.log(`Using API key for ${agentType}: ${key.substring(0, 8)}...`);
+  return key;
 }
 
 // Main LLM call function using OpenRouter API
@@ -64,6 +69,13 @@ export async function callAgentLLM(
 
   if (!res.ok) {
     const errorText = await res.text();
+    console.error(`LLM API Error [${agentType}]:`, {
+      status: res.status,
+      statusText: res.statusText,
+      error: errorText,
+      model,
+      messageCount: messages.length
+    });
     throw new Error(`LLM call failed ${res.status}: ${errorText}`);
   }
 

@@ -41,14 +41,14 @@ export default function SandboxModal({ isOpen, onClose, subAgent }: SandboxModal
   // Agent hire mutation for real AI responses
   const agentMutation = useMutation({
     mutationFn: async (userMessage: string) => {
-      const response = await apiRequest("/api/agents/hire", "POST", {
+      const response = await apiRequest("POST", "/api/agents/hire", {
         agentType: getAgentType(subAgent.category),
         subAgent: subAgent.name,
         task: userMessage,
         context: `This is a demo interaction in the Try Me sandbox. User is testing the ${subAgent.name} agent.`,
         userId: "demo-user"
       });
-      return response;
+      return await response.json();
     },
     onError: (error) => {
       console.error("Agent API error:", error);
