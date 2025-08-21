@@ -53,7 +53,7 @@ export default function CursorEffects() {
       <AnimatePresence>
         {trail.map((point, index) => (
           <motion.div
-            key={point.id}
+            key={`${point.id}-${index}`}
             className="absolute w-2 h-2 bg-blue-400 rounded-full"
             style={{
               left: point.x - 4,
