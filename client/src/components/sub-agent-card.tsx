@@ -6,9 +6,10 @@ import type { SubAgent } from "@shared/schema";
 interface SubAgentCardProps {
   subAgent: SubAgent;
   onAdd?: (subAgent: SubAgent) => void;
+  showAddButton?: boolean;
 }
 
-export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
+export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }: SubAgentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -104,13 +105,15 @@ export default function SubAgentCard({ subAgent, onAdd }: SubAgentCardProps) {
             <span className="text-xl font-neiko font-black text-white">{formatPrice(subAgent.price)}</span>
             <span className="text-gray-400 text-sm font-medium">/mo</span>
           </div>
-          <Button 
-            onClick={() => onAdd?.(subAgent)}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-neiko font-bold shadow-lg transition-all transform hover:scale-105 border border-gray-700"
-          >
-            <i className="fas fa-plus mr-1"></i>
-            ADD
-          </Button>
+          {showAddButton && (
+            <Button 
+              onClick={() => onAdd?.(subAgent)}
+              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-neiko font-bold shadow-lg transition-all transform hover:scale-105 border border-gray-700"
+            >
+              <i className="fas fa-plus mr-1"></i>
+              ADD
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>

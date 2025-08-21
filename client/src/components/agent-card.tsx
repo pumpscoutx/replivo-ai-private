@@ -11,10 +11,6 @@ interface AgentCardProps {
 export default function AgentCard({ agent }: AgentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return `$${(price / 100).toFixed(0)}`;
-  };
-
   const formatRating = (rating: number) => {
     return (rating / 10).toFixed(1);
   };
@@ -38,6 +34,9 @@ export default function AgentCard({ agent }: AgentCardProps) {
 
   const getAgentImage = (agentName: string) => {
     const imageMap: { [key: string]: string } = {
+      "Business Growth": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
+      "Operations": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
+      "People & Finance": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
       "Marketing Agent": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
       "Data Analyst": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300",
       "Customer Support": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
@@ -45,27 +44,51 @@ export default function AgentCard({ agent }: AgentCardProps) {
     return imageMap[agentName] || "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300";
   };
 
+  const getCompanionImage = (agentName: string) => {
+    const companionMap: { [key: string]: string } = {
+      "Business Growth": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      "Operations": "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      "People & Finance": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      "Marketing Agent": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      "Data Analyst": "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      "Customer Support": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+    };
+    return companionMap[agentName] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80";
+  };
+
   const getSubagentNames = (agentName: string) => {
     const subagentMap: Record<string, string> = {
+      "Business Growth": "Lead Generator • Sales Qualifier • Campaign Manager • Analytics Specialist • Growth Hacker • Conversion Optimizer",
+      "Operations": "Process Automator • Workflow Manager • Quality Controller • Resource Planner • Task Scheduler • Performance Monitor",
+      "People & Finance": "HR Assistant • Payroll Manager • Budget Analyst • Expense Tracker • Compliance Monitor • Benefits Coordinator",
       "Marketing Agent": "Social Media Specialist • Email Marketing Expert • Content Creator • Analytics Analyst • SEO Specialist • Campaign Manager",
-      "Development Team": "Frontend Developer • Backend Developer • Database Expert • DevOps Engineer • UI/UX Designer • QA Specialist",
-      "Customer Support": "Live Chat Agent • Ticket Manager • Knowledge Base Manager • Social Support Agent • Phone Support Agent • Escalation Specialist",
-      "Data Analytics": "Data Scientist • Business Intelligence Analyst • Reporting Specialist • Predictive Modeler • Data Visualizer • Statistical Analyst",
-      "Sales Team": "Lead Generator • Sales Qualifier • Demo Specialist • Follow-up Agent • Deal Closer • Account Manager"
+      "Data Analyst": "Data Scientist • Business Intelligence Analyst • Reporting Specialist • Predictive Modeler • Data Visualizer • Statistical Analyst",
+      "Customer Support": "Live Chat Agent • Ticket Manager • Knowledge Base Manager • Social Support Agent • Phone Support Agent • Escalation Specialist"
     };
     return subagentMap[agentName] || "AI Specialist • Task Automator • Process Manager • Data Handler • Communication Expert • Quality Controller";
   };
 
+  const getTagline = (agentName: string) => {
+    const taglineMap: Record<string, string> = {
+      "Business Growth": "Scale your revenue with smart automation",
+      "Operations": "Streamline workflows and boost efficiency", 
+      "People & Finance": "Manage teams and finances effortlessly",
+      "Marketing Agent": "Complete marketing automation suite",
+      "Data Analyst": "Advanced analytics and insights",
+      "Customer Support": "24/7 intelligent customer service"
+    };
+    return taglineMap[agentName] || "Intelligent automation for your business";
+  };
+
   return (
     <motion.div
-      className="agent-card bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl border border-gray-700 group overflow-hidden cursor-pointer"
+      className="agent-card bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl border border-gray-700 group overflow-hidden cursor-pointer relative"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ y: -12, scale: 1.03 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      onClick={() => window.location.href = '/marketplace'}
     >
-      {/* Agent Image Header */}
+      {/* Agent Background Image */}
       <div className="relative h-48 overflow-hidden">
         <motion.img 
           src={getAgentImage(agent.name)}
@@ -74,90 +97,90 @@ export default function AgentCard({ agent }: AgentCardProps) {
           animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
           transition={{ duration: 0.4 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        
+        {/* Companion Profile Picture */}
         <motion.div 
-          className="absolute top-4 left-4 w-16 h-16 bg-gray-800/60 backdrop-blur-md rounded-2xl flex items-center justify-center border border-gray-600/50"
+          className="absolute top-4 right-4 w-12 h-12 rounded-full border-3 border-white shadow-lg overflow-hidden"
           animate={isHovered ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <i className={`${agent.icon} text-gray-300 text-2xl`}></i>
+          <img 
+            src={getCompanionImage(agent.name)}
+            alt="AI Companion"
+            className="w-full h-full object-cover"
+          />
         </motion.div>
         
         {/* Featured Badge */}
         {agent.featured && (
-          <div className="absolute top-4 right-4 bg-gray-700 text-gray-300 rounded-full px-3 py-1 text-xs font-bold border border-gray-600">
+          <div className="absolute top-4 left-4 bg-gray-700/80 backdrop-blur-sm text-gray-300 rounded-full px-3 py-1 text-xs font-bold border border-gray-600">
             <i className="fas fa-crown mr-1"></i>
             FEATURED
           </div>
         )}
       </div>
 
-      <div className="p-8">
-        <h3 className="text-2xl font-neiko font-bold text-white mb-3">{agent.name.toUpperCase()}</h3>
-        <p className="text-gray-400 mb-4 leading-relaxed">{agent.description}</p>
+      <div className="p-6">
+        {/* Agent Name and Tagline */}
+        <div className="mb-4">
+          <h3 className="text-2xl font-neiko font-black text-white mb-2">{agent.name.toUpperCase()}</h3>
+          <p className="text-gray-400 text-sm leading-relaxed">{getTagline(agent.name)}</p>
+        </div>
         
-        {/* Moving Subagent Names */}
-        <div className="mb-4 overflow-hidden bg-gray-700/30 rounded-lg p-2 border border-gray-600/30">
-          <div className="text-xs text-gray-500 mb-1 font-neiko">INCLUDES:</div>
-          <div className="relative h-4 overflow-hidden">
-            <div className="subagent-text-slide text-sm text-gray-400 font-medium whitespace-nowrap">
-              {getSubagentNames(agent.name)}
-            </div>
+        {/* Ratings */}
+        <div className="flex items-center mb-4">
+          <div className="flex mr-2">
+            {renderStars(agent.rating)}
           </div>
+          <span className="text-sm text-gray-400">
+            ({formatRating(agent.rating)}) • {agent.reviewCount} reviews
+          </span>
         </div>
-      
-      {/* Ratings */}
-      <div className="flex items-center mb-4">
-        <div className="flex mr-2">
-          {renderStars(agent.rating)}
-        </div>
-        <span className="text-sm text-gray-400">
-          ({formatRating(agent.rating)}) • {agent.reviewCount} reviews
-        </span>
-      </div>
-      
-      {/* Task Preview (animated on hover) */}
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mb-4"
-          >
-            <div className="bg-gray-700/50 rounded-lg p-3 text-sm space-y-1 border border-gray-600/30">
-              {agent.tasks?.slice(0, 3).map((task, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center text-gray-300"
-                >
-                  <i className={`fas fa-${index === 0 ? 'check-circle text-gray-400' : index === 1 ? 'clock text-gray-400' : 'chart-line text-gray-400'} mr-2`}></i>
-                  <span>{task}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-        <div className="flex justify-between items-center">
+        
+        {/* Moving Subagent Names - Only show on hover */}
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 overflow-hidden bg-gray-700/30 rounded-lg p-3 border border-gray-600/30"
+            >
+              <div className="text-xs text-gray-500 mb-2 font-neiko">SUB-AGENTS:</div>
+              <div className="relative h-5 overflow-hidden">
+                <div className="subagent-text-slide text-sm text-gray-300 font-medium whitespace-nowrap">
+                  {getSubagentNames(agent.name)}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center gap-3">
           <Button 
             asChild
-            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-neiko font-bold text-lg shadow-lg transition-all transform hover:scale-105 border border-gray-700"
+            variant="outline"
+            className="flex-1 border-2 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-lg font-neiko font-bold text-sm transition-all"
           >
-            <Link href="/marketplace">
-              <i className="fas fa-shopping-cart mr-2"></i>
-              VIEW AGENTS
+            <Link href={`/agent/${agent.id}`}>
+              <i className="fas fa-eye mr-2"></i>
+              VIEW AGENT
             </Link>
           </Button>
-          <div className="text-right">
-            <span className="text-3xl font-neiko font-black text-white">{formatPrice(agent.price)}</span>
-            <span className="text-gray-400 font-medium">/mo</span>
-          </div>
+          
+          <Button 
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-neiko font-bold text-sm shadow-lg transition-all transform hover:scale-105 border border-gray-700"
+            onClick={() => {
+              // TODO: Implement hire flow with login check
+              console.log('Hire agent:', agent.name);
+            }}
+          >
+            <i className="fas fa-handshake mr-2"></i>
+            HIRE NOW
+          </Button>
         </div>
       </div>
     </motion.div>

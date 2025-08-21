@@ -118,65 +118,65 @@ export class MemStorage implements IStorage {
     // Initialize sample main agents
     const agents: InsertAgent[] = [
       {
-        name: "Marketing Agent",
-        description: "Complete marketing automation with content creation, social media management, and analytics reporting.",
+        name: "Business Growth",
+        description: "Scale your revenue with intelligent lead generation, sales automation, and growth optimization strategies.",
         icon: "fas fa-bullhorn",
         price: 9900,
         rating: 49,
         reviewCount: 127,
-        category: "marketing",
+        category: "growth",
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "content")
           .map(sa => sa.id),
         tasks: [
-          "Creating blog content...",
-          "Scheduling social posts...",
-          "Analyzing campaign performance...",
-          "Optimizing SEO keywords...",
-          "Generating marketing reports..."
+          "Generating qualified leads...",
+          "Optimizing conversion funnels...",
+          "Running A/B tests...",
+          "Analyzing growth metrics...",
+          "Scaling successful campaigns..."
         ],
         featured: true
       },
       {
-        name: "Data Analyst",
-        description: "Advanced data processing, visualization, and reporting with automated insights and trend analysis.",
-        icon: "fas fa-chart-bar",
+        name: "Operations",
+        description: "Streamline workflows, automate processes, and optimize operational efficiency across your entire organization.",
+        icon: "fas fa-cogs",
         price: 14900,
         rating: 47,
         reviewCount: 89,
-        category: "analytics",
+        category: "operations",
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "analytics")
           .map(sa => sa.id),
         tasks: [
-          "Processing dataset...",
-          "Creating visualizations...",
-          "Generating insights report...",
-          "Building dashboards...",
-          "Monitoring KPIs..."
+          "Automating workflows...",
+          "Managing resources...",
+          "Monitoring performance...",
+          "Optimizing processes...",
+          "Ensuring quality control..."
         ],
         featured: true
       },
       {
-        name: "Customer Support",
-        description: "24/7 customer service with intelligent ticket routing, response automation, and satisfaction tracking.",
-        icon: "fas fa-headset",
+        name: "People & Finance",
+        description: "Manage your team and finances with automated HR processes, payroll management, and financial planning.",
+        icon: "fas fa-users-cog",
         price: 7900,
         rating: 48,
         reviewCount: 203,
-        category: "support",
+        category: "people-finance",
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "support")
           .map(sa => sa.id),
         tasks: [
-          "Managing support tickets...",
-          "Responding to customers...",
-          "Tracking satisfaction...",
-          "Escalating complex issues...",
-          "Updating knowledge base..."
+          "Processing payroll...",
+          "Managing benefits...",
+          "Tracking expenses...",
+          "Recruiting talent...",
+          "Analyzing budgets..."
         ],
         featured: true
       }

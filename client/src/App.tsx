@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Marketplace from "@/pages/marketplace";
 import CustomAgent from "@/pages/custom-agent";
+import AgentDetails from "@/pages/agent-details";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/custom-agent" component={CustomAgent} />
+      <Route path="/agent/:id" component={AgentDetails} />
       <Route component={NotFound} />
     </Switch>
   );

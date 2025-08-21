@@ -124,6 +124,7 @@ export default function Marketplace() {
                       <SubAgentCard 
                         subAgent={subAgent} 
                         onAdd={handleAddAgent}
+                        showAddButton={true}
                       />
                       {isAgentSelected(subAgent.id) && (
                         <motion.div
