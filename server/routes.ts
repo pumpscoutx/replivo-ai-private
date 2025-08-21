@@ -3,6 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCustomRequestSchema } from "@shared/schema";
 import { z } from "zod";
+import {
+  callBusinessGrowthAgent,
+  callOperationsAgent,
+  callPeopleFinanceAgent,
+  type AgentType
+} from "./llmClient";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all agents
@@ -189,6 +195,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Test command error:', error);
       res.status(500).json({ error: 'Failed to execute test command' });
+    }
+  });
+
+  // Agent hiring and execution endpoints
+  const hireAgentSchema = z.object({
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']),
+    subAgent: z.string().optional(),
+    task: z.string(),
+    context: z.string().optional(),
+    userId: z.string().default('demo-user')
+  });
+
+  // Hire and execute agent task
+  app.post("/api/agents/hire", async (req, res) => {
+    try {
+      const validatedData = hireAgentSchema.parse(req.body);
+      const { agentType, subAgent, task, context, userId } = validatedData;
+
+      // Call the appropriate agent LLM based on type
+      let agentResponse: string;
+      switch (agentType) {
+        case 'business-growth':
+          agentResponse = await callBusinessGrowthAgent(task, context, subAgent);
+          break;
+        case 'operations':
+          agentResponse = await callOperationsAgent(task, context, subAgent);
+          break;
+        case 'people-finance':
+          agentResponse = await callPeopleFinanceAgent(task, context, subAgent);
+          break;
+        default:
+          throw new Error(`Unknown agent type: ${agentType}`);
+      }
+
+      // Store the task execution for audit
+      await storage.createTaskExecution({
+        userId,
+        agentType,
+        subAgent: subAgent || '',
+        task,
+        context: context || '',
+        response: agentResponse,
+        status: 'completed'
+      });
+
+      res.json({
+        success: true,
+        agentType,
+        subAgent,
+        response: agentResponse,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Agent hire error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: error.errors 
+        });
+      }
+
+      if (error instanceof Error && error.message.includes('API key not found')) {
+        return res.status(500).json({ 
+          message: "Agent configuration error", 
+          error: "API key not properly configured for this agent type" 
+        });
+      }
+
+      if (error instanceof Error && error.message.includes('LLM call failed')) {
+        return res.status(502).json({ 
+          message: "External service error", 
+          error: "Failed to connect to AI service" 
+        });
+      }
+
+      res.status(500).json({ message: "Failed to execute agent task" });
+    }
+  });
+
+  // Get user's hired agents and task history
+  app.get("/api/agents/hired/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      
+      const taskHistory = await storage.getUserTaskHistory(
+        userId, 
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+
+      res.json({
+        tasks: taskHistory.map(task => ({
+          id: task.id,
+          agentType: task.agentType,
+          subAgent: task.subAgent,
+          task: task.task,
+          status: task.status,
+          createdAt: task.createdAt,
+          executedAt: task.executedAt
+        }))
+      });
+
+    } catch (error) {
+      console.error('Task history error:', error);
+      res.status(500).json({ error: 'Failed to get task history' });
+    }
+  });
+
+  // Test agent connectivity (for debugging)
+  app.post("/api/agents/test/:agentType", async (req, res) => {
+    try {
+      const { agentType } = req.params;
+      
+      if (!['business-growth', 'operations', 'people-finance'].includes(agentType)) {
+        return res.status(400).json({ error: 'Invalid agent type' });
+      }
+
+      const testPrompt = "Respond with a simple JSON object containing 'status': 'online' and 'agent': your agent type.";
+      
+      let response: string;
+      switch (agentType as AgentType) {
+        case 'business-growth':
+          response = await callBusinessGrowthAgent(testPrompt);
+          break;
+        case 'operations':
+          response = await callOperationsAgent(testPrompt);
+          break;
+        case 'people-finance':
+          response = await callPeopleFinanceAgent(testPrompt);
+          break;
+      }
+
+      res.json({
+        success: true,
+        agentType,
+        response,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Agent test error:', error);
+      res.status(500).json({ 
+        error: 'Agent test failed',
+        agentType: req.params.agentType,
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

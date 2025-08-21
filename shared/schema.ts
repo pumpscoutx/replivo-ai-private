@@ -131,6 +131,19 @@ export const voiceInteractions = pgTable("voice_interactions", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 
+export const taskExecutions = pgTable("task_executions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  agentType: text("agent_type").notNull(), // business-growth, operations, people-finance
+  subAgent: text("sub_agent"),
+  task: text("task").notNull(),
+  context: text("context"),
+  response: text("response").notNull(),
+  status: text("status").notNull().default("pending"), // pending, completed, failed
+  executedAt: text("executed_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
 export const insertUserPermissionSchema = createInsertSchema(userPermissions).omit({
   id: true,
   createdAt: true
@@ -148,6 +161,11 @@ export const insertCommandLogSchema = createInsertSchema(commandLog).omit({
 });
 
 export const insertVoiceInteractionSchema = createInsertSchema(voiceInteractions).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertTaskExecutionSchema = createInsertSchema(taskExecutions).omit({
   id: true,
   createdAt: true
 });
@@ -171,3 +189,5 @@ export type CommandLog = typeof commandLog.$inferSelect;
 export type InsertCommandLog = z.infer<typeof insertCommandLogSchema>;
 export type VoiceInteraction = typeof voiceInteractions.$inferSelect;
 export type InsertVoiceInteraction = z.infer<typeof insertVoiceInteractionSchema>;
+export type TaskExecution = typeof taskExecutions.$inferSelect;
+export type InsertTaskExecution = z.infer<typeof insertTaskExecutionSchema>;

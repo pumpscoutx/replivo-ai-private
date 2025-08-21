@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction } from "@shared/schema";
+import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction, type TaskExecution, type InsertTaskExecution } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -36,6 +36,9 @@ export interface IStorage {
   
   createVoiceInteraction(interaction: InsertVoiceInteraction): Promise<VoiceInteraction>;
   getVoiceInteractions(userId: string, limit?: number): Promise<VoiceInteraction[]>;
+  
+  createTaskExecution(task: InsertTaskExecution): Promise<TaskExecution>;
+  getUserTaskHistory(userId: string, limit?: number, offset?: number): Promise<TaskExecution[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -47,6 +50,7 @@ export class MemStorage implements IStorage {
   private extensionPairings: Map<string, ExtensionPairing>;
   private commandLogs: Map<string, CommandLog>;
   private voiceInteractions: Map<string, VoiceInteraction>;
+  private taskExecutions: Map<string, TaskExecution>;
 
   constructor() {
     this.users = new Map();
@@ -57,6 +61,7 @@ export class MemStorage implements IStorage {
     this.extensionPairings = new Map();
     this.commandLogs = new Map();
     this.voiceInteractions = new Map();
+    this.taskExecutions = new Map();
     this.initializeData();
   }
 
@@ -471,6 +476,27 @@ export class MemStorage implements IStorage {
       .filter(v => v.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, limit);
+  }
+
+  async createTaskExecution(insertTask: InsertTaskExecution): Promise<TaskExecution> {
+    const id = randomUUID();
+    const task: TaskExecution = { 
+      status: 'pending',
+      executedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...insertTask, 
+      id 
+    };
+    this.taskExecutions.set(id, task);
+    return task;
+  }
+
+  async getUserTaskHistory(userId: string, limit = 50, offset = 0): Promise<TaskExecution[]> {
+    const userTasks = Array.from(this.taskExecutions.values())
+      .filter(t => t.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    return userTasks.slice(offset, offset + limit);
   }
 }
 
