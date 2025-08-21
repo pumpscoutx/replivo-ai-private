@@ -4,6 +4,8 @@ import AgentCard from "@/components/agent-card";
 import AgentRecommender from "@/components/agent-recommender";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import BackgroundEffects from "@/components/background-effects";
+import CursorEffects from "@/components/cursor-effects";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { Agent } from "@shared/schema";
@@ -21,6 +23,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black">
+      <BackgroundEffects />
+      <CursorEffects />
       <Header />
       
       {/* Hero Section */}

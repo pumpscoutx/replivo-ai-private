@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import SubAgentCard from "@/components/sub-agent-card";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import BackgroundEffects from "@/components/background-effects";
+import CursorEffects from "@/components/cursor-effects";
 import { Button } from "@/components/ui/button";
 import type { SubAgent } from "@shared/schema";
 import { CATEGORIES } from "@/lib/constants";
@@ -31,6 +33,8 @@ export default function Marketplace() {
 
   return (
     <div className="min-h-screen bg-black">
+      <BackgroundEffects />
+      <CursorEffects />
       <Header />
       
       {/* Marketplace Section */}

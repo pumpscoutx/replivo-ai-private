@@ -35,84 +35,145 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize sample sub-agents
+    // Initialize sample sub-agents with enhanced data
     const subAgents: InsertSubAgent[] = [
       {
-        name: "Content Writer",
-        description: "Creates engaging blog posts, articles, and web copy",
+        name: "Content Creator",
+        description: "Creates engaging blog posts, articles, and web copy with SEO optimization",
         icon: "fas fa-pen-fancy",
         price: 2900,
         category: "content",
-        currentTask: "Writing blog post...",
-        taskStatus: "working"
+        currentTask: "Writing blog post about AI trends...",
+        taskStatus: "working",
+        rating: 47,
+        reviewCount: 284,
+        recentUpdates: ["Enhanced writing quality", "Added SEO optimization", "Improved speed"],
+        demoScript: "I can help you create compelling content that engages your audience and drives conversions.",
+        integrations: ["WordPress", "HubSpot", "Google Docs", "Notion"],
+        totalHires: 342
       },
       {
         name: "Social Media Manager",
-        description: "Schedules posts and manages social presence",
+        description: "Schedules posts and manages social presence across all platforms",
         icon: "fab fa-instagram",
         price: 3900,
         category: "content",
-        currentTask: "Scheduling posts...",
-        taskStatus: "working"
+        currentTask: "Scheduling posts for next week...",
+        taskStatus: "working",
+        rating: 45,
+        reviewCount: 192,
+        recentUpdates: ["Multi-platform posting", "Analytics integration", "Content calendar"],
+        demoScript: "I'll manage your social media presence and grow your audience engagement.",
+        integrations: ["Instagram", "Twitter", "LinkedIn", "Facebook", "TikTok"],
+        totalHires: 256
       },
       {
         name: "SEO Specialist",
-        description: "Optimizes content for search engines",
+        description: "Optimizes content for search engines and tracks rankings",
         icon: "fas fa-search",
         price: 4900,
         category: "content",
-        currentTask: "Analyzing keywords...",
-        taskStatus: "working"
+        currentTask: "Analyzing keyword opportunities...",
+        taskStatus: "working",
+        rating: 48,
+        reviewCount: 367,
+        recentUpdates: ["Advanced keyword research", "Competitor analysis", "SERP tracking"],
+        demoScript: "I'll boost your search rankings and drive organic traffic to your site.",
+        integrations: ["Google Analytics", "SEMrush", "Ahrefs", "Search Console"],
+        totalHires: 428
       },
       {
-        name: "Analytics Reporter",
-        description: "Generates detailed performance reports",
+        name: "Data Analyst",
+        description: "Generates detailed performance reports and business insights",
         icon: "fas fa-chart-line",
         price: 3500,
         category: "analytics",
-        currentTask: "Creating report...",
-        taskStatus: "working"
+        currentTask: "Creating monthly performance report...",
+        taskStatus: "working",
+        rating: 46,
+        reviewCount: 156,
+        recentUpdates: ["Real-time dashboards", "Predictive analytics", "Custom metrics"],
+        demoScript: "I'll analyze your data and provide actionable insights for business growth.",
+        integrations: ["Google Analytics", "Tableau", "Power BI", "Salesforce"],
+        totalHires: 189
       },
       {
-        name: "Data Processor",
-        description: "Processes and cleans large datasets",
+        name: "Database Manager",
+        description: "Processes and cleans large datasets with automated workflows",
         icon: "fas fa-database",
         price: 5900,
         category: "analytics",
-        currentTask: "Processing dataset...",
-        taskStatus: "working"
+        currentTask: "Processing customer data...",
+        taskStatus: "working",
+        rating: 44,
+        reviewCount: 89,
+        recentUpdates: ["Automated data cleaning", "Real-time processing", "Data validation"],
+        demoScript: "I'll manage your databases and ensure data quality and security.",
+        integrations: ["MySQL", "PostgreSQL", "MongoDB", "Redis"],
+        totalHires: 143
       },
       {
-        name: "Visualization Creator",
-        description: "Creates charts and interactive dashboards",
+        name: "Report Generator",
+        description: "Creates charts and interactive dashboards for data visualization",
         icon: "fas fa-chart-pie",
         price: 4500,
         category: "analytics",
-        currentTask: "Creating visualizations...",
-        taskStatus: "working"
+        currentTask: "Building interactive dashboard...",
+        taskStatus: "working",
+        rating: 45,
+        reviewCount: 203,
+        recentUpdates: ["Interactive charts", "Real-time updates", "Mobile responsive"],
+        demoScript: "I'll create stunning visualizations that make your data easy to understand.",
+        integrations: ["D3.js", "Chart.js", "Plotly", "Grafana"],
+        totalHires: 267
       },
       {
         name: "Ticket Manager",
-        description: "Manages and routes support tickets",
+        description: "Manages and routes support tickets with intelligent prioritization",
         icon: "fas fa-inbox",
         price: 3200,
         category: "support",
-        currentTask: "Managing support tickets...",
-        taskStatus: "working"
+        currentTask: "Managing support queue...",
+        taskStatus: "working",
+        rating: 43,
+        reviewCount: 178,
+        recentUpdates: ["Smart routing", "Priority detection", "Auto-responses"],
+        demoScript: "I'll manage your support tickets and ensure customers get quick responses.",
+        integrations: ["Zendesk", "Freshdesk", "Intercom", "ServiceNow"],
+        totalHires: 234
       },
       {
-        name: "Chat Assistant",
-        description: "Provides 24/7 customer chat support",
+        name: "Customer Support",
+        description: "Provides 24/7 customer chat support with personalized responses",
         icon: "fas fa-comments",
         price: 4200,
         category: "support",
-        currentTask: "Responding to customers...",
-        taskStatus: "working"
+        currentTask: "Helping customer with refund...",
+        taskStatus: "working",
+        rating: 48,
+        reviewCount: 445,
+        recentUpdates: ["Natural language processing", "Sentiment analysis", "Multi-language"],
+        demoScript: "I'll provide excellent customer support and resolve issues quickly.",
+        integrations: ["Slack", "Discord", "WhatsApp", "Live Chat"],
+        totalHires: 578
       }
     ];
 
     subAgents.forEach(subAgent => {
-      this.createSubAgent(subAgent);
+      const id = randomUUID();
+      const fullSubAgent: SubAgent = { 
+        rating: 45,
+        reviewCount: 0,
+        recentUpdates: [],
+        demoScript: null,
+        integrations: [],
+        totalHires: 0,
+        taskStatus: 'idle',
+        currentTask: null,
+        ...subAgent, 
+        id 
+      };
+      this.subAgents.set(id, fullSubAgent);
     });
 
     // Initialize sample main agents
@@ -218,7 +279,16 @@ export class MemStorage implements IStorage {
 
   async createAgent(insertAgent: InsertAgent): Promise<Agent> {
     const id = randomUUID();
-    const agent: Agent = { ...insertAgent, id };
+    const agent: Agent = { 
+      rating: 45,
+      reviewCount: 0,
+      isBundle: true,
+      subAgentIds: [],
+      tasks: [],
+      featured: false,
+      ...insertAgent, 
+      id 
+    };
     this.agents.set(id, agent);
     return agent;
   }
@@ -239,14 +309,32 @@ export class MemStorage implements IStorage {
 
   async createSubAgent(insertSubAgent: InsertSubAgent): Promise<SubAgent> {
     const id = randomUUID();
-    const subAgent: SubAgent = { ...insertSubAgent, id };
+    const subAgent: SubAgent = { 
+      rating: 45,
+      reviewCount: 0,
+      recentUpdates: [],
+      demoScript: null,
+      integrations: [],
+      totalHires: 0,
+      taskStatus: 'idle',
+      currentTask: null,
+      ...insertSubAgent, 
+      id 
+    };
     this.subAgents.set(id, subAgent);
     return subAgent;
   }
 
   async createCustomRequest(insertRequest: InsertCustomRequest): Promise<CustomRequest> {
     const id = randomUUID();
-    const request: CustomRequest = { ...insertRequest, id };
+    const request: CustomRequest = { 
+      status: 'pending',
+      industry: null,
+      budgetRange: null,
+      allowPooling: false,
+      ...insertRequest, 
+      id 
+    };
     this.customRequests.set(id, request);
     return request;
   }

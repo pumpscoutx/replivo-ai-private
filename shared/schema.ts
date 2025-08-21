@@ -26,7 +26,13 @@ export const subAgents = pgTable("sub_agents", {
   price: integer("price").notNull(), // in cents
   category: text("category").notNull(),
   currentTask: text("current_task"),
-  taskStatus: text("task_status").notNull().default("idle") // idle, working, completed
+  taskStatus: text("task_status").notNull().default("idle"), // idle, working, completed
+  rating: integer("rating").notNull().default(45), // out of 50 (4.5 stars = 45)
+  reviewCount: integer("review_count").notNull().default(0),
+  recentUpdates: jsonb("recent_updates").$type<string[]>().default([]),
+  demoScript: text("demo_script"), // For live preview functionality
+  integrations: jsonb("integrations").$type<string[]>().default([]),
+  totalHires: integer("total_hires").notNull().default(0)
 });
 
 export const customRequests = pgTable("custom_requests", {
@@ -60,6 +66,22 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true
 });
 
+// Reviews table for sub-agent ratings and feedback
+export const reviews = pgTable("reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  subAgentId: varchar("sub_agent_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  rating: integer("rating").notNull(), // 1-50 (1-5 stars * 10)
+  comment: text("comment"),
+  isVerified: boolean("is_verified").notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  createdAt: true
+});
+
 export type InsertAgent = z.infer<typeof insertAgentSchema>;
 export type Agent = typeof agents.$inferSelect;
 export type InsertSubAgent = z.infer<typeof insertSubAgentSchema>;
@@ -68,3 +90,5 @@ export type InsertCustomRequest = z.infer<typeof insertCustomRequestSchema>;
 export type CustomRequest = typeof customRequests.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = typeof reviews.$inferSelect;
