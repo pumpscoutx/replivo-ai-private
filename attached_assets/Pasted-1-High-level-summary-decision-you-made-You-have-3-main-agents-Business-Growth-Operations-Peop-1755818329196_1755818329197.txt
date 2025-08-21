@@ -1,0 +1,292 @@
+1) High-level summary / decision you made
+
+You have 3 main agents (Business Growth, Operations, People & Finance).
+
+You want them to be real doers driven by real LLM API calls (the OpenRouter / Deepseek-style keys you provided).
+
+We implement browser-first automation (extension + cloud orchestrator) so agents can act on the user’s browser after explicit consent.
+
+Agents must be added to “Your Hired Agents”, speak via voice first (TTS/STT), and execute tasks via signed commands.
+
+2) Where to store the API keys (on Replit) — do this now
+
+Do not put keys in client-side code or the extension. On Replit:
+
+Go to your Repl > Tools > Secrets (or the Environment variables area).
+
+Add variables:
+
+REPLIVO_AGENT1_KEY → (paste Agent 1 API key),
+
+REPLIVO_AGENT2_KEY → (Agent 2 key),
+
+REPLIVO_AGENT3_KEY → (Agent 3 key),
+
+COMMAND_SIGN_PRIVATE_KEY → (server private key used to sign extension commands),
+
+COMMAND_SIGN_PUBLIC_KEY → (public key served to extension for verification if needed).
+
+Replit will inject these into process.env for your Node server. Keys stay server-side.
+
+3) Map each agent to a server-side API key (implementation detail)
+
+Business Growth Agent → use process.env.REPLIVO_AGENT1_KEY for its LLM calls.
+
+Operations Agent → use process.env.REPLIVO_AGENT2_KEY.
+
+People & Finance Agent → use process.env.REPLIVO_AGENT3_KEY.
+
+Rationale: this isolates usage/quotas per agent type and lets you rotate keys individually.
+
+4) Exact cloud flow (Orchestrator) — how an agent runs a task end-to-end
+
+User hires sub-agent via web UI (sub-agent card → Hire Now).
+
+Auth / Company form → user provides company info; consent screen shows domain scopes and autonomy level.
+
+Extension pairing (if not already paired): server issues one-time code → extension receives code → pairs over secure WebSocket (JWT).
+
+Server (Orchestrator) builds a plan:
+
+Calls the LLM via the agent-specific API key (server-side) with a structured prompt that includes:
+
+Agent persona (role + allowed capabilities),
+
+User-provided goal,
+
+Current context (page DOM snippet or account data),
+
+Required output format (ordered step list with required browser capabilities).
+
+Policy check: the planner’s output is checked by the policy engine vs. user-granted scopes and autonomy level.
+
+If Suggest/Confirm: show the human-readable plan to user (UI + voice). Await confirmation if needed.
+
+Sign and send commands: Orchestrator converts plan steps into signed command envelopes (JSON + expiry + signature) and sends them via WebSocket to the paired extension for execution.
+
+Extension verifies signature and executes DOM actions (open tab, fill form, click) or calls browser APIs. It streams back status, text results, and optional screenshots (if consented).
+
+Server updates agent state in DB, generates TTS reply and streams audio back to the user (WebRTC or audio endpoint).
+
+Audit log: each command + result + timestamp + consent stored immutably.
+
+5) Example of server LLM call (Node.js) — do this on server only
+
+(replace LLM_ENDPOINT with your provider’s chat/completions endpoint; use process.env.REPLIVO_AGENT*_KEY accordingly)
+
+// server/llmClient.js (Node)
+import fetch from 'node-fetch';
+
+export async function callAgentLLM(agentKey, messages, model = 'gpt-4o') {
+  const res = await fetch('https://api.openrouter.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${agentKey}` // agentKey from process.env
+    },
+    body: JSON.stringify({
+      model,
+      messages
+    })
+  });
+  if (!res.ok) throw new Error(`LLM call failed ${res.status}`);
+  return res.json();
+}
+
+
+For each agent, pass process.env.REPLIVO_AGENT1_KEY etc.
+
+Use explicit system message positioning to inject persona, allowed capabilities and output schema.
+
+6) Prompt & persona structure (must be strict, deterministic)
+
+System prompt (example for Customer Success Manager sub-agent):
+
+You are Replivo's "Customer Success Manager" sub-agent.
+You MAY use the following browser capabilities: open_url, read_dom, fill_form, click_selector, capture_screenshot, create_calendar_event.
+Output exactly as JSON: { "plan": [ { "capability": "open_url", "args": {...} }, ... ], "explain": "one-line explanation"}
+Do NOT include any user secrets in the output. Each plan step must be atomic and include estimated time and required user confirmation flag.
+
+
+User message: user intent + context (page URL, selected ticket ID, email template if present).
+
+LLM returns an ordered plan which the Orchestrator validates and signs.
+
+7) Command signing and verification (security)
+
+Server signs commands using an RSA key (COMMAND_SIGN_PRIVATE_KEY) — stored in Replit secrets.
+
+Extension verifies the signature with COMMAND_SIGN_PUBLIC_KEY.
+
+Each command contains request_id, issued_at, expiry, capability, args.
+
+Reject unsigned or expired commands.
+
+Signing (Node):
+
+import jwt from 'jsonwebtoken';
+const PRIVATE_KEY = process.env.COMMAND_SIGN_PRIVATE_KEY;
+function signCommand(cmd) {
+  return jwt.sign(cmd, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '5m' });
+}
+
+
+Extension verifies using the public key.
+
+8) Browser extension responsibilities (concise)
+
+Pairing: accept one-time code, store JWT token.
+
+Host permissions: only for domains user allowed.
+
+Listen to server WebSocket for signed commands.
+
+Verify signature, execute commands safely, return result artifacts:
+
+status: ok/error,
+
+logs: step logs,
+
+artifacts: text extract, optional screenshot URLs (if user allowed upload).
+
+Expose UI: allow immediate pause/kill, per-domain toggle, audit log view.
+
+9) Voice-first interaction (how it will behave)
+
+STT: browser captures mic, streams to server (WebRTC) or local STT if privacy required.
+
+LLM planning: user voice → STT → LLM planner returns the plan.
+
+TTS: server sends TTS audio to user (stream); extension may play audio if appropriate.
+
+Default flow: agent speaks its plan, waits for confirmation when autonomy is Confirm (via voice “Yes” or button).
+
+Transcript & decisions stored in the audit log.
+
+10) Concrete mapping: what each main agent + its subagents does and how they call the LLM
+
+Important: each step that requires an LLM call should call the correct process.env.REPLIVO_AGENTn_KEY on the server.
+
+A — Business Growth Agent (uses REPLIVO_AGENT1_KEY)
+
+Sub-agents (powerful bundles):
+
+Campaign Master
+
+Planner prompt: produce ad strategy and step list.
+
+Actions: open ad platform page, fill campaign form, upload creative URL, set budgets.
+
+Execution: extension executes DOM interactions; server uses LLM to craft ad copy and monitor ROI.
+
+Content & Engagement Lead
+
+Planner creates content calendar, writes posts, schedules via CMS UI or API.
+
+Actions: open CMS/editor, fill text, upload images, schedule.
+
+Sales Closer
+
+Planner crafts follow-up sequences, drafts proposals, books demos.
+
+Actions: open CRM, fill lead notes, send emails (via OAuth if connected) or fill compose forms in webmail.
+
+B — Operations Agent (uses REPLIVO_AGENT2_KEY)
+
+Sub-agents:
+
+Customer Success Manager
+
+Planner reads ticket DOM, drafts replies, schedules calls.
+
+Actions: open ticket page, extract details, fill reply forms, optionally call via WebRTC integration.
+
+Smart Scheduler
+
+Planner composes meeting times, populates scheduling UI or calls Calendar API.
+
+Actions: create calendar event (OAuth preferred) or fill scheduling page.
+
+Process Automator
+
+Planner orchestrates repetitive tasks: generate reports, export CSV, upload invoices.
+
+Actions: navigate web portals, trigger exports, upload files to Drive (OAuth).
+
+C — People & Finance Agent (uses REPLIVO_AGENT3_KEY)
+
+Sub-agents:
+
+Talent Recruiter
+
+Planner screens candidate info (from ATS DOM), drafts emails, schedules interviews.
+
+Actions: open candidate page, extract resume text, draft messages.
+
+Payroll & Compliance Officer
+
+Planner prepares payroll summaries (server-side computation), drafts messages for approval.
+
+Actions: interact with cloud payroll portals via web UI or API (OAuth).
+
+Performance & Expense Analyst
+
+Planner aggregates expense reports, flags anomalies, composes summary email.
+
+11) Sample command lifecycle (concise example)
+
+LLM returns plan step: fill_email_compose.
+
+Server signs command envelope.
+
+Extension receives command → verifies signature → executes contentScript to fill fields → optionally submits.
+
+Extension sends result back to server with screenshot (if allowed).
+
+Server updates audit, calls LLM for next step or marks task complete.
+
+Agent speaks completion: “I scheduled the demo and sent the calendar invite.”
+
+12) Replit-specific production tips
+
+Use a single web server (Express) on Replit to host API & WebSocket. Use npm start. Keep long-lived WS connections stable (implement reconnect & heartbeat).
+
+Put all secrets in Replit Secrets (env variables) — do not hardcode.
+
+For long-running jobs / background tasks consider using a separate worker or a queuing layer (Redis) — Replit may need paid plan for persistent processes. Evaluate Replit’s Always-On / paid options for production.
+
+TLS: Replit’s public URL is HTTPS; for custom domain, configure CNAME and TLS in Replit hosting.
+
+For large media (screenshots, audio), use an external storage (S3) and store artifact URLs in logs.
+
+13) Monitoring, error handling, and safety
+
+Per-command retry and exponential backoff for transient failures.
+
+If DOM selector fails, extension returns page snapshot and the server asks LLM to adapt (fallback: ask user).
+
+Rate-limit LLM calls and queue heavy tasks.
+
+Safety: require explicit confirmation for destructive or financial actions.
+
+Logging: store all command and consent records with timestamps and digital signatures.
+
+14) Final production checklist (what you should deliver before going live)
+
+Orchestrator with LLM calls wired to process.env.REPLIVO_AGENT*_KEY.
+
+Command signing (private/public key pair) implemented and stored in Replit secrets.
+
+Chrome extension (MV3) with pairing, host-permission UI, command execution and verification, audit log view, kill switch.
+
+Frontend UX: Hire flow, permission screens, "Your Hired Agents" dashboard, voice UI.
+
+Audit & Consent Storage (DB table with immutable records).
+
+Voice stack (STT/TTS) and streaming pipeline (WebRTC).
+
+Analytics & monitoring (error alerts, usage, LLM token/usage tracking).
+
+Legal / Privacy docs: Terms, explicit consent text, data handling policy, rollback & refund policy.
+
+Security: pen test, key rotation, secure storage, disable debug endpoints.
