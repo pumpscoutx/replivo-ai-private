@@ -1,0 +1,259 @@
+To control a user’s device you must deliver a signed, local helper (or browser extension) that the user installs, explicitly grant scoped permissions, then the cloud orchestrator issues signed commands over an encrypted channel; the UI must show live status, allow immediate revoke/kill, and agents speak via TTS/STT — all auditable and timeboxed.
+
+1) High-level architecture (what to build)
+
+Cloud Orchestrator
+
+Plans tasks (LLM planner), policy engine, integrations, audit log, user account, UI.
+
+Exposes secure command API to local helpers.
+
+Local Device Helper (required) — must exist to perform real local actions.
+
+Native app (Electron/Go/Swift/C#) + system adapters for keyboard, mouse, files, apps.
+
+Or browser extension for web-only actions (forms, tabs).
+
+Controls only within user-approved scopes.
+
+Secure Channel
+
+mTLS WebSocket / mutually authenticated channel between helper and orchestrator.
+
+Voice Engine
+
+STT (speech→text), TTS (text→speech) pipelines (cloud or local).
+
+Low-latency streaming (WebRTC) for live two-way voice.
+
+Frontend (Web UI)
+
+Hiring flow, permission screens, “Your Hired Agents” dashboard, agent chat/voice UI.
+
+Audit & Safety Layer
+
+Immutable logs, screenshots (opt-in), action diffs, revoke & kill-switch controls.
+
+2) User experience (exact flows & UI copy)
+A. Hire flow (step-by-step)
+
+User clicks “Hire Now” (sub-agent card)
+→ open Login/Signup modal if not authenticated.
+
+Post-login: Company details form (company name, domain, admin contact).
+
+Permissions & Scope Screen (MANDATORY step). Show a clear list of requested capabilities with examples and toggles:
+
+Example UI block:
+
+[Agent: Customer Success Manager] requests:
+• Access: Email (send/draft) — Example: "Draft & send follow-up to customer@acme.com"
+• Access: Calendar (create/update) — Example: "Schedule follow-up call with client"
+• Access: Browser control (open page, fill form) — Example: "Log into CRM and update ticket"
+• Access: Files (read/write in /Replivo/*) — Example: "Attach invoice.pdf"
+Choose autonomy level: [Suggest] [Confirm] [Autonomous (limited)]
+[Run a safe demo action]  [Accept & Install Helper]
+
+
+If Local Helper is not installed → present Installer flow:
+
+“Download Replivo Helper” (signed installer).
+
+Platform-specific instructions (macOS notarization, Windows UAC, Linux package).
+
+Explicit permission prompts: show screenshots of expected OS permission dialogs.
+
+Helper pairs with account using a one-time code or QR scan.
+
+Test & Demo: run a harmless demo (open safe sandbox page) and show result.
+
+Payment (if applicable) → final confirmation.
+
+Agent is Added to “Your Hired Agents” and begins working according to autonomy settings.
+
+B. Live controls & visibility
+
+Agent card in dashboard shows status: Idle / Running / Needs Approval / Paused.
+
+Live action feed: streaming text log + optional screenshots (if user opted in).
+
+Voice UI: microphone button to talk to agent (push-to-talk); agent replies via TTS and shows text transcript.
+
+Immediate Kill Switch: large red button in dashboard & system tray native to stop all agents immediately.
+
+Permission panel: allow/revoke scopes per agent; timebox permissions (e.g., 2 hours).
+
+3) Permission model & autonomy
+
+Scopes: granular (email:send, calendar:create, browser:fill, files:read:path, system.input). Present human-readable examples.
+
+Autonomy levels:
+
+Suggest — agent proposes actions only (user clicks to execute).
+
+Confirm — agent batches actions and requires one confirmation to run the batch.
+
+Autonomous — agent can perform actions within scope; critical actions (payments, mass emails) always require confirmation.
+
+Time-limited tokens: helper tokens expire automatically; user can set daily/weekly limits.
+
+4) Local Helper – essentials & security
+
+Why it’s mandatory: web apps can’t simulate presses, open desktop apps, operate local files reliably without a local component.
+
+Implementation checklist (per OS):
+
+macOS: notarized .pkg/.app; requests Accessibility and Screen Recording only as required; use AppleScript/AXUI for UI automation.
+
+Windows: signed installer (.msi/.exe), UAC elevation where needed; use UIAutomation/PowerShell.
+
+Linux: packaged snaps/debs; document desktop-environment-specific limits.
+
+Browser Extension: Chrome/Edge/Firefox for DOM/form automation; uses native messaging to talk to the helper.
+
+Security & hardening:
+
+Code-signing, notarization (Apple), EV signing (Windows).
+
+WebSocket with mutual TLS + client certs.
+
+Command whitelisting (helper executes only signed command types).
+
+Rate-limiting and per-session limits.
+
+Local sandbox for file I/O; require ACL-style path selections (user selects folders).
+
+Auto-updates with signature checks.
+
+Privacy & audit:
+
+Local logs of commands and returned artifacts stored encrypted; user may opt-in for upload to cloud for support.
+
+All actions recorded in the orchestrator’s immutable audit log (hash + timestamp).
+
+Option to capture screenshots only after explicit consent (and masked sensitive fields).
+
+5) Command schema (example)
+
+Use JSON envelopes; all commands must include request_id, agent_id, capability, args, policy:
+
+{
+  "request_id": "req-123",
+  "agent_id": "growth.campaign_master",
+  "capability": "browser.fill_and_submit",
+  "args": {
+    "url": "https://ads.example.com/campaign",
+    "selectors": {"title":"#title","budget":"#budget"},
+    "values": {"title":"Promo","budget":"500"}
+  },
+  "policy": {
+    "autonomy":"confirm",
+    "expiry":"2025-09-01T12:00:00Z"
+  }
+}
+
+
+Responses include status, artifacts (screenshots, created IDs), logs.
+
+6) Voice-first interaction
+
+Goal: agent speaks primarily, with text transcript.
+
+Components:
+
+Microphone streaming (WebRTC) to cloud STT or local STT if privacy required.
+
+LLM-based conversational engine on server to parse intent and produce actions.
+
+TTS: cloud or local; stream audio back over WebRTC or play via local helper for low latency.
+
+UX: push-to-talk or continuous with short wake-word (careful re: privacy). Show live transcript and “action preview” for confirm/autonomy modes.
+
+Flow example:
+
+User: “Hey Replivo, call the customer and confirm shipment.”
+
+STT→LLM plans steps → shows plan in UI / reads it aloud: “I will call John at 2pm and send follow-up email. Confirm?”
+
+User confirms by voice or click → orchestrator issues command to device helper / telephony adapter.
+
+Recommended tech: WebRTC for low-latency audio; cloud STT/TTS (or local engines like VOSK/Larynx for privacy).
+
+7) Integrations before full device control (safer MVP path)
+
+You can achieve a lot without full desktop control initially:
+
+OAuth API integrations: Gmail/Calendar/Drive, Slack, HubSpot — agents can do real work via APIs.
+
+Browser extension for web-only automation (less invasive than full helper).
+
+Simulated device commands in sandbox until consent + helper installed.
+
+This path lets you test agent logic and voice UX before rolling local automation.
+
+8) Safety, compliance & legal
+
+Explicit consent recorded for every scope and stored (timestamped).
+
+GDPR/CIPA/CCPA compliance where relevant; data minimization.
+
+Terms & TOS plus an easily accessible “what we do” page listing actions agents may perform.
+
+Insurance/indemnity and clear refund/dispute process for unwanted actions.
+
+Make critical actions manual: payments, mass sends, financial transfers always require explicit confirmation.
+
+9) Testing & rollout plan
+
+Unit tests for orchestrator, command schemas, policy enforcement.
+
+Staging with fake helper that simulates actions.
+
+Beta with power-users: limited invite-only rollout; collect logs and consent feedback.
+
+Security audit and penetration test.
+
+Gradual rollout of helper capability sets (start with browser automation → files → keyboard/mouse).
+
+Post-deploy monitoring: abnormal behavior alerts, rate-limits, automatic stop when anomalies detected.
+
+10) Monitoring, recovery & support
+
+Real-time monitoring for failed or suspicious actions.
+
+Rollback: ability to revert actions where possible (e.g., delete scheduled events).
+
+Support flow: agent report + user-initiated revoke + support ticket + audit trace.
+
+11) Practical next steps (what to do now)
+
+Decide MVP capabilities (I recommend start with OAuth integrations + browser extension + voice).
+
+Write agent & sub-agent schema for the three mains (I can produce this JSON now).
+
+Build the Cloud Orchestrator with:
+
+LLM planner, policy engine, audit logging.
+
+Mock executor for simulating actions.
+
+Implement UI hiring flow with the exact permission screen copy (I can provide final wording).
+
+Build a minimal Local Helper only when you’re ready to allow device control — start with signed browser extension and test flows.
+
+Add voice stack (WebRTC + STT/TTS) for live conversation.
+
+12) Sample permission screen copy (exact text you can use)
+
+Replivo requests permission to help you automatically. Please review:
+• Email (send/draft): Replivo will draft and send emails on your behalf. Example: “Send invoice to client@company.com
+.”
+• Calendar (create/update): Replivo can schedule and modify meetings. Example: “Book follow-up call at 10am.”
+• Browser control (open pages, fill forms): Replivo can perform actions in browser tabs you approve.
+• Files (read/write) only in folders you select.
+Choose Autonomy: Suggest / Confirm / Autonomous (critical actions need approval)
+[Run safe demo] [I Understand & Install Helper]
+
+Security & Ethical final note (must be included)
+
+Because this gives software control over user devices and accounts, you must prioritize safety and transparency. No graduated access without user consent. Keep all logs and consent records. Add kill-switch and manual confirmation for dangerous actions.

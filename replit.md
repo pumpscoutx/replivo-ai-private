@@ -1,10 +1,12 @@
 # Overview
 
-Replivo is a modern web application for discovering and hiring AI agents for business automation. The platform allows users to browse pre-built agent bundles, explore individual sub-agents in a marketplace, and request custom agent solutions. Built with a focus on professional UX/UI design, the application provides an intuitive interface for businesses to automate their workflows through intelligent AI agents.
+Replivo is an advanced AI agent marketplace with device control capabilities for comprehensive business automation. The platform allows users to discover, hire, and manage AI agents that can perform real-world tasks on their devices. Features include agent discovery, secure local device control via signed helpers, voice-first interaction, granular permissions, and comprehensive audit trails. Built with professional UX/UI and enterprise-grade security.
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Development priority: Implement device control architecture with security-first approach.
+Next phase: Local helper development for real device automation capabilities.
 
 # System Architecture
 
@@ -58,3 +60,11 @@ The project uses TypeScript across both client and server code for type safety a
 - **ESBuild**: Fast JavaScript bundler for production builds
 - **PostCSS**: CSS processing tool with Autoprefixer
 - **Date-fns**: Date manipulation and formatting utilities
+
+## Planned Device Control Stack
+- **WebRTC**: Real-time voice communication
+- **mTLS WebSocket**: Secure helper communication
+- **OAuth 2.0**: Service integrations (Gmail, Calendar, Slack)
+- **STT/TTS Services**: Speech processing pipelines
+- **Native Helpers**: Cross-platform device automation
+- **Code Signing**: Security for local helper distribution
