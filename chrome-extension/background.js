@@ -36,6 +36,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch(error => sendResponse({ success: false, error: error.message }));
       return true;
 
+    case 'START_AGENT_WORK':
+      handleAgentStartWork(message.userId);
+      sendResponse({ success: true });
+      break;
+
     default:
       console.warn('Unknown message type:', message.type);
   }
@@ -373,6 +378,65 @@ function handleDisconnect() {
 
 function showStatus() {
   chrome.action.openPopup();
+}
+
+// Handle agent start work signal
+async function handleAgentStartWork(userId) {
+  console.log('Agent starting work for user:', userId);
+  
+  if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+    // Send a signal to the server that the agent should start working
+    wsConnection.send(JSON.stringify({
+      type: 'agent_ready',
+      userId: userId,
+      message: 'Extension connected and ready for automation tasks'
+    }));
+    
+    // Simulate some initial automation tasks
+    setTimeout(() => {
+      simulateAgentWork();
+    }, 2000);
+  }
+}
+
+// Simulate agent performing initial tasks
+function simulateAgentWork() {
+  console.log('Agent starting automated tasks...');
+  
+  // Example: Check current page and perform basic analysis
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    if (tabs[0]) {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        func: () => {
+          // Simple page analysis that an agent might do
+          const pageInfo = {
+            title: document.title,
+            url: window.location.href,
+            hasforms: document.forms.length > 0,
+            hasInputs: document.querySelectorAll('input').length,
+            links: document.links.length
+          };
+          
+          console.log('Agent analyzed page:', pageInfo);
+          return pageInfo;
+        }
+      }, (results) => {
+        if (results && results[0]) {
+          console.log('Agent page analysis complete:', results[0].result);
+          
+          // Send analysis back to server
+          if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+            wsConnection.send(JSON.stringify({
+              type: 'agent_analysis',
+              data: results[0].result,
+              message: 'Page analysis completed successfully'
+            }));
+          }
+        }
+      });
+    }
+  });
 }
 
 // Load saved account on startup

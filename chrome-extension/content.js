@@ -391,5 +391,43 @@
     attributes: false
   });
 
+  // Listen for auto-pairing messages from the web page
+  window.addEventListener('message', async (event) => {
+    if (event.data.type === 'REPLIVO_AUTO_PAIR' && event.data.source === 'replivo-web') {
+      try {
+        const response = await chrome.runtime.sendMessage({
+          type: 'PAIR_EXTENSION',
+          code: event.data.pairingCode
+        });
+        
+        // Send response back to web page
+        window.postMessage({
+          type: 'REPLIVO_PAIR_RESPONSE',
+          success: response.success,
+          error: response.error
+        }, '*');
+        
+        if (response.success) {
+          console.log('Extension auto-paired successfully!');
+          
+          // Notify the agent to start working
+          setTimeout(() => {
+            chrome.runtime.sendMessage({
+              type: 'START_AGENT_WORK',
+              userId: response.userId
+            });
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Auto-pairing failed:', error);
+        window.postMessage({
+          type: 'REPLIVO_PAIR_RESPONSE',
+          success: false,
+          error: error.message
+        }, '*');
+      }
+    }
+  });
+
   console.log('Replivo Helper content script initialized');
 })();

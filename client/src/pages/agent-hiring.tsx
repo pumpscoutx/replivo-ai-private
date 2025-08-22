@@ -14,6 +14,90 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Check, X, Globe, Chrome, Shield, Activity, MessageSquare, Zap } from "lucide-react";
 import type { Agent, SubAgent } from "@shared/schema";
 
+// Auto-connect component for Chrome extension
+function AutoConnectExtension({ pairingCode }: { pairingCode: string }) {
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'failed'>('connecting');
+
+  useEffect(() => {
+    // Try to auto-connect extension by sending message to content script
+    const attemptConnection = async () => {
+      try {
+        // Check if we're in an extension context
+        if (typeof (window as any).chrome !== 'undefined' && (window as any).chrome.runtime) {
+          // Send pairing code to extension
+          (window as any).chrome.runtime.sendMessage((window as any).chrome.runtime.id, {
+            type: 'AUTO_PAIR',
+            code: pairingCode
+          }, (response: any) => {
+            if (response?.success) {
+              setConnectionStatus('connected');
+            } else {
+              setConnectionStatus('failed');
+            }
+          });
+        } else {
+          // Try to communicate with extension via page messaging
+          window.postMessage({
+            type: 'REPLIVO_AUTO_PAIR',
+            pairingCode: pairingCode,
+            source: 'replivo-web'
+          }, '*');
+          
+          // Listen for response
+          const handleMessage = (event: MessageEvent) => {
+            if (event.data.type === 'REPLIVO_PAIR_RESPONSE') {
+              if (event.data.success) {
+                setConnectionStatus('connected');
+              } else {
+                setConnectionStatus('failed');
+              }
+              window.removeEventListener('message', handleMessage);
+            }
+          };
+          
+          window.addEventListener('message', handleMessage);
+          
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            setConnectionStatus('failed');
+            window.removeEventListener('message', handleMessage);
+          }, 5000);
+        }
+      } catch (error) {
+        console.error('Auto-connect failed:', error);
+        setConnectionStatus('failed');
+      }
+    };
+
+    attemptConnection();
+  }, [pairingCode]);
+
+  return (
+    <div className="mt-3 p-2 rounded-lg bg-gray-700/50">
+      <div className="flex items-center gap-2 text-sm">
+        {connectionStatus === 'connecting' && (
+          <>
+            <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
+            <span className="text-yellow-400">Auto-connecting extension...</span>
+          </>
+        )}
+        {connectionStatus === 'connected' && (
+          <>
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span className="text-green-400">Extension connected automatically!</span>
+          </>
+        )}
+        {connectionStatus === 'failed' && (
+          <>
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <span className="text-red-400">Manual pairing required in extension</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AgentHiring() {
   const [, params] = useRoute("/hire/:agentId");
   const [step, setStep] = useState(1);
@@ -282,8 +366,11 @@ export default function AgentHiring() {
                             {generatePairingCodeMutation.data.pairingCode}
                           </p>
                           <p className="text-gray-400 text-sm text-center mt-2">
-                            Enter this code in the extension
+                            Extension will auto-connect with this code
                           </p>
+                          <AutoConnectExtension 
+                            pairingCode={generatePairingCodeMutation.data.pairingCode}
+                          />
                         </div>
                       )}
                     </div>
