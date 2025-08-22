@@ -332,7 +332,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                            task.toLowerCase().includes('run') ||
                            task.toLowerCase().includes('open') ||
                            task.toLowerCase().includes('send') ||
-                           task.toLowerCase().includes('create');
+                           task.toLowerCase().includes('email') ||
+                           task.toLowerCase().includes('create') ||
+                           task.toLowerCase().includes('compose') ||
+                           task.toLowerCase().includes('write email') ||
+                           agentResponse.toLowerCase().includes('opening') ||
+                           agentResponse.toLowerCase().includes('sending');
 
       let executed = false;
       let executionStatus = '';
@@ -341,13 +346,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Determine appropriate command based on task content
         let command = null;
         
-        if (task.toLowerCase().includes('gmail') || task.toLowerCase().includes('email')) {
-          command = {
-            request_id: `hire-${Date.now()}`,
-            capability: 'open_url',
-            args: { url: 'https://gmail.com' }
-          };
-          executionStatus = 'Opening Gmail...';
+        if (task.toLowerCase().includes('gmail') || task.toLowerCase().includes('email') || task.toLowerCase().includes('send')) {
+          // Check if this is a specific email sending task
+          const emailMatch = task.match(/send.*email.*to\s+([^\s]+@[^\s]+)/i) || task.match(/email.*([^\s]+@[^\s]+)/i);
+          
+          if (emailMatch) {
+            const recipient = emailMatch[1];
+            command = {
+              request_id: `hire-${Date.now()}`,
+              capability: 'compose_email',
+              args: { 
+                recipient: recipient,
+                subject: task.includes('business') ? 'Business Inquiry' : 'Email from Agent',
+                body: task.includes('business') ? 'Hello,\n\nI hope this email finds you well. I wanted to reach out regarding potential business opportunities.\n\nBest regards' : 'Hello,\n\nThis is an automated email from your business agent.\n\nBest regards'
+              }
+            };
+            executionStatus = `Composing and sending email to ${recipient}...`;
+          } else {
+            command = {
+              request_id: `hire-${Date.now()}`,
+              capability: 'open_url',
+              args: { url: 'https://gmail.com' }
+            };
+            executionStatus = 'Opening Gmail...';
+          }
         } else if (task.toLowerCase().includes('linkedin')) {
           command = {
             request_id: `hire-${Date.now()}`,
@@ -570,10 +592,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                            message.toLowerCase().includes('do it') ||
                            message.toLowerCase().includes('start now') ||
                            message.toLowerCase().includes('run') ||
-                           message.toLowerCase().includes('open') && 
-                           (message.toLowerCase().includes('gmail') || 
-                            message.toLowerCase().includes('linkedin') ||
-                            message.toLowerCase().includes('salesforce'));
+                           message.toLowerCase().includes('send') ||
+                           message.toLowerCase().includes('email') ||
+                           message.toLowerCase().includes('open') ||
+                           message.toLowerCase().includes('compose') ||
+                           agentResponse.toLowerCase().includes('sending') ||
+                           agentResponse.toLowerCase().includes('opening') ||
+                           agentResponse.toLowerCase().includes('executing');
 
       let executed = false;
       let executionStatus = '';
@@ -582,13 +607,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Determine appropriate command based on message content
         let command = null;
         
-        if (message.toLowerCase().includes('gmail') || message.toLowerCase().includes('email')) {
-          command = {
-            request_id: `chat-${Date.now()}`,
-            capability: 'open_url',
-            args: { url: 'https://gmail.com' }
-          };
-          executionStatus = 'Opening Gmail...';
+        if (message.toLowerCase().includes('gmail') || message.toLowerCase().includes('email') || message.toLowerCase().includes('send')) {
+          // Check if this is a specific email sending task
+          const emailMatch = message.match(/send.*email.*to\s+([^\s]+@[^\s]+)/i) || message.match(/email.*([^\s]+@[^\s]+)/i);
+          
+          if (emailMatch) {
+            const recipient = emailMatch[1];
+            command = {
+              request_id: `chat-${Date.now()}`,
+              capability: 'compose_email',
+              args: { 
+                recipient: recipient,
+                subject: message.includes('business') || message.includes('services') ? 'Business Services Inquiry' : 'Email from Agent',
+                body: message.includes('business') || message.includes('services') ? 'Hello,\n\nI hope this email finds you well. I wanted to reach out to discuss our business services and how we can help your organization.\n\nWe offer comprehensive solutions that can drive growth and efficiency for your business. I would love to schedule a time to discuss your specific needs and how we can support your goals.\n\nPlease let me know if you would be interested in learning more.\n\nBest regards,\nBusiness Development Team' : 'Hello,\n\nThis is an automated email from your business agent.\n\nBest regards'
+              }
+            };
+            executionStatus = `Composing and sending email to ${recipient}...`;
+          } else {
+            command = {
+              request_id: `chat-${Date.now()}`,
+              capability: 'open_url',
+              args: { url: 'https://gmail.com' }
+            };
+            executionStatus = 'Opening Gmail...';
+          }
         } else if (message.toLowerCase().includes('linkedin')) {
           command = {
             request_id: `chat-${Date.now()}`,

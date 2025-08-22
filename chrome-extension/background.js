@@ -276,6 +276,9 @@ async function executeCapability(command) {
     case 'open_url':
       return await openUrl(args);
     
+    case 'compose_email':
+      return await composeEmail(args);
+    
     case 'fill_form':
       return await fillForm(args);
     
@@ -297,6 +300,39 @@ async function executeCapability(command) {
 async function openUrl(args) {
   const tab = await chrome.tabs.create({ url: args.url });
   return { tabId: tab.id, url: args.url };
+}
+
+async function composeEmail(args) {
+  // Open Gmail compose window with pre-filled content
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(args.recipient)}&subject=${encodeURIComponent(args.subject)}&body=${encodeURIComponent(args.body)}`;
+  const tab = await chrome.tabs.create({ url: gmailUrl });
+  
+  // Wait a moment for Gmail to load, then attempt to send
+  setTimeout(async () => {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          // Try to find and click the send button in Gmail
+          const sendButtons = document.querySelectorAll('[data-tooltip="Send ⌘+Enter, Ctrl+Enter"], [aria-label*="Send"], [data-testid="send-button"], .T-I.J-J5-Ji.aoO.v7.T-I-atl.L3');
+          if (sendButtons.length > 0) {
+            sendButtons[0].click();
+            return 'Email sent successfully';
+          }
+          return 'Gmail compose window opened - please review and send manually';
+        }
+      });
+    } catch (error) {
+      console.log('Could not auto-send email, user needs to send manually');
+    }
+  }, 3000);
+  
+  return { 
+    tabId: tab.id, 
+    recipient: args.recipient, 
+    subject: args.subject,
+    status: 'Email composed and ready to send'
+  };
 }
 
 async function fillForm(args) {
