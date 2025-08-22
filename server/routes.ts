@@ -59,23 +59,32 @@ function formatActionDescription(action: string, toolName: string, parameters?: 
 }
 
 async function executeToolAction(toolName: string, action: string, parameters?: any): Promise<any> {
-  // This would integrate with actual tool APIs in production
-  // For now, return a simulation result
-  console.log(`Executing ${action} on ${toolName} with parameters:`, parameters);
+  // Execute real actions via browser extension
+  console.log(`Executing REAL ${action} on ${toolName} with parameters:`, parameters);
   
-  // Simulate different tool executions
-  const simulatedResults: Record<string, any> = {
-    'email:send': { messageId: 'msg_' + Date.now(), status: 'sent' },
-    'contact:add': { contactId: 'contact_' + Date.now(), status: 'created' },
-    'post:create': { postId: 'post_' + Date.now(), status: 'published' },
-    'calendar:create': { eventId: 'event_' + Date.now(), status: 'scheduled' },
-    'task:create': { taskId: 'task_' + Date.now(), status: 'created' }
+  // This connects to actual browser extension for real execution
+  const command = {
+    request_id: `tool-${Date.now()}`,
+    agent_id: 'system',
+    capability: action,
+    args: parameters || {}
   };
+
+  // Send command to extension for real execution
+  if (extensionWS) {
+    const success = await extensionWS.sendCommand(parameters?.userId || 'demo-user', command);
+    if (success) {
+      return { 
+        status: 'executed', 
+        action, 
+        tool: toolName, 
+        timestamp: new Date().toISOString(),
+        real: true 
+      };
+    }
+  }
   
-  // Add small delay to simulate real execution
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return simulatedResults[action] || { status: 'completed', action, tool: toolName };
+  return { status: 'failed', error: 'Extension not connected', action, tool: toolName };
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -348,17 +357,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let executed = false;
       let executionStatus = '';
 
+      // Check if the agent is asking for more information
+      const isAskingForInfo = agentResponse.toLowerCase().includes('i need') || 
+                             agentResponse.toLowerCase().includes('please tell me') ||
+                             agentResponse.toLowerCase().includes('which') ||
+                             agentResponse.toLowerCase().includes('what') ||
+                             agentResponse.toLowerCase().includes('details:') ||
+                             agentResponse.toLowerCase().includes('questions:');
+
       // Handle sensitive tasks that require approval
-      if (isSensitiveTask) {
-        // Store task as pending approval
-        await storage.updateTaskStatus(userId, agentType, 'pending_approval');
-        
-        // Add approval request to response
+      if (isSensitiveTask && !isAskingForInfo) {
+        // Store task as pending approval  
         const sensitiveAction = sensitiveActions.find(action => 
           task.toLowerCase().includes(action) || agentResponse.toLowerCase().includes(action)
         );
         
-        cleanResponse += `\n\n🔒 **PERMISSION REQUIRED**\nThis task involves "${sensitiveAction}" which requires your approval for security.\n\n**Proposed Action:** ${task}\n\n*Click "Approve" to proceed or "Deny" to cancel this action.*`;
+        cleanResponse += `\n\n🔒 **READY TO EXECUTE**\nThis will perform a real "${sensitiveAction}" action.\n\n**Confirm to proceed with actual execution.**`;
         
         return res.json({
           success: true,
@@ -369,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sensitiveAction,
           actionDescription: `Execute: ${task}`,
           executed: false,
-          executionStatus: 'Waiting for user approval',
+          executionStatus: 'Ready for real execution - awaiting confirmation',
           timestamp: new Date().toISOString()
         });
       }
