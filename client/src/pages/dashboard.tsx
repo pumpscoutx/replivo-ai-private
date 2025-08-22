@@ -15,7 +15,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Activity, Chrome, Clock, CheckCircle, AlertCircle, Zap, Play, Pause,
   MessageCircle, Send, Settings, Users, History, Bell, TrendingUp,
-  Mail, Calendar, DollarSign, Shield, Eye, CheckSquare, X, ChevronRight
+  Mail, Calendar, DollarSign, Shield, Eye, CheckSquare, X, ChevronRight,
+  Mic, MicOff, Volume2, VolumeX
 } from "lucide-react";
 
 interface Message {
@@ -60,6 +61,10 @@ export default function Dashboard() {
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [isVoiceChatEnabled, setIsVoiceChatEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<string>('business-growth');
   const [activities, setActivities] = useState<ActivityItem[]>([
     {
       id: '1',
@@ -93,6 +98,8 @@ export default function Dashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const speechRecognitionRef = useRef<any>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const { data: extensionStatus } = useQuery({
     queryKey: ["/api/extension/status", "demo-user"],
@@ -101,6 +108,41 @@ export default function Dashboard() {
       paired: data.hasPairedExtension,
       online: data.extensions?.[0]?.isOnline || false
     })
+  });
+
+  // Real-time agent chat mutation
+  const chatMutation = useMutation({
+    mutationFn: async ({ agentType, message }: { agentType: string, message: string }) => {
+      const response = await apiRequest("POST", "/api/agents/chat", {
+        agentType,
+        message,
+        conversationId: Date.now().toString(),
+        userId: "demo-user"
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Add agent response to messages
+      const agentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        agentId: data.agentType,
+        agentName: `${data.agentType.replace('-', ' ')} Agent`,
+        content: data.response,
+        timestamp: new Date(),
+        type: data.needsApproval ? 'approval' : 'message',
+        needsApproval: data.needsApproval
+      };
+      setMessages(prev => [...prev, agentMessage]);
+      
+      if (data.needsApproval) {
+        setPendingApprovals(prev => prev + 1);
+      }
+
+      // Text-to-speech for agent response
+      if (isVoiceChatEnabled && !data.needsApproval) {
+        speakText(data.response);
+      }
+    }
   });
 
   // WebSocket connection for real-time updates
@@ -215,6 +257,144 @@ export default function Dashboard() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        speechRecognitionRef.current = new SpeechRecognition();
+        speechRecognitionRef.current.continuous = false;
+        speechRecognitionRef.current.interimResults = false;
+        speechRecognitionRef.current.lang = 'en-US';
+
+        speechRecognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setNewMessage(transcript);
+          setIsListening(false);
+        };
+
+        speechRecognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+  }, []);
+
+  // Text-to-speech function
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      setIsSpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      utterance.onend = () => setIsSpeaking(false);
+      speechSynthesisRef.current = utterance;
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Start voice recording
+  const startListening = () => {
+    if (speechRecognitionRef.current && !isListening) {
+      setIsListening(true);
+      speechRecognitionRef.current.start();
+    }
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Send message function
+  const sendMessage = async () => {
+    if (!newMessage.trim() || chatMutation.isPending) return;
+
+    // Add user message to chat
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      agentId: 'user',
+      agentName: 'You',
+      content: newMessage,
+      timestamp: new Date(),
+      type: 'message'
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    const messageToSend = newMessage;
+    setNewMessage('');
+
+    // Send to selected agent
+    try {
+      await chatMutation.mutateAsync({
+        agentType: selectedAgent,
+        message: messageToSend
+      });
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        agentId: 'system',
+        agentName: 'System',
+        content: 'Failed to send message to agent. Please try again.',
+        timestamp: new Date(),
+        type: 'message'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
+  // Handle message approval
+  const handleApproval = async (messageId: string, approved: boolean) => {
+    try {
+      await apiRequest("POST", "/api/agents/approve", {
+        taskId: messageId,
+        approved,
+        userId: "demo-user"
+      });
+
+      // Update message approval status
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId ? { ...msg, approved, type: 'message' } : msg
+      ));
+      
+      if (approved) {
+        setPendingApprovals(prev => Math.max(0, prev - 1));
+        
+        // Add confirmation message
+        const confirmMessage: Message = {
+          id: (Date.now() + 3).toString(),
+          agentId: 'system',
+          agentName: 'System',
+          content: `✅ Task approved and executed successfully!`,
+          timestamp: new Date(),
+          type: 'message'
+        };
+        setMessages(prev => [...prev, confirmMessage]);
+      } else {
+        setPendingApprovals(prev => Math.max(0, prev - 1));
+        
+        // Add rejection message
+        const rejectMessage: Message = {
+          id: (Date.now() + 4).toString(),
+          agentId: 'system',
+          agentName: 'System',
+          content: `❌ Task rejected. Agent will not proceed with this action.`,
+          timestamp: new Date(),
+          type: 'message'
+        };
+        setMessages(prev => [...prev, rejectMessage]);
+      }
+    } catch (error) {
+      console.error('Approval error:', error);
+    }
+  };
+
   // Simulate real-time agent activity for demo purposes
   useEffect(() => {
     if (!wsConnected) return;
@@ -256,43 +436,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [wsConnected]);
 
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    
-    const message: Message = {
-      id: Date.now().toString(),
-      agentId: 'user',
-      agentName: 'You',
-      content: newMessage,
-      timestamp: new Date(),
-      type: 'message'
-    };
-    
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-    
-    // Simulate agent response
-    setTimeout(() => {
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        agentId: 'business-growth',
-        agentName: 'Business Growth Agent',
-        content: "Got it! I'll work on that right away and update you with progress.",
-        timestamp: new Date(),
-        type: 'message'
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1500);
-  };
-
-  const handleApproval = (messageId: string, approved: boolean) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, approved, needsApproval: false } : msg
-    ));
-    if (approved) {
-      setPendingApprovals(prev => Math.max(0, prev - 1));
-    }
-  };
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -485,6 +628,30 @@ export default function Dashboard() {
           </ScrollArea>
           
           <div className="p-4 border-t border-gray-700">
+            {/* Agent Selection */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs text-gray-400">Chat with:</span>
+              <select 
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs text-white"
+              >
+                <option value="business-growth">Business Growth Agent</option>
+                <option value="operations">Operations Agent</option>
+                <option value="people-finance">People & Finance Agent</option>
+              </select>
+              
+              {/* Voice Chat Toggle */}
+              <Button
+                size="sm"
+                variant={isVoiceChatEnabled ? "default" : "outline"}
+                onClick={() => setIsVoiceChatEnabled(!isVoiceChatEnabled)}
+                className="text-xs px-2 py-1 h-7"
+              >
+                {isVoiceChatEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+              </Button>
+            </div>
+            
             <div className="flex gap-2">
               <Input
                 value={newMessage}
@@ -492,9 +659,45 @@ export default function Dashboard() {
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Chat with your agents..."
                 className="bg-gray-800 border-gray-600 text-white"
+                disabled={chatMutation.isPending}
               />
-              <Button onClick={sendMessage} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Send className="w-4 h-4" />
+              
+              {/* Voice Input Button */}
+              {isVoiceChatEnabled && (
+                <Button
+                  size="sm"
+                  variant={isListening ? "destructive" : "outline"}
+                  onClick={isListening ? () => setIsListening(false) : startListening}
+                  className="px-2"
+                  disabled={chatMutation.isPending}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+              )}
+              
+              {/* Stop Speaking Button */}
+              {isSpeaking && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={stopSpeaking}
+                  className="px-2 text-yellow-400 border-yellow-400"
+                >
+                  <VolumeX className="w-4 h-4" />
+                </Button>
+              )}
+              
+              <Button 
+                onClick={sendMessage} 
+                size="sm" 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={chatMutation.isPending || !newMessage.trim()}
+              >
+                {chatMutation.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>

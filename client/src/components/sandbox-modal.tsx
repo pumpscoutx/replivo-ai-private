@@ -96,20 +96,14 @@ export default function SandboxModal({ isOpen, onClose, subAgent }: SandboxModal
     setError(null);
 
     try {
-      // Try real AI response first
+      // Use real AI response with proper error handling
       const result: any = await agentMutation.mutateAsync(currentInput);
       
-      let agentContent: string;
-      if (result?.response) {
-        // Try to parse JSON response from agent
-        try {
-          const parsedResponse = JSON.parse(result.response);
-          agentContent = parsedResponse.explain || result.response;
-        } catch {
-          agentContent = result.response;
-        }
-      } else {
-        agentContent = getFallbackResponse(subAgent.category);
+      let agentContent: string = result?.response || "I'm here to help! Please try asking something specific to my area of expertise.";
+      
+      // Handle approval requirements
+      if (result?.needsApproval) {
+        agentContent = `${agentContent}\\n\\n⚠️ **Action Required**: ${result.actionDescription}\\n\\nIn the full version, you would approve or deny this action.`;
       }
 
       const agentMessage: ChatMessage = {
@@ -121,15 +115,18 @@ export default function SandboxModal({ isOpen, onClose, subAgent }: SandboxModal
       
       setMessages(prev => [...prev, agentMessage]);
     } catch (error) {
-      // Use fallback response if API fails
-      const agentMessage: ChatMessage = {
+      console.error("Agent error:", error);
+      setError("Connection failed. Please check API keys and try again.");
+      
+      // Show error message in chat
+      const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "agent",
-        content: getFallbackResponse(subAgent.category),
+        content: "⚠️ I'm having trouble connecting right now. This might be due to missing API keys. Please try again or contact support.",
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, agentMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }

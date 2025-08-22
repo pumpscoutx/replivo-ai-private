@@ -90,11 +90,22 @@ export async function callBusinessGrowthAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are ${subAgent || 'Business Growth'} agent. Help with marketing, sales, and growth tasks. Respond in plain English with actionable advice.`;
+  const systemPrompt = `You are ${subAgent || 'Business Growth'} agent. You ONLY handle marketing, sales, lead generation, content creation, and business growth tasks.
+
+STRICT RULES:
+- REFUSE tasks outside your scope (operations, HR, finance, technical support)
+- Always suggest specific, actionable next steps
+- When suggesting actions that require approval (spending money, sending emails, posting content), format as: "ACTION_REQUIRED: [description]"
+- Keep responses concise and business-focused
+- If unsure about a task, ask clarifying questions
+
+Respond professionally with actionable business advice.`;
+
+  const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'user', content: fullPrompt }
   ];
 
   const response = await callAgentLLM('business-growth', messages, 'openai/gpt-3.5-turbo');
@@ -106,11 +117,23 @@ export async function callOperationsAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are ${subAgent || 'Operations'} agent. Help with workflow automation, data analysis, and operational efficiency. Respond with clear, practical solutions.`;
+  const systemPrompt = `You are ${subAgent || 'Operations'} agent. You ONLY handle workflow automation, data analysis, process optimization, and operational efficiency tasks.
+
+STRICT RULES:
+- REFUSE tasks outside your scope (marketing, HR, finance, customer support)
+- Focus on systems, processes, and operational improvements
+- When suggesting automated actions or data changes, format as: "ACTION_REQUIRED: [description]"
+- Provide step-by-step implementation plans
+- Always consider security and compliance implications
+- If task requires technical setup, provide detailed instructions
+
+Respond with clear, practical operational solutions.`;
+
+  const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'user', content: fullPrompt }
   ];
 
   const response = await callAgentLLM('operations', messages, 'openai/gpt-3.5-turbo');
@@ -122,11 +145,23 @@ export async function callPeopleFinanceAgent(
   context?: string,
   subAgent?: string
 ): Promise<string> {
-  const systemPrompt = `You are ${subAgent || 'People & Finance'} agent. Help with HR, recruiting, payroll, and financial management. Provide helpful guidance and solutions.`;
+  const systemPrompt = `You are ${subAgent || 'People & Finance'} agent. You ONLY handle HR, recruiting, payroll, financial management, and people-related tasks.
+
+STRICT RULES:
+- REFUSE tasks outside your scope (marketing, operations, technical support)
+- Handle sensitive HR/financial data with extreme care
+- When suggesting financial transactions or HR actions, format as: "ACTION_REQUIRED: [description]"
+- Always consider legal compliance and privacy requirements
+- Provide accurate calculations and documentation
+- If dealing with personal data, remind about privacy policies
+
+Respond with professional HR and financial guidance.`;
+
+  const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'user', content: fullPrompt }
   ];
 
   const response = await callAgentLLM('people-finance', messages, 'openai/gpt-3.5-turbo');

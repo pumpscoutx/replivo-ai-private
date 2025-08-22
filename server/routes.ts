@@ -233,6 +233,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error(`Unknown agent type: ${agentType}`);
       }
 
+      // Check if agent response requires approval
+      const needsApproval = agentResponse.includes('ACTION_REQUIRED:');
+      let cleanResponse = agentResponse;
+      let actionDescription = '';
+      
+      if (needsApproval) {
+        const actionMatch = agentResponse.match(/ACTION_REQUIRED: (.+?)(?:\n|$)/);
+        if (actionMatch) {
+          actionDescription = actionMatch[1];
+          cleanResponse = agentResponse.replace(/ACTION_REQUIRED: .+?(?:\n|$)/, '').trim();
+        }
+      }
+
       // Store the task execution for audit
       await storage.createTaskExecution({
         userId,
@@ -241,14 +254,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         task,
         context: context || '',
         response: agentResponse,
-        status: 'completed'
+        status: needsApproval ? 'pending_approval' : 'completed'
       });
 
       res.json({
         success: true,
         agentType,
         subAgent,
-        response: agentResponse,
+        response: cleanResponse,
+        needsApproval,
+        actionDescription,
         timestamp: new Date().toISOString()
       });
 
@@ -348,6 +363,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
         agentType: req.params.agentType,
         details: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Real-time agent chat endpoint
+  const agentChatSchema = z.object({
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']),
+    message: z.string(),
+    conversationId: z.string().optional(),
+    userId: z.string().default('demo-user')
+  });
+
+  app.post("/api/agents/chat", async (req, res) => {
+    try {
+      const validatedData = agentChatSchema.parse(req.body);
+      const { agentType, message, conversationId, userId } = validatedData;
+
+      // Call the appropriate agent LLM
+      let agentResponse: string;
+      switch (agentType) {
+        case 'business-growth':
+          agentResponse = await callBusinessGrowthAgent(message, `Conversation ID: ${conversationId}`);
+          break;
+        case 'operations':
+          agentResponse = await callOperationsAgent(message, `Conversation ID: ${conversationId}`);
+          break;
+        case 'people-finance':
+          agentResponse = await callPeopleFinanceAgent(message, `Conversation ID: ${conversationId}`);
+          break;
+        default:
+          throw new Error(`Unknown agent type: ${agentType}`);
+      }
+
+      // Check if response needs approval
+      const needsApproval = agentResponse.includes('ACTION_REQUIRED:');
+      let cleanResponse = agentResponse;
+      let actionDescription = '';
+      
+      if (needsApproval) {
+        const actionMatch = agentResponse.match(/ACTION_REQUIRED: (.+?)(?:\n|$)/);
+        if (actionMatch) {
+          actionDescription = actionMatch[1];
+          cleanResponse = agentResponse.replace(/ACTION_REQUIRED: .+?(?:\n|$)/, '').trim();
+        }
+      }
+
+      res.json({
+        success: true,
+        agentType,
+        response: cleanResponse,
+        needsApproval,
+        actionDescription,
+        conversationId: conversationId || Date.now().toString(),
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Agent chat error:', error);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  // Task approval endpoint
+  const approvalSchema = z.object({
+    taskId: z.string(),
+    approved: z.boolean(),
+    userId: z.string().default('demo-user')
+  });
+
+  app.post("/api/agents/approve", async (req, res) => {
+    try {
+      const validatedData = approvalSchema.parse(req.body);
+      const { taskId, approved, userId } = validatedData;
+
+      // Here you would update the task status in storage
+      // For now, we'll simulate it
+      console.log(`Task ${taskId} ${approved ? 'approved' : 'rejected'} by ${userId}`);
+
+      res.json({
+        success: true,
+        taskId,
+        approved,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Approval error:', error);
+      res.status(500).json({ message: "Failed to process approval" });
+    }
+  });
+
+  // Voice chat endpoint (text-to-speech simulation)
+  app.post("/api/agents/voice", async (req, res) => {
+    try {
+      const { text, voice = 'agent' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      // For now, just return the text with voice metadata
+      // In a full implementation, you'd use a TTS service like ElevenLabs or Azure
+      res.json({
+        success: true,
+        text,
+        voice,
+        audioUrl: null, // Would be actual audio URL in production
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Voice endpoint error:', error);
+      res.status(500).json({ error: 'Voice processing failed' });
     }
   });
 
