@@ -95,6 +95,48 @@ export const userPermissions = pgTable("user_permissions", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 
+export const agentConfigurations = pgTable("agent_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  userId: varchar("user_id").notNull(),
+  autonomousTasks: jsonb("autonomous_tasks").$type<any[]>().default([]),
+  confirmTasks: jsonb("confirm_tasks").$type<any[]>().default([]),
+  suggestTasks: jsonb("suggest_tasks").$type<any[]>().default([]),
+  allowedTools: jsonb("allowed_tools").$type<string[]>().default([]),
+  permissions: jsonb("permissions").$type<string[]>().default([]),
+  workingHours: jsonb("working_hours").$type<any>().default({}),
+  notifications: jsonb("notifications").$type<any>().default({}),
+  conversationContext: jsonb("conversation_context").$type<any>().default({}),
+  lastUpdated: text("last_updated").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const conversationHistory = pgTable("conversation_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  conversationId: varchar("conversation_id").notNull(),
+  messages: jsonb("messages").$type<any[]>().default([]),
+  context: jsonb("context").$type<any>().default({}),
+  lastActivity: text("last_activity").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const detectedTools = pgTable("detected_tools", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  toolName: text("tool_name").notNull(),
+  category: text("category").notNull(),
+  executable: text("executable"),
+  version: text("version"),
+  installed: boolean("installed").notNull().default(false),
+  isLoggedIn: boolean("is_logged_in").default(false),
+  permissions: jsonb("permissions").$type<string[]>().default([]),
+  lastDetected: text("last_detected").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
 export const extensionPairings = pgTable("extension_pairings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
@@ -191,3 +233,28 @@ export type VoiceInteraction = typeof voiceInteractions.$inferSelect;
 export type InsertVoiceInteraction = z.infer<typeof insertVoiceInteractionSchema>;
 export type TaskExecution = typeof taskExecutions.$inferSelect;
 export type InsertTaskExecution = z.infer<typeof insertTaskExecutionSchema>;
+
+export const insertAgentConfigSchema = createInsertSchema(agentConfigurations).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true
+});
+
+export const insertConversationHistorySchema = createInsertSchema(conversationHistory).omit({
+  id: true,
+  createdAt: true,
+  lastActivity: true
+});
+
+export const insertDetectedToolSchema = createInsertSchema(detectedTools).omit({
+  id: true,
+  createdAt: true,
+  lastDetected: true
+});
+
+export type AgentConfiguration = typeof agentConfigurations.$inferSelect;
+export type InsertAgentConfiguration = z.infer<typeof insertAgentConfigSchema>;
+export type ConversationHistory = typeof conversationHistory.$inferSelect;
+export type InsertConversationHistory = z.infer<typeof insertConversationHistorySchema>;
+export type DetectedTool = typeof detectedTools.$inferSelect;
+export type InsertDetectedTool = z.infer<typeof insertDetectedToolSchema>;

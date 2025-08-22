@@ -27,6 +27,9 @@ export default function AgentHiring() {
   const [domains, setDomains] = useState("");
   const [autonomyLevel, setAutonomyLevel] = useState<"suggest" | "confirm" | "autonomous">("confirm");
   const [extensionStatus, setExtensionStatus] = useState<{ paired: boolean; online: boolean }>({ paired: false, online: false });
+  const [detectedTools, setDetectedTools] = useState<any[]>([]);
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
 
   const { data: agent, isLoading } = useQuery<Agent>({
     queryKey: ["/api/agents", params?.agentId],
@@ -45,6 +48,29 @@ export default function AgentHiring() {
       paired: data.hasPairedExtension,
       online: data.extensions?.[0]?.isOnline || false
     })
+  });
+
+  // Query for detected tools
+  const { data: detectedToolsData } = useQuery({
+    queryKey: ["/api/device-tools", "demo-user"],
+    enabled: step >= 2,
+    select: (data: any) => data.tools || []
+  });
+
+  const scanDeviceMutation = useMutation({
+    mutationFn: async () => {
+      setIsScanning(true);
+      const response = await apiRequest("POST", "/api/device-tools/scan/demo-user", {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setDetectedTools([...data.installed, ...data.browser]);
+      setIsScanning(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/device-tools"] });
+    },
+    onError: () => {
+      setIsScanning(false);
+    }
   });
 
   const generatePairingCodeMutation = useMutation({
@@ -86,6 +112,19 @@ export default function AgentHiring() {
     }
   }, [extensionStatusData]);
 
+  useEffect(() => {
+    if (detectedToolsData) {
+      setDetectedTools(detectedToolsData);
+    }
+  }, [detectedToolsData]);
+
+  // Auto-scan device when moving to permissions step
+  useEffect(() => {
+    if (step === 2 && detectedTools.length === 0 && !isScanning) {
+      scanDeviceMutation.mutate();
+    }
+  }, [step]);
+
   const getAgentType = (category: string): string => {
     const categoryMap: Record<string, string> = {
       "growth": "business-growth",
@@ -104,6 +143,22 @@ export default function AgentHiring() {
 
     const permissionsToGrant = [];
     
+    // Grant permissions for selected tools
+    for (const toolName of selectedTools) {
+      const tool = detectedTools.find(t => t.toolName === toolName);
+      if (tool) {
+        for (const permission of tool.permissions) {
+          permissionsToGrant.push({
+            agentId: agent.id,
+            scope: permission,
+            domain: domains || "*",
+            autonomyLevel: autonomyLevel
+          });
+        }
+      }
+    }
+    
+    // Fallback to basic permissions if no tools selected
     if (permissions.browserAccess) {
       permissionsToGrant.push({
         agentId: agent.id,
@@ -141,7 +196,8 @@ export default function AgentHiring() {
       agent,
       selectedSubAgents,
       permissions: permissionsToGrant,
-      autonomyLevel
+      autonomyLevel,
+      selectedTools
     });
   };
 

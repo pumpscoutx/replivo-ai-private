@@ -88,9 +88,15 @@ export async function callAgentLLM(
 export async function callBusinessGrowthAgent(
   userPrompt: string,
   context?: string,
-  subAgent?: string
+  subAgent?: string,
+  conversationHistory?: any[]
 ): Promise<string> {
-  const systemPrompt = `You are ${subAgent || 'Business Growth'} agent. You ONLY handle marketing, sales, lead generation, content creation, and business growth tasks.
+  // Get conversation context instead of always introducing
+  const hasHistory = conversationHistory && conversationHistory.length > 0;
+  const isFirstMessage = !hasHistory;
+  
+  const systemPrompt = isFirstMessage 
+    ? `You are ${subAgent || 'Business Growth'} agent. I specialize in marketing, sales, lead generation, content creation, and business growth tasks.
 
 You can execute these REAL tasks on the user's device:
 - Research leads on LinkedIn, Twitter, and business websites
@@ -109,12 +115,14 @@ STRICT RULES:
 - Be specific about what you will do: "I will open LinkedIn, search for [criteria], extract contact info, and send personalized messages"
 - Focus on immediate, actionable tasks the user needs done right now
 
-Respond with specific actions you can execute on their device.`;
+Respond with specific actions you can execute on their device.`
+    : `Continue our conversation as your Business Growth agent. I'm here to help with marketing, sales, and growth tasks. I remember our previous discussions and can reference them as needed. For actions requiring approval, I'll format as: "ACTION_REQUIRED: [task description]"`;
 
   const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
   const messages: LLMMessage[] = [
     { role: 'system', content: systemPrompt },
+    ...(conversationHistory || []),
     { role: 'user', content: fullPrompt }
   ];
 
@@ -125,7 +133,8 @@ Respond with specific actions you can execute on their device.`;
 export async function callOperationsAgent(
   userPrompt: string,
   context?: string,
-  subAgent?: string
+  subAgent?: string,
+  conversationHistory?: any[]
 ): Promise<string> {
   const systemPrompt = `You are ${subAgent || 'Operations'} agent. You ONLY handle workflow automation, data analysis, process optimization, and operational efficiency tasks.
 
@@ -165,7 +174,8 @@ Respond with specific operational actions you can execute on their device.`;
 export async function callPeopleFinanceAgent(
   userPrompt: string,
   context?: string,
-  subAgent?: string
+  subAgent?: string,
+  conversationHistory?: any[]
 ): Promise<string> {
   const systemPrompt = `You are ${subAgent || 'People & Finance'} agent. You ONLY handle HR, recruiting, payroll, financial management, and people-related tasks.
 

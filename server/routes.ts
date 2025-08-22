@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { deviceToolsRouter } from "./routes/device-tools";
+import { agentConfigRouter } from "./routes/agent-config";
 import { insertCustomRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -379,20 +381,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = agentChatSchema.parse(req.body);
       const { agentType, message, conversationId, userId } = validatedData;
 
-      // Call the appropriate agent LLM
+      // Get conversation history for context
+      const conversationHistory = await storage.getConversationHistory(userId, agentType);
+      const historyMessages = conversationHistory?.messages || [];
+
+      // Call the appropriate agent LLM with conversation context
       let agentResponse: string;
       switch (agentType) {
         case 'business-growth':
-          agentResponse = await callBusinessGrowthAgent(message, `Conversation ID: ${conversationId}`);
+          agentResponse = await callBusinessGrowthAgent(message, `Conversation ID: ${conversationId}`, undefined, historyMessages);
           break;
         case 'operations':
-          agentResponse = await callOperationsAgent(message, `Conversation ID: ${conversationId}`);
+          agentResponse = await callOperationsAgent(message, `Conversation ID: ${conversationId}`, undefined, historyMessages);
           break;
         case 'people-finance':
-          agentResponse = await callPeopleFinanceAgent(message, `Conversation ID: ${conversationId}`);
+          agentResponse = await callPeopleFinanceAgent(message, `Conversation ID: ${conversationId}`, undefined, historyMessages);
           break;
         default:
           throw new Error(`Unknown agent type: ${agentType}`);
+      }
+
+      // Update conversation history
+      const newMessages = [
+        ...historyMessages.slice(-10), // Keep last 10 messages for context
+        { role: 'user', content: message },
+        { role: 'assistant', content: agentResponse }
+      ];
+      
+      if (conversationHistory) {
+        await storage.updateConversationHistory(conversationHistory.id, {
+          messages: newMessages
+        });
+      } else {
+        await storage.createConversationHistory({
+          userId,
+          agentType,
+          conversationId: conversationId || Date.now().toString(),
+          messages: newMessages,
+          context: { lastInteraction: new Date().toISOString() }
+        });
       }
 
       // Check if response needs approval
@@ -482,7 +509,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove all demo data endpoints and add real-time execution
+  // Device tool detection and agent configuration routes
+  app.use("/api/device-tools", deviceToolsRouter);
+  app.use("/api/agent-config", agentConfigRouter);
+
   const httpServer = createServer(app);
   return httpServer;
 }

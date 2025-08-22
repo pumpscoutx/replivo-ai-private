@@ -1,5 +1,7 @@
-import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction, type TaskExecution, type InsertTaskExecution } from "@shared/schema";
+import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction, type TaskExecution, type InsertTaskExecution, type AgentConfiguration, type InsertAgentConfiguration, type ConversationHistory, type InsertConversationHistory, type DetectedTool, type InsertDetectedTool } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { DeviceScanner } from './device-scanner';
+import { defaultAgentTasks } from '../shared/agent-config';
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -39,6 +41,21 @@ export interface IStorage {
   
   createTaskExecution(task: InsertTaskExecution): Promise<TaskExecution>;
   getUserTaskHistory(userId: string, limit?: number, offset?: number): Promise<TaskExecution[]>;
+  
+  // Agent configuration management
+  createAgentConfiguration(config: InsertAgentConfiguration): Promise<AgentConfiguration>;
+  getAgentConfiguration(userId: string, agentType: string): Promise<AgentConfiguration | undefined>;
+  updateAgentConfiguration(id: string, updates: Partial<AgentConfiguration>): Promise<void>;
+  
+  // Conversation history management
+  createConversationHistory(conversation: InsertConversationHistory): Promise<ConversationHistory>;
+  getConversationHistory(userId: string, agentType: string): Promise<ConversationHistory | undefined>;
+  updateConversationHistory(id: string, updates: Partial<ConversationHistory>): Promise<void>;
+  
+  // Device tool detection
+  saveDetectedTools(userId: string, tools: InsertDetectedTool[]): Promise<void>;
+  getDetectedTools(userId: string): Promise<DetectedTool[]>;
+  updateDetectedTool(id: string, updates: Partial<DetectedTool>): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -51,6 +68,10 @@ export class MemStorage implements IStorage {
   private commandLogs: Map<string, CommandLog>;
   private voiceInteractions: Map<string, VoiceInteraction>;
   private taskExecutions: Map<string, TaskExecution>;
+  private agentConfigurations: Map<string, AgentConfiguration>;
+  private conversationHistories: Map<string, ConversationHistory>;
+  private detectedTools: Map<string, DetectedTool>;
+  private deviceScanner: DeviceScanner;
 
   constructor() {
     this.users = new Map();
@@ -62,6 +83,10 @@ export class MemStorage implements IStorage {
     this.commandLogs = new Map();
     this.voiceInteractions = new Map();
     this.taskExecutions = new Map();
+    this.agentConfigurations = new Map();
+    this.conversationHistories = new Map();
+    this.detectedTools = new Map();
+    this.deviceScanner = DeviceScanner.getInstance();
     this.initializeData();
   }
 
@@ -497,6 +522,118 @@ export class MemStorage implements IStorage {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     return userTasks.slice(offset, offset + limit);
+  }
+
+  // Agent configuration management
+  async createAgentConfiguration(config: InsertAgentConfiguration): Promise<AgentConfiguration> {
+    const id = randomUUID();
+    const fullConfig: AgentConfiguration = {
+      id,
+      lastUpdated: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...config,
+    };
+    this.agentConfigurations.set(id, fullConfig);
+    return fullConfig;
+  }
+
+  async getAgentConfiguration(userId: string, agentType: string): Promise<AgentConfiguration | undefined> {
+    for (const config of this.agentConfigurations.values()) {
+      if (config.userId === userId && config.agentType === agentType) {
+        return config;
+      }
+    }
+    return undefined;
+  }
+
+  async updateAgentConfiguration(id: string, updates: Partial<AgentConfiguration>): Promise<void> {
+    const config = this.agentConfigurations.get(id);
+    if (config) {
+      const updatedConfig = {
+        ...config,
+        ...updates,
+        lastUpdated: new Date().toISOString(),
+      };
+      this.agentConfigurations.set(id, updatedConfig);
+    }
+  }
+
+  // Conversation history management
+  async createConversationHistory(conversation: InsertConversationHistory): Promise<ConversationHistory> {
+    const id = randomUUID();
+    const fullConversation: ConversationHistory = {
+      id,
+      lastActivity: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...conversation,
+    };
+    this.conversationHistories.set(id, fullConversation);
+    return fullConversation;
+  }
+
+  async getConversationHistory(userId: string, agentType: string): Promise<ConversationHistory | undefined> {
+    for (const conversation of this.conversationHistories.values()) {
+      if (conversation.userId === userId && conversation.agentType === agentType) {
+        return conversation;
+      }
+    }
+    return undefined;
+  }
+
+  async updateConversationHistory(id: string, updates: Partial<ConversationHistory>): Promise<void> {
+    const conversation = this.conversationHistories.get(id);
+    if (conversation) {
+      const updatedConversation = {
+        ...conversation,
+        ...updates,
+        lastActivity: new Date().toISOString(),
+      };
+      this.conversationHistories.set(id, updatedConversation);
+    }
+  }
+
+  // Device tool detection
+  async saveDetectedTools(userId: string, tools: InsertDetectedTool[]): Promise<void> {
+    // Clear existing tools for this user
+    const existingKeys = Array.from(this.detectedTools.keys());
+    for (const key of existingKeys) {
+      const tool = this.detectedTools.get(key);
+      if (tool && tool.userId === userId) {
+        this.detectedTools.delete(key);
+      }
+    }
+
+    // Add new tools
+    for (const toolData of tools) {
+      const id = randomUUID();
+      const tool: DetectedTool = {
+        id,
+        lastDetected: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        ...toolData,
+      };
+      this.detectedTools.set(id, tool);
+    }
+  }
+
+  async getDetectedTools(userId: string): Promise<DetectedTool[]> {
+    const userTools = Array.from(this.detectedTools.values())
+      .filter(tool => tool.userId === userId)
+      .sort((a, b) => a.toolName.localeCompare(b.toolName));
+    
+    return userTools;
+  }
+
+  async updateDetectedTool(id: string, updates: Partial<DetectedTool>): Promise<void> {
+    const tool = this.detectedTools.get(id);
+    if (tool) {
+      const updatedTool = {
+        ...tool,
+        ...updates,
+        lastDetected: new Date().toISOString(),
+      };
+      this.detectedTools.set(id, updatedTool);
+    }
   }
 }
 
