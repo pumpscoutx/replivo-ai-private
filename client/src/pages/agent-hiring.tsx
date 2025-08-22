@@ -228,11 +228,11 @@ export default function AgentHiring() {
                     <div>
                       <h3 className="text-white font-medium">Extension Status</h3>
                       <p className="text-gray-400 text-sm">
-                        {extensionStatus.paired 
-                          ? extensionStatus.online 
-                            ? "Connected and online" 
-                            : "Paired but offline"
-                          : "Not paired"
+                        {extensionStatus.paired && extensionStatus.online 
+                          ? "Connected and ready for automation" 
+                          : generatePairingCodeMutation.data
+                            ? "Pairing code generated - Please connect extension"
+                            : "Extension not connected"
                         }
                       </p>
                     </div>
@@ -240,7 +240,7 @@ export default function AgentHiring() {
                       <div className={`w-2 h-2 rounded-full ${
                         extensionStatus.paired && extensionStatus.online 
                           ? 'bg-green-500' 
-                          : extensionStatus.paired 
+                          : generatePairingCodeMutation.data
                             ? 'bg-yellow-500' 
                             : 'bg-red-500'
                       }`} />
@@ -249,12 +249,16 @@ export default function AgentHiring() {
                           ? 'text-green-400' 
                           : 'text-gray-400'
                       }`}>
-                        {extensionStatus.paired && extensionStatus.online ? 'Online' : 'Offline'}
+                        {extensionStatus.paired && extensionStatus.online 
+                          ? 'Ready' 
+                          : generatePairingCodeMutation.data 
+                            ? 'Waiting for connection' 
+                            : 'Not connected'}
                       </span>
                     </div>
                   </div>
 
-                  {!extensionStatus.paired && (
+                  {!(extensionStatus.paired && extensionStatus.online) && (
                     <div className="space-y-4">
                       <p className="text-gray-300">
                         Install the Replivo Chrome extension to enable device control for your agents.
@@ -297,10 +301,12 @@ export default function AgentHiring() {
 
                   <Button
                     onClick={() => setStep(2)}
-                    disabled={!extensionStatus.paired}
+                    disabled={!extensionStatus.paired || !extensionStatus.online}
                     className="w-full bg-gray-800 hover:bg-gray-700"
                   >
-                    Continue to Permissions
+                    {!extensionStatus.paired ? "Generate pairing code first" :
+                     !extensionStatus.online ? "Connect your Chrome extension" :
+                     "Continue to Permissions"}
                   </Button>
                 </CardContent>
               </Card>
