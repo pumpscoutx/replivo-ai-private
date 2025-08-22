@@ -53,21 +53,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Get the current Replit URL dynamically
 async function getReplicaUrl() {
+  // First, try stored URL
   try {
-    const tabs = await chrome.tabs.query({active: true, currentWindow: true});
-    const activeTab = tabs[0];
-    if (activeTab && (activeTab.url.includes('replit') || activeTab.url.includes('.dev'))) {
-      const url = new URL(activeTab.url);
-      console.log('Detected Replit URL:', url.origin);
-      return url.origin;
-    }
-  } catch (error) {
-    console.log('Could not get active tab, using fallback');
-  }
-  
-  // Better fallback detection
-  try {
-    // Try to get from storage if we have a recent URL
     const data = await chrome.storage.local.get(['lastReplicaUrl']);
     if (data.lastReplicaUrl) {
       console.log('Using stored Replit URL:', data.lastReplicaUrl);
@@ -75,6 +62,44 @@ async function getReplicaUrl() {
     }
   } catch (error) {
     console.log('No stored URL found');
+  }
+
+  // Try to detect from active tab
+  try {
+    const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+    const activeTab = tabs[0];
+    if (activeTab && (activeTab.url.includes('replit') || activeTab.url.includes('.dev') || activeTab.url.includes('repl.co'))) {
+      const url = new URL(activeTab.url);
+      console.log('Detected Replit URL:', url.origin);
+      await chrome.storage.local.set({ lastReplicaUrl: url.origin });
+      return url.origin;
+    }
+  } catch (error) {
+    console.log('Could not get active tab, using fallback');
+  }
+  
+  // Test known working URLs
+  const testUrls = [
+    'https://35b41b27-3518-4d73-9be2-9148161a11b0-00-1mpblxvlw6efo.kirk.repl.co',
+    'http://localhost:5000'
+  ];
+  
+  for (const testUrl of testUrls) {
+    try {
+      console.log('Testing URL:', testUrl);
+      const response = await fetch(`${testUrl}/api/agents/featured`, {
+        method: 'GET',
+        mode: 'cors'
+      });
+      if (response.ok) {
+        console.log('Found working URL:', testUrl);
+        await chrome.storage.local.set({ lastReplicaUrl: testUrl });
+        return testUrl;
+      }
+    } catch (e) {
+      console.log(`Failed to connect to ${testUrl}:`, e.message);
+      continue;
+    }
   }
   
   return 'http://localhost:5000'; // Fallback for local development
