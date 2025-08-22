@@ -45,7 +45,7 @@ function getAgentAPIKey(agentType: AgentType): string {
 export async function callAgentLLM(
   agentType: AgentType,
   messages: LLMMessage[],
-  model: string = 'deepseek/deepseek-chat'
+  model: string = 'openai/gpt-3.5-turbo'
 ): Promise<LLMResponse> {
   const agentKey = getAgentAPIKey(agentType);
   
@@ -63,7 +63,9 @@ export async function callAgentLLM(
     },
     body: JSON.stringify({
       model,
-      messages
+      messages,
+      max_tokens: 200,
+      temperature: 0.7
     })
   });
 
@@ -95,7 +97,7 @@ export async function callBusinessGrowthAgent(
     { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('business-growth', messages, 'deepseek/deepseek-chat');
+  const response = await callAgentLLM('business-growth', messages, 'openai/gpt-3.5-turbo');
   return response.choices[0].message.content;
 }
 
@@ -111,7 +113,7 @@ export async function callOperationsAgent(
     { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('operations', messages, 'deepseek/deepseek-chat');
+  const response = await callAgentLLM('operations', messages, 'openai/gpt-3.5-turbo');
   return response.choices[0].message.content;
 }
 
@@ -127,6 +129,6 @@ export async function callPeopleFinanceAgent(
     { role: 'user', content: userPrompt }
   ];
 
-  const response = await callAgentLLM('people-finance', messages, 'deepseek/deepseek-chat');
+  const response = await callAgentLLM('people-finance', messages, 'openai/gpt-3.5-turbo');
   return response.choices[0].message.content;
 }
