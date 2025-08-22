@@ -112,11 +112,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const pairing = await storage.getPairingByCode(code);
-      if (!pairing || !pairing.isActive) {
+      if (!pairing) {
         return res.status(404).json({ error: 'Invalid or expired pairing code' });
       }
 
-      await storage.updateExtensionPairing(pairing.id, { extensionId });
+      await storage.updateExtensionPairing(pairing.id, { 
+        extensionId,
+        isActive: true,  // Now mark as active when extension actually connects
+        lastSeen: new Date().toISOString()
+      });
 
       res.json({
         success: true,
@@ -139,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         extensionId: '',
         pairingCode,
-        isActive: true
+        isActive: false  // Only activate when extension actually connects
       });
 
       res.json({
@@ -162,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activePairings = pairings.filter(p => p.isActive);
 
       res.json({
-        hasPairedExtension: activePairings.length > 0,
+        hasPairedExtension: activePairings.length > 0 && activePairings.some(p => p.extensionId),
         extensions: activePairings.map(p => ({
           id: p.id,
           extensionId: p.extensionId,
