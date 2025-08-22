@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SandboxModal from "./sandbox-modal";
 import { Star, Play, Zap, Users, TrendingUp, MessageSquare } from "lucide-react";
-import type { SubAgent } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
+import type { SubAgent, Agent } from "@shared/schema";
 
 interface SubAgentCardProps {
   subAgent: SubAgent;
@@ -16,6 +17,15 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }:
   const [isHovered, setIsHovered] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [sandboxOpen, setSandboxOpen] = useState(false);
+
+  // Find the parent agent that contains this sub-agent
+  const { data: agents } = useQuery<Agent[]>({
+    queryKey: ["/api/agents"]
+  });
+
+  const parentAgent = agents?.find(agent => 
+    agent.subAgentIds?.includes(subAgent.id)
+  );
 
   const formatPrice = (price: number) => {
     return `$${(price / 100).toFixed(0)}`;
@@ -283,9 +293,16 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }:
             
             <Button
               data-testid={`button-hire-${subAgent.name.toLowerCase().replace(' ', '-')}`}
-              onClick={() => window.location.href = `/hire/${subAgent.id}`}
+              onClick={() => {
+                if (parentAgent) {
+                  window.location.href = `/hire/${parentAgent.id}?subAgent=${subAgent.id}`;
+                } else {
+                  console.error('No parent agent found for sub-agent:', subAgent.name);
+                }
+              }}
               size="sm"
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-semibold"
+              disabled={!parentAgent}
             >
               <Zap className="w-3 h-3 mr-1" />
               Hire
