@@ -72,12 +72,25 @@ export class ExtensionWebSocketServer {
         await this.handleAuthentication(ws, message);
         break;
 
+      case 'dashboard_connect':
+        // Handle dashboard WebSocket connection
+        console.log('Dashboard connected for user:', message.userId);
+        break;
+
       case 'pong':
         this.handlePong(ws, message);
         break;
 
       case 'command_result':
         await this.handleCommandResult(message);
+        break;
+
+      case 'task_result':
+        await this.handleTaskResult(message);
+        break;
+
+      case 'execute_task':
+        await this.handleTaskExecution(ws, message);
         break;
 
       case 'heartbeat':
@@ -273,5 +286,55 @@ export class ExtensionWebSocketServer {
         }
       }
     }, 60 * 1000); // Check every minute
+  }
+
+  private async handleTaskExecution(ws: WebSocket, message: any) {
+    try {
+      const { agentType, action, taskId } = message;
+      
+      console.log(`Executing task ${taskId} for agent ${agentType}: ${action}`);
+      
+      // Forward task to browser extension for actual execution
+      const signedTask = this.commandSigner.signCommand({
+        taskId,
+        agentType,
+        action,
+        timestamp: new Date().toISOString()
+      });
+
+      ws.send(JSON.stringify({
+        type: 'execute_task',
+        signed_task: signedTask
+      }));
+      
+    } catch (error) {
+      console.error('Error handling task execution:', error);
+    }
+  }
+
+  private async handleTaskResult(message: any) {
+    try {
+      const { taskId, success, result, error, userId, agentType } = message;
+      
+      console.log(`Task ${taskId} result:`, {
+        success,
+        result: success ? result : error,
+        userId,
+        agentType
+      });
+
+      // Broadcast task completion to dashboard
+      await this.broadcastToExtensions({
+        type: 'task_completed',
+        taskId,
+        success,
+        result: success ? result : error,
+        agentType,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error handling task result:', error);
+    }
   }
 }

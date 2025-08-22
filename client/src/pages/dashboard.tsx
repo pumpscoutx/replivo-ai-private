@@ -41,55 +41,14 @@ interface ActivityItem {
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState('overview');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      agentId: 'business-growth',
-      agentName: 'Business Growth Agent',
-      content: "I've just identified 23 new leads from LinkedIn. Ready to send intro emails - approve?",
-      timestamp: new Date(Date.now() - 2 * 60 * 1000),
-      type: 'approval',
-      needsApproval: true
-    },
-    {
-      id: '2',
-      agentId: 'operations',
-      agentName: 'Operations Agent',
-      content: "I scheduled your client meeting for tomorrow at 2PM and sent calendar invites.",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      type: 'message'
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isVoiceChatEnabled, setIsVoiceChatEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<string>('business-growth');
-  const [activities, setActivities] = useState<ActivityItem[]>([
-    {
-      id: '1',
-      agentName: 'Customer Support Agent',
-      action: 'Replied to 3 customer tickets with average 2min response time',
-      timestamp: new Date(Date.now() - 1 * 60 * 1000),
-      type: 'success'
-    },
-    {
-      id: '2',
-      agentName: 'Marketing Agent',
-      action: 'Wants to spend $100 on Facebook ads for lead campaign',
-      timestamp: new Date(Date.now() - 3 * 60 * 1000),
-      type: 'approval',
-      needsApproval: true
-    },
-    {
-      id: '3',
-      agentName: 'Operations Agent',
-      action: 'Updated CRM with 15 new contact records',
-      timestamp: new Date(Date.now() - 8 * 60 * 1000),
-      type: 'success'
-    }
-  ]);
-  const [pendingApprovals, setPendingApprovals] = useState(2);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState(0);
   const [connectedAgents] = useState([
     { id: 'business-growth', name: 'Business Growth', status: 'active', tasksToday: 8 },
     { id: 'operations', name: 'Operations', status: 'active', tasksToday: 12 },
@@ -349,8 +308,11 @@ export default function Dashboard() {
     }
   };
 
-  // Handle message approval
+  // Handle message approval and execute real tasks
   const handleApproval = async (messageId: string, approved: boolean) => {
+    const message = messages.find(msg => msg.id === messageId);
+    if (!message) return;
+
     try {
       await apiRequest("POST", "/api/agents/approve", {
         taskId: messageId,
@@ -360,18 +322,22 @@ export default function Dashboard() {
 
       // Update message approval status
       setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, approved, type: 'message' } : msg
+        msg.id === messageId ? { ...msg, approved, type: 'message', needsApproval: false } : msg
       ));
       
       if (approved) {
         setPendingApprovals(prev => Math.max(0, prev - 1));
+        
+        // Execute the actual task through browser extension
+        const taskAction = message.content;
+        await executeTask(message.agentId, taskAction, messageId);
         
         // Add confirmation message
         const confirmMessage: Message = {
           id: (Date.now() + 3).toString(),
           agentId: 'system',
           agentName: 'System',
-          content: `✅ Task approved and executed successfully!`,
+          content: `✅ Task approved! Executing on your device now...`,
           timestamp: new Date(),
           type: 'message'
         };
@@ -395,46 +361,39 @@ export default function Dashboard() {
     }
   };
 
-  // Simulate real-time agent activity for demo purposes
-  useEffect(() => {
-    if (!wsConnected) return;
-    
-    const interval = setInterval(() => {
-      // Simulate random agent activity
-      const agents = ['Customer Support', 'Operations', 'Marketing', 'Business Growth'];
-      const actions = [
-        'Processed customer inquiry',
-        'Updated CRM records',
-        'Scheduled social media post',
-        'Identified new business opportunity',
-        'Completed data analysis',
-        'Sent follow-up email'
-      ];
+  // Real-time agent task execution
+  const executeTask = async (agentType: string, action: string, taskId: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.error('WebSocket not connected');
+      return;
+    }
+
+    try {
+      // Send command to browser extension for execution
+      const command = {
+        type: 'execute_task',
+        agentType,
+        action,
+        taskId,
+        timestamp: new Date().toISOString()
+      };
+
+      wsRef.current.send(JSON.stringify(command));
       
-      const randomAgent = agents[Math.floor(Math.random() * agents.length)];
-      const randomAction = actions[Math.floor(Math.random() * actions.length)];
-      
-      // Occasionally require approval
-      const needsApproval = Math.random() < 0.3;
-      
+      // Add activity log
       const activity: ActivityItem = {
         id: Date.now().toString(),
-        agentName: randomAgent + ' Agent',
-        action: needsApproval ? `Wants to ${randomAction.toLowerCase()} - requires approval` : randomAction,
+        agentName: `${agentType.replace('-', ' ')} Agent`,
+        action: `Executing: ${action}`,
         timestamp: new Date(),
-        type: needsApproval ? 'approval' : 'success',
-        needsApproval
+        type: 'info'
       };
-      
       setActivities(prev => [activity, ...prev.slice(0, 9)]);
       
-      if (needsApproval) {
-        setPendingApprovals(prev => prev + 1);
-      }
-    }, 15000); // Every 15 seconds
-    
-    return () => clearInterval(interval);
-  }, [wsConnected]);
+    } catch (error) {
+      console.error('Task execution error:', error);
+    }
+  };
 
 
   const formatTimeAgo = (date: Date) => {

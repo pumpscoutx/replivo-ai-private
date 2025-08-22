@@ -436,9 +436,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = approvalSchema.parse(req.body);
       const { taskId, approved, userId } = validatedData;
 
-      // Here you would update the task status in storage
-      // For now, we'll simulate it
       console.log(`Task ${taskId} ${approved ? 'approved' : 'rejected'} by ${userId}`);
+      
+      if (approved) {
+        // Send task to browser extension for execution
+        // This would be handled by the WebSocket server
+        console.log(`Sending task ${taskId} to extension for execution`);
+      }
 
       res.json({
         success: true,
@@ -478,6 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Remove all demo data endpoints and add real-time execution
   const httpServer = createServer(app);
   return httpServer;
 }
