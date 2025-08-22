@@ -43,6 +43,10 @@ app.use((req, res, next) => {
   // Setup WebSocket server for browser extension communication
   const wsServer = new ExtensionWebSocketServer(server);
   console.log('Extension WebSocket server initialized');
+  
+  // Make WebSocket server available to routes
+  const { setExtensionWebSocketServer } = await import('./routes');
+  setExtensionWebSocketServer(wsServer);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

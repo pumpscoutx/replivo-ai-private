@@ -12,6 +12,14 @@ import {
   type AgentType
 } from "./llmClient";
 import { DeviceScanner } from "./device-scanner";
+import { ExtensionWebSocketServer } from "./websocket-server";
+
+// Global WebSocket server instance
+let extensionWS: ExtensionWebSocketServer | null = null;
+
+export function setExtensionWebSocketServer(ws: ExtensionWebSocketServer) {
+  extensionWS = ws;
+}
 
 // Helper functions for device control
 function getAgentRecommendedTools(agentType: AgentType, allTools: any[]) {
@@ -317,6 +325,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: needsApproval ? 'pending_approval' : 'completed'
       });
 
+      // Check if task should trigger immediate execution
+      const shouldExecute = task.toLowerCase().includes('execute') || 
+                           task.toLowerCase().includes('do now') ||
+                           task.toLowerCase().includes('start') ||
+                           task.toLowerCase().includes('run') ||
+                           task.toLowerCase().includes('open') ||
+                           task.toLowerCase().includes('send') ||
+                           task.toLowerCase().includes('create');
+
+      let executed = false;
+      let executionStatus = '';
+
+      if (shouldExecute && !needsApproval) {
+        // Determine appropriate command based on task content
+        let command = null;
+        
+        if (task.toLowerCase().includes('gmail') || task.toLowerCase().includes('email')) {
+          command = {
+            request_id: `hire-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://gmail.com' }
+          };
+          executionStatus = 'Opening Gmail...';
+        } else if (task.toLowerCase().includes('linkedin')) {
+          command = {
+            request_id: `hire-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://linkedin.com' }
+          };
+          executionStatus = 'Opening LinkedIn...';
+        } else if (task.toLowerCase().includes('salesforce') || task.toLowerCase().includes('crm')) {
+          command = {
+            request_id: `hire-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://salesforce.com' }
+          };
+          executionStatus = 'Opening Salesforce...';
+        } else if (task.toLowerCase().includes('calendar')) {
+          command = {
+            request_id: `hire-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://calendar.google.com' }
+          };
+          executionStatus = 'Opening Google Calendar...';
+        }
+
+        if (command) {
+          try {
+            const success = extensionWS ? await extensionWS.sendCommand(userId, command) : false;
+            if (success) {
+              executed = true;
+              cleanResponse += `\n\n✅ **Executing now:** ${executionStatus}`;
+            } else {
+              cleanResponse += `\n\n⚠️ **Extension not connected.** Please pair your browser extension first.`;
+            }
+          } catch (error) {
+            console.error('Command execution error:', error);
+            cleanResponse += `\n\n❌ **Execution failed:** ${error.message}`;
+          }
+        }
+      }
+
       res.json({
         success: true,
         agentType,
@@ -324,6 +394,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         response: cleanResponse,
         needsApproval,
         actionDescription,
+        executed,
+        executionStatus,
         timestamp: new Date().toISOString()
       });
 
@@ -493,12 +565,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Check if chat message should trigger immediate execution
+      const shouldExecute = message.toLowerCase().includes('execute') || 
+                           message.toLowerCase().includes('do it') ||
+                           message.toLowerCase().includes('start now') ||
+                           message.toLowerCase().includes('run') ||
+                           message.toLowerCase().includes('open') && 
+                           (message.toLowerCase().includes('gmail') || 
+                            message.toLowerCase().includes('linkedin') ||
+                            message.toLowerCase().includes('salesforce'));
+
+      let executed = false;
+      let executionStatus = '';
+
+      if (shouldExecute && !needsApproval) {
+        // Determine appropriate command based on message content
+        let command = null;
+        
+        if (message.toLowerCase().includes('gmail') || message.toLowerCase().includes('email')) {
+          command = {
+            request_id: `chat-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://gmail.com' }
+          };
+          executionStatus = 'Opening Gmail...';
+        } else if (message.toLowerCase().includes('linkedin')) {
+          command = {
+            request_id: `chat-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://linkedin.com' }
+          };
+          executionStatus = 'Opening LinkedIn...';
+        } else if (message.toLowerCase().includes('salesforce')) {
+          command = {
+            request_id: `chat-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://salesforce.com' }
+          };
+          executionStatus = 'Opening Salesforce...';
+        }
+
+        if (command) {
+          try {
+            const success = extensionWS ? await extensionWS.sendCommand(userId, command) : false;
+            if (success) {
+              executed = true;
+              cleanResponse += `\n\n✅ **Executing:** ${executionStatus}`;
+            } else {
+              cleanResponse += `\n\n⚠️ **Extension not connected.** Please pair your browser extension first.`;
+            }
+          } catch (error) {
+            console.error('Command execution error:', error);
+          }
+        }
+      }
+
       res.json({
         success: true,
         agentType,
         response: cleanResponse,
         needsApproval,
         actionDescription,
+        executed,
+        executionStatus,
         conversationId: conversationId || Date.now().toString(),
         timestamp: new Date().toISOString()
       });
