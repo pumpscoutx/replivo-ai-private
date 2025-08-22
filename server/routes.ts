@@ -325,54 +325,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: needsApproval ? 'pending_approval' : 'completed'
       });
 
-      // Check if task should trigger immediate execution
-      const shouldExecute = task.toLowerCase().includes('execute') || 
-                           task.toLowerCase().includes('do now') ||
-                           task.toLowerCase().includes('start') ||
-                           task.toLowerCase().includes('run') ||
-                           task.toLowerCase().includes('open') ||
-                           task.toLowerCase().includes('send') ||
-                           task.toLowerCase().includes('email') ||
-                           task.toLowerCase().includes('create') ||
-                           task.toLowerCase().includes('compose') ||
-                           task.toLowerCase().includes('write email') ||
-                           agentResponse.toLowerCase().includes('opening') ||
-                           agentResponse.toLowerCase().includes('sending');
+      // Define sensitive actions that require approval
+      const sensitiveActions = [
+        'send', 'email', 'compose', 'post', 'publish', 'delete', 'remove',
+        'payment', 'buy', 'purchase', 'transfer', 'withdraw', 'deposit',
+        'hire', 'fire', 'terminate', 'cancel', 'refund', 'charge',
+        'share', 'invite', 'message', 'call', 'contact', 'submit'
+      ];
+
+      const isSensitiveTask = sensitiveActions.some(action => 
+        task.toLowerCase().includes(action) || agentResponse.toLowerCase().includes(action)
+      );
+
+      // Only auto-execute non-sensitive navigation tasks
+      const shouldExecute = !isSensitiveTask && (
+        task.toLowerCase().includes('open') ||
+        task.toLowerCase().includes('navigate') ||
+        task.toLowerCase().includes('go to') ||
+        task.toLowerCase().includes('visit')
+      );
 
       let executed = false;
       let executionStatus = '';
 
+      // Handle sensitive tasks that require approval
+      if (isSensitiveTask) {
+        // Store task as pending approval
+        await storage.updateTaskStatus(userId, agentType, 'pending_approval');
+        
+        // Add approval request to response
+        const sensitiveAction = sensitiveActions.find(action => 
+          task.toLowerCase().includes(action) || agentResponse.toLowerCase().includes(action)
+        );
+        
+        cleanResponse += `\n\n🔒 **PERMISSION REQUIRED**\nThis task involves "${sensitiveAction}" which requires your approval for security.\n\n**Proposed Action:** ${task}\n\n*Click "Approve" to proceed or "Deny" to cancel this action.*`;
+        
+        return res.json({
+          success: true,
+          agentType,
+          subAgent,
+          response: cleanResponse,
+          needsApproval: true,
+          sensitiveAction,
+          actionDescription: `Execute: ${task}`,
+          executed: false,
+          executionStatus: 'Waiting for user approval',
+          timestamp: new Date().toISOString()
+        });
+      }
+
       if (shouldExecute && !needsApproval) {
-        // Determine appropriate command based on task content
+        // Only execute safe navigation tasks
         let command = null;
         
-        if (task.toLowerCase().includes('gmail') || task.toLowerCase().includes('email') || task.toLowerCase().includes('send')) {
-          // Check if this is a specific email sending task
-          const emailMatch = task.match(/send.*email.*to\s+([^\s]+@[^\s]+)/i) || task.match(/email.*([^\s]+@[^\s]+)/i);
-          
-          if (emailMatch) {
-            const recipient = emailMatch[1];
-            command = {
-              request_id: `hire-${Date.now()}`,
-              agent_id: agentType,
-              capability: 'compose_email',
-              args: { 
-                recipient: recipient,
-                subject: task.includes('business') ? 'Business Inquiry' : 'Email from Agent',
-                body: task.includes('business') ? 'Hello,\n\nI hope this email finds you well. I wanted to reach out regarding potential business opportunities.\n\nBest regards' : 'Hello,\n\nThis is an automated email from your business agent.\n\nBest regards'
-              }
-            };
-            executionStatus = `Composing and sending email to ${recipient}...`;
-          } else {
-            command = {
-              request_id: `hire-${Date.now()}`,
-              agent_id: agentType,
-              capability: 'open_url',
-              args: { url: 'https://gmail.com' }
-            };
-            executionStatus = 'Opening Gmail...';
-          }
-        } else if (task.toLowerCase().includes('linkedin')) {
+        if (task.toLowerCase().includes('linkedin')) {
           command = {
             request_id: `hire-${Date.now()}`,
             agent_id: agentType,
@@ -396,6 +402,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             args: { url: 'https://calendar.google.com' }
           };
           executionStatus = 'Opening Google Calendar...';
+        } else if (task.toLowerCase().includes('gmail') && !task.toLowerCase().includes('send')) {
+          // Only open Gmail, don't compose
+          command = {
+            request_id: `hire-${Date.now()}`,
+            agent_id: agentType,
+            capability: 'open_url',
+            args: { url: 'https://gmail.com' }
+          };
+          executionStatus = 'Opening Gmail...';
         }
 
         if (command) {
