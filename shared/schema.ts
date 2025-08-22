@@ -54,6 +54,62 @@ export const insertAgentSchema = createInsertSchema(agents).omit({
   id: true
 });
 
+// Device control and permission management tables
+export const toolPermissions = pgTable("tool_permissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  toolName: text("tool_name").notNull(),
+  permissions: jsonb("permissions").$type<string[]>().default([]),
+  category: text("category").notNull(),
+  granted: boolean("granted").notNull().default(false),
+  grantedAt: text("granted_at").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const pendingActions = pgTable("pending_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  taskId: text("task_id").notNull(),
+  toolName: text("tool_name").notNull(),
+  action: text("action").notNull(),
+  parameters: text("parameters").notNull().default('{}'),
+  status: text("status").notNull().default('pending_approval'),
+  requiresApproval: boolean("requires_approval").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  approvedAt: text("approved_at"),
+  rejectedAt: text("rejected_at"),
+  result: text("result"),
+  note: text("note")
+});
+
+export const actionExecutions = pgTable("action_executions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  taskId: text("task_id").notNull(),
+  toolName: text("tool_name").notNull(),
+  action: text("action").notNull(),
+  parameters: text("parameters").notNull().default('{}'),
+  result: text("result").notNull(),
+  status: text("status").notNull(),
+  executedAt: text("executed_at").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
+export const actionNotifications = pgTable("action_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  message: text("message").notNull(),
+  actionType: text("action_type").notNull(),
+  toolName: text("tool_name").notNull(),
+  timestamp: text("timestamp").notNull(),
+  read: boolean("read").notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)
+});
+
 export const insertSubAgentSchema = createInsertSchema(subAgents).omit({
   id: true
 });
@@ -258,3 +314,33 @@ export type ConversationHistory = typeof conversationHistory.$inferSelect;
 export type InsertConversationHistory = z.infer<typeof insertConversationHistorySchema>;
 export type DetectedTool = typeof detectedTools.$inferSelect;
 export type InsertDetectedTool = z.infer<typeof insertDetectedToolSchema>;
+
+// Device control schema types
+export const insertToolPermissionSchema = createInsertSchema(toolPermissions).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertPendingActionSchema = createInsertSchema(pendingActions).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertActionExecutionSchema = createInsertSchema(actionExecutions).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertActionNotificationSchema = createInsertSchema(actionNotifications).omit({
+  id: true,
+  createdAt: true
+});
+
+export type ToolPermission = typeof toolPermissions.$inferSelect;
+export type InsertToolPermission = z.infer<typeof insertToolPermissionSchema>;
+export type PendingAction = typeof pendingActions.$inferSelect;
+export type InsertPendingAction = z.infer<typeof insertPendingActionSchema>;
+export type ActionExecution = typeof actionExecutions.$inferSelect;
+export type InsertActionExecution = z.infer<typeof insertActionExecutionSchema>;
+export type ActionNotification = typeof actionNotifications.$inferSelect;
+export type InsertActionNotification = z.infer<typeof insertActionNotificationSchema>;

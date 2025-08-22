@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction, type TaskExecution, type InsertTaskExecution, type AgentConfiguration, type InsertAgentConfiguration, type ConversationHistory, type InsertConversationHistory, type DetectedTool, type InsertDetectedTool } from "@shared/schema";
+import { type User, type InsertUser, type Agent, type InsertAgent, type SubAgent, type InsertSubAgent, type CustomRequest, type InsertCustomRequest, type UserPermission, type InsertUserPermission, type ExtensionPairing, type InsertExtensionPairing, type CommandLog, type InsertCommandLog, type VoiceInteraction, type InsertVoiceInteraction, type TaskExecution, type InsertTaskExecution, type AgentConfiguration, type InsertAgentConfiguration, type ConversationHistory, type InsertConversationHistory, type DetectedTool, type InsertDetectedTool, type ToolPermission, type InsertToolPermission, type PendingAction, type InsertPendingAction, type ActionExecution, type InsertActionExecution, type ActionNotification, type InsertActionNotification } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { DeviceScanner } from './device-scanner';
 import { defaultAgentTasks } from '../shared/agent-config';
@@ -56,6 +56,23 @@ export interface IStorage {
   saveDetectedTools(userId: string, tools: InsertDetectedTool[]): Promise<void>;
   getDetectedTools(userId: string): Promise<DetectedTool[]>;
   updateDetectedTool(id: string, updates: Partial<DetectedTool>): Promise<void>;
+  
+  // Device control and permissions
+  createToolPermission(permission: InsertToolPermission): Promise<ToolPermission>;
+  checkToolPermission(userId: string, agentType: string, toolName: string): Promise<boolean>;
+  getToolPermissions(userId: string, agentType?: string): Promise<ToolPermission[]>;
+  
+  createPendingAction(action: InsertPendingAction): Promise<PendingAction>;
+  getPendingAction(actionId: string): Promise<PendingAction | undefined>;
+  getPendingActions(userId: string): Promise<PendingAction[]>;
+  updatePendingAction(actionId: string, updates: Partial<PendingAction>): Promise<void>;
+  
+  createActionExecution(execution: InsertActionExecution): Promise<ActionExecution>;
+  getActionExecutions(userId: string, limit?: number): Promise<ActionExecution[]>;
+  
+  createActionNotification(notification: InsertActionNotification): Promise<ActionNotification>;
+  getUserNotifications(userId: string, limit?: number, offset?: number): Promise<ActionNotification[]>;
+  markNotificationRead(notificationId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -71,6 +88,10 @@ export class MemStorage implements IStorage {
   private agentConfigurations: Map<string, AgentConfiguration>;
   private conversationHistories: Map<string, ConversationHistory>;
   private detectedTools: Map<string, DetectedTool>;
+  private toolPermissions: Map<string, ToolPermission>;
+  private pendingActions: Map<string, PendingAction>;
+  private actionExecutions: Map<string, ActionExecution>;
+  private actionNotifications: Map<string, ActionNotification>;
   private deviceScanner: DeviceScanner;
 
   constructor() {
@@ -86,6 +107,10 @@ export class MemStorage implements IStorage {
     this.agentConfigurations = new Map();
     this.conversationHistories = new Map();
     this.detectedTools = new Map();
+    this.toolPermissions = new Map();
+    this.pendingActions = new Map();
+    this.actionExecutions = new Map();
+    this.actionNotifications = new Map();
     this.deviceScanner = DeviceScanner.getInstance();
     this.initializeData();
   }
@@ -633,6 +658,108 @@ export class MemStorage implements IStorage {
         lastDetected: new Date().toISOString(),
       };
       this.detectedTools.set(id, updatedTool);
+    }
+  }
+
+  // Device control and permissions
+  async createToolPermission(permission: InsertToolPermission): Promise<ToolPermission> {
+    const newPermission: ToolPermission = {
+      id: randomUUID(),
+      ...permission,
+      createdAt: new Date().toISOString()
+    };
+    this.toolPermissions.set(newPermission.id, newPermission);
+    return newPermission;
+  }
+
+  async checkToolPermission(userId: string, agentType: string, toolName: string): Promise<boolean> {
+    const permissions = Array.from(this.toolPermissions.values());
+    return permissions.some(p => 
+      p.userId === userId && 
+      p.agentType === agentType && 
+      p.toolName === toolName && 
+      p.granted
+    );
+  }
+
+  async getToolPermissions(userId: string, agentType?: string): Promise<ToolPermission[]> {
+    const permissions = Array.from(this.toolPermissions.values());
+    return permissions.filter(p => {
+      if (p.userId !== userId) return false;
+      if (agentType && p.agentType !== agentType) return false;
+      return true;
+    });
+  }
+
+  async createPendingAction(action: InsertPendingAction): Promise<PendingAction> {
+    const newAction: PendingAction = {
+      id: randomUUID(),
+      ...action,
+      createdAt: new Date().toISOString()
+    };
+    this.pendingActions.set(newAction.id, newAction);
+    return newAction;
+  }
+
+  async getPendingAction(actionId: string): Promise<PendingAction | undefined> {
+    return this.pendingActions.get(actionId);
+  }
+
+  async getPendingActions(userId: string): Promise<PendingAction[]> {
+    const actions = Array.from(this.pendingActions.values());
+    return actions.filter(a => a.userId === userId && a.status === 'pending_approval');
+  }
+
+  async updatePendingAction(actionId: string, updates: Partial<PendingAction>): Promise<void> {
+    const action = this.pendingActions.get(actionId);
+    if (action) {
+      Object.assign(action, updates);
+      this.pendingActions.set(actionId, action);
+    }
+  }
+
+  async createActionExecution(execution: InsertActionExecution): Promise<ActionExecution> {
+    const newExecution: ActionExecution = {
+      id: randomUUID(),
+      ...execution,
+      createdAt: new Date().toISOString()
+    };
+    this.actionExecutions.set(newExecution.id, newExecution);
+    return newExecution;
+  }
+
+  async getActionExecutions(userId: string, limit: number = 50): Promise<ActionExecution[]> {
+    const executions = Array.from(this.actionExecutions.values());
+    return executions
+      .filter(e => e.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+  }
+
+  async createActionNotification(notification: InsertActionNotification): Promise<ActionNotification> {
+    const newNotification: ActionNotification = {
+      id: randomUUID(),
+      ...notification,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    this.actionNotifications.set(newNotification.id, newNotification);
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: string, limit: number = 20, offset: number = 0): Promise<ActionNotification[]> {
+    const notifications = Array.from(this.actionNotifications.values());
+    return notifications
+      .filter(n => n.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(offset, offset + limit);
+  }
+
+  async markNotificationRead(notificationId: string): Promise<void> {
+    const notification = this.actionNotifications.get(notificationId);
+    if (notification) {
+      notification.read = true;
+      this.actionNotifications.set(notificationId, notification);
     }
   }
 }

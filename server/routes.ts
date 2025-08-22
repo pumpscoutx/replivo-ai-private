@@ -11,6 +11,64 @@ import {
   callPeopleFinanceAgent,
   type AgentType
 } from "./llmClient";
+import { DeviceScanner } from "./device-scanner";
+
+// Helper functions for device control
+function getAgentRecommendedTools(agentType: AgentType, allTools: any[]) {
+  const recommendations: Record<AgentType, string[]> = {
+    'business-growth': ['Gmail', 'LinkedIn', 'Slack', 'HubSpot', 'Salesforce', 'Google Calendar', 'Trello'],
+    'operations': ['Microsoft Excel', 'Google Sheets', 'Asana', 'Trello', 'Google Drive', 'Slack'],
+    'people-finance': ['QuickBooks', 'PayPal', 'Microsoft Excel', 'Gmail', 'Google Calendar', 'LinkedIn']
+  };
+  
+  return allTools.filter(tool => 
+    recommendations[agentType].some(rec => tool.name.includes(rec))
+  );
+}
+
+function formatActionDescription(action: string, toolName: string, parameters?: any): string {
+  const descriptions: Record<string, string> = {
+    'email:send': `Send email via ${toolName}`,
+    'contact:add': `Add new contact in ${toolName}`,
+    'post:create': `Create post in ${toolName}`,
+    'file:upload': `Upload file to ${toolName}`,
+    'calendar:create': `Create calendar event in ${toolName}`,
+    'message:send': `Send message via ${toolName}`,
+    'payment:process': `Process payment through ${toolName}`,
+    'task:create': `Create task in ${toolName}`
+  };
+  
+  const baseDescription = descriptions[action] || `Execute ${action} in ${toolName}`;
+  
+  if (parameters && parameters.subject) {
+    return `${baseDescription}: ${parameters.subject}`;
+  }
+  if (parameters && parameters.content) {
+    return `${baseDescription}: ${parameters.content.substring(0, 50)}...`;
+  }
+  
+  return baseDescription;
+}
+
+async function executeToolAction(toolName: string, action: string, parameters?: any): Promise<any> {
+  // This would integrate with actual tool APIs in production
+  // For now, return a simulation result
+  console.log(`Executing ${action} on ${toolName} with parameters:`, parameters);
+  
+  // Simulate different tool executions
+  const simulatedResults: Record<string, any> = {
+    'email:send': { messageId: 'msg_' + Date.now(), status: 'sent' },
+    'contact:add': { contactId: 'contact_' + Date.now(), status: 'created' },
+    'post:create': { postId: 'post_' + Date.now(), status: 'published' },
+    'calendar:create': { eventId: 'event_' + Date.now(), status: 'scheduled' },
+    'task:create': { taskId: 'task_' + Date.now(), status: 'created' }
+  };
+  
+  // Add small delay to simulate real execution
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return simulatedResults[action] || { status: 'completed', action, tool: toolName };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all agents
@@ -418,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           agentType,
           conversationId: conversationId || Date.now().toString(),
           messages: newMessages,
-          context: { lastInteraction: new Date().toISOString() }
+          context: `lastInteraction: ${new Date().toISOString()}`
         });
       }
 
@@ -506,6 +564,343 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Voice endpoint error:', error);
       res.status(500).json({ error: 'Voice processing failed' });
+    }
+  });
+
+  // Device permission and auto-detection endpoint
+  const devicePermissionSchema = z.object({
+    userId: z.string().default('demo-user'),
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']),
+    requestPermissions: z.boolean().default(true)
+  });
+
+  app.post("/api/device/auto-detect", async (req, res) => {
+    try {
+      const validatedData = devicePermissionSchema.parse(req.body);
+      const { userId, agentType, requestPermissions } = validatedData;
+
+      // Auto-detect all available tools on the device
+      const scanner = DeviceScanner.getInstance();
+      const detectedTools = await scanner.getDetectedTools(userId);
+      
+      // Categorize tools by sensitivity and capability
+      const categorizedTools = {
+        safe: detectedTools.installed.filter(tool => 
+          ['productivity', 'browser', 'development'].includes(tool.category)
+        ),
+        sensitive: detectedTools.installed.filter(tool => 
+          ['email', 'communication', 'crm', 'ecommerce'].includes(tool.category)
+        ),
+        browser: detectedTools.browser
+      };
+
+      // Get agent-specific tool recommendations
+      const recommendedTools = getAgentRecommendedTools(agentType, detectedTools.installed.concat(
+        detectedTools.browser.map(bt => ({
+          name: bt.name,
+          category: bt.category,
+          executable: 'browser',
+          installed: true,
+          permissions: bt.permissions
+        }))
+      ));
+
+      // Store detection results for this user-agent combination
+      await storage.saveDetectedTools(userId, detectedTools.installed.map(tool => ({
+        userId,
+        toolName: tool.name,
+        category: tool.category,
+        executable: tool.executable,
+        version: tool.version,
+        installed: tool.installed,
+        permissions: tool.permissions
+      })));
+
+      res.json({
+        success: true,
+        autoDetected: {
+          totalTools: detectedTools.installed.length + detectedTools.browser.length,
+          safeTools: categorizedTools.safe,
+          sensitiveTools: categorizedTools.sensitive,
+          browserTools: categorizedTools.browser,
+          recommendedForAgent: recommendedTools
+        },
+        permissionsRequired: requestPermissions,
+        message: `Detected ${detectedTools.installed.length + detectedTools.browser.length} tools for ${agentType} agent. Review and approve tool access below.`,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Auto-detection error:', error);
+      res.status(500).json({ error: 'Failed to auto-detect device tools' });
+    }
+  });
+
+  // Grant tool permissions to agent
+  const grantPermissionSchema = z.object({
+    userId: z.string().default('demo-user'),
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']),
+    approvedTools: z.array(z.object({
+      toolName: z.string(),
+      permissions: z.array(z.string()),
+      category: z.string()
+    }))
+  });
+
+  app.post("/api/device/grant-permissions", async (req, res) => {
+    try {
+      const validatedData = grantPermissionSchema.parse(req.body);
+      const { userId, agentType, approvedTools } = validatedData;
+
+      // Store approved permissions
+      for (const tool of approvedTools) {
+        await storage.createToolPermission({
+          userId,
+          agentType,
+          toolName: tool.toolName,
+          permissions: tool.permissions,
+          category: tool.category,
+          granted: true,
+          grantedAt: new Date().toISOString()
+        });
+      }
+
+      // Notify WebSocket clients about permission grants
+      // This would be handled by the WebSocket server in production
+      console.log(`Permissions granted to ${agentType} agent for ${approvedTools.length} tools`);
+
+      res.json({
+        success: true,
+        message: `${agentType} agent can now access ${approvedTools.length} approved tools`,
+        approvedTools: approvedTools.map(t => t.toolName),
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Permission grant error:', error);
+      res.status(500).json({ error: 'Failed to grant tool permissions' });
+    }
+  });
+
+  // Background task execution endpoint
+  const backgroundTaskSchema = z.object({
+    userId: z.string().default('demo-user'),
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']),
+    taskId: z.string(),
+    toolName: z.string(),
+    action: z.string(),
+    parameters: z.record(z.any()).optional(),
+    requiresApproval: z.boolean().default(false)
+  });
+
+  app.post("/api/agents/execute-background", async (req, res) => {
+    try {
+      const validatedData = backgroundTaskSchema.parse(req.body);
+      const { userId, agentType, taskId, toolName, action, parameters, requiresApproval } = validatedData;
+
+      // Check if agent has permission for this tool
+      const hasPermission = await storage.checkToolPermission(userId, agentType, toolName);
+      if (!hasPermission) {
+        return res.status(403).json({ 
+          error: 'Agent does not have permission to use this tool',
+          requiresPermission: true,
+          toolName 
+        });
+      }
+
+      // Check if action requires explicit approval
+      const sensitiveActions = ['email:send', 'payment:process', 'file:delete', 'contact:add', 'post:publish'];
+      const isSensitive = sensitiveActions.some(sa => action.includes(sa));
+      
+      if (isSensitive || requiresApproval) {
+        // Store pending action for approval
+        await storage.createPendingAction({
+          userId,
+          agentType,
+          taskId,
+          toolName,
+          action,
+          parameters: JSON.stringify(parameters || {}),
+          status: 'pending_approval',
+          requiresApproval: true
+        });
+
+        return res.json({
+          success: true,
+          status: 'pending_approval',
+          message: `Action "${action}" on ${toolName} requires your approval before execution`,
+          taskId,
+          actionDescription: formatActionDescription(action, toolName, parameters),
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Execute non-sensitive action immediately
+      const executionResult = await executeToolAction(toolName, action, parameters);
+      
+      // Store execution record
+      await storage.createActionExecution({
+        userId,
+        agentType,
+        taskId,
+        toolName,
+        action,
+        parameters: JSON.stringify(parameters || {}),
+        result: JSON.stringify(executionResult),
+        status: 'completed',
+        executedAt: new Date().toISOString()
+      });
+
+      // Notify user of completed action
+      await storage.createActionNotification({
+        userId,
+        agentType,
+        message: `${agentType} agent completed: ${formatActionDescription(action, toolName, parameters)}`,
+        actionType: action,
+        toolName,
+        timestamp: new Date().toISOString()
+      });
+
+      res.json({
+        success: true,
+        status: 'completed',
+        result: executionResult,
+        message: `Action completed on ${toolName}`,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Background execution error:', error);
+      res.status(500).json({ error: 'Failed to execute background task' });
+    }
+  });
+
+  // Action approval endpoint
+  const actionApprovalSchema = z.object({
+    userId: z.string().default('demo-user'),
+    actionId: z.string(),
+    approved: z.boolean(),
+    note: z.string().optional()
+  });
+
+  app.post("/api/agents/approve-action", async (req, res) => {
+    try {
+      const validatedData = actionApprovalSchema.parse(req.body);
+      const { userId, actionId, approved, note } = validatedData;
+
+      const pendingAction = await storage.getPendingAction(actionId);
+      if (!pendingAction) {
+        return res.status(404).json({ error: 'Pending action not found' });
+      }
+
+      if (approved) {
+        // Execute the approved action
+        const executionResult = await executeToolAction(
+          pendingAction.toolName, 
+          pendingAction.action, 
+          JSON.parse(pendingAction.parameters)
+        );
+
+        // Update pending action status
+        await storage.updatePendingAction(actionId, {
+          status: 'approved_executed',
+          result: JSON.stringify(executionResult),
+          approvedAt: new Date().toISOString(),
+          note
+        });
+
+        // Create execution record
+        await storage.createActionExecution({
+          userId,
+          agentType: pendingAction.agentType,
+          taskId: pendingAction.taskId,
+          toolName: pendingAction.toolName,
+          action: pendingAction.action,
+          parameters: pendingAction.parameters,
+          result: JSON.stringify(executionResult),
+          status: 'completed',
+          executedAt: new Date().toISOString()
+        });
+
+        res.json({
+          success: true,
+          status: 'approved_executed',
+          result: executionResult,
+          message: `Action approved and executed successfully`,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Reject the action
+        await storage.updatePendingAction(actionId, {
+          status: 'rejected',
+          rejectedAt: new Date().toISOString(),
+          note
+        });
+
+        res.json({
+          success: true,
+          status: 'rejected',
+          message: 'Action rejected by user',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+    } catch (error) {
+      console.error('Action approval error:', error);
+      res.status(500).json({ error: 'Failed to process action approval' });
+    }
+  });
+
+  // Get user notifications
+  app.get("/api/notifications/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { limit = 20, offset = 0 } = req.query;
+      
+      const notifications = await storage.getUserNotifications(
+        userId, 
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+
+      res.json({
+        success: true,
+        notifications,
+        count: notifications.length
+      });
+
+    } catch (error) {
+      console.error('Notifications error:', error);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
+    }
+  });
+
+  // Get pending actions for approval
+  app.get("/api/agents/pending-actions/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const pendingActions = await storage.getPendingActions(userId);
+
+      const formattedActions = pendingActions.map(action => ({
+        id: action.id,
+        agentType: action.agentType,
+        taskId: action.taskId,
+        toolName: action.toolName,
+        action: action.action,
+        description: formatActionDescription(action.action, action.toolName, JSON.parse(action.parameters)),
+        createdAt: action.createdAt,
+        requiresApproval: action.requiresApproval
+      }));
+
+      res.json({
+        success: true,
+        pendingActions: formattedActions,
+        count: formattedActions.length
+      });
+
+    } catch (error) {
+      console.error('Pending actions error:', error);
+      res.status(500).json({ error: 'Failed to fetch pending actions' });
     }
   });
 
