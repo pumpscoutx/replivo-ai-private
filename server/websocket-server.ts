@@ -296,10 +296,10 @@ export class ExtensionWebSocketServer {
       
       // Forward task to browser extension for actual execution
       const signedTask = this.commandSigner.signCommand({
-        taskId,
-        agentType,
-        action,
-        timestamp: new Date().toISOString()
+        request_id: `task-${taskId}`,
+        agent_id: agentType,
+        capability: action,
+        args: { timestamp: new Date().toISOString() }
       });
 
       ws.send(JSON.stringify({

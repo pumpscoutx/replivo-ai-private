@@ -354,6 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const recipient = emailMatch[1];
             command = {
               request_id: `hire-${Date.now()}`,
+              agent_id: agentType,
               capability: 'compose_email',
               args: { 
                 recipient: recipient,
@@ -365,6 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             command = {
               request_id: `hire-${Date.now()}`,
+              agent_id: agentType,
               capability: 'open_url',
               args: { url: 'https://gmail.com' }
             };
@@ -373,6 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (task.toLowerCase().includes('linkedin')) {
           command = {
             request_id: `hire-${Date.now()}`,
+            agent_id: agentType,
             capability: 'open_url',
             args: { url: 'https://linkedin.com' }
           };
@@ -380,6 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (task.toLowerCase().includes('salesforce') || task.toLowerCase().includes('crm')) {
           command = {
             request_id: `hire-${Date.now()}`,
+            agent_id: agentType,
             capability: 'open_url',
             args: { url: 'https://salesforce.com' }
           };
@@ -387,6 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (task.toLowerCase().includes('calendar')) {
           command = {
             request_id: `hire-${Date.now()}`,
+            agent_id: agentType,
             capability: 'open_url',
             args: { url: 'https://calendar.google.com' }
           };
@@ -404,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } catch (error) {
             console.error('Command execution error:', error);
-            cleanResponse += `\n\n❌ **Execution failed:** ${error.message}`;
+            cleanResponse += `\n\n❌ **Execution failed:** ${(error as Error).message}`;
           }
         }
       }
@@ -475,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error('Task history error:', error);
-      res.status(500).json({ error: 'Failed to get task history' });
+      res.status(500).json({ error: 'Failed to get task history' } as any);
     }
   });
 

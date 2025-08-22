@@ -60,6 +60,9 @@
       case 'get_page_info':
         return getPageInfo();
       
+      case 'compose_email':
+        return composeEmailOnPage(args);
+      
       default:
         throw new Error(`Unknown capability: ${capability}`);
     }
@@ -428,6 +431,50 @@
       }
     }
   });
+
+  // Email composition function for content script
+  function composeEmailOnPage(args) {
+    const { recipient, subject, body } = args;
+    
+    // Check if we're on Gmail
+    if (window.location.hostname.includes('mail.google.com')) {
+      // Try to find compose button and click it
+      const composeButton = document.querySelector('[data-tooltip="Compose"], [data-tooltip*="Compose"], .T-I.T-I-KE.L3');
+      if (composeButton) {
+        composeButton.click();
+        
+        // Wait for compose window to appear, then fill it
+        setTimeout(() => {
+          // Fill recipient
+          const toField = document.querySelector('input[aria-label*="To"], textarea[aria-label*="To"], input[name="to"]');
+          if (toField) {
+            toField.value = recipient;
+            toField.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          
+          // Fill subject
+          const subjectField = document.querySelector('input[aria-label*="Subject"], input[name="subject"]');
+          if (subjectField) {
+            subjectField.value = subject;
+            subjectField.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          
+          // Fill body
+          const bodyField = document.querySelector('[aria-label*="Message body"], [role="textbox"]');
+          if (bodyField) {
+            bodyField.innerHTML = body.replace(/\n/g, '<br>');
+            bodyField.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 1000);
+        
+        return { success: true, message: 'Email compose initiated on Gmail' };
+      }
+    }
+    
+    // Fallback: redirect to mailto
+    window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    return { success: true, message: 'Opened email client with pre-filled data' };
+  }
 
   console.log('Replivo Helper content script initialized');
 })();
