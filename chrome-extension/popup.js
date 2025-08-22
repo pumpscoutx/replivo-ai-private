@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize popup
   initializePopup();
 
+  // Listen for status updates from background script
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'STATUS_UPDATED') {
+      if (message.status.isAuthenticated && message.status.pairedAccount) {
+        showPairedState(message.status);
+      } else {
+        showState('notPaired');
+      }
+    }
+  });
+
   // Event listeners
   elements.pairButton.addEventListener('click', handlePairing);
   elements.disconnectButton.addEventListener('click', handleDisconnect);

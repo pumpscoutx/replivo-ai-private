@@ -13,7 +13,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case 'PAIR_EXTENSION':
       handlePairing(message.code)
-        .then(result => sendResponse(result))
+        .then(result => {
+          sendResponse(result);
+          // Update popup if it's open by broadcasting status change
+          broadcastStatusUpdate();
+        })
         .catch(error => sendResponse({ success: false, error: error.message }));
       return true; // Keep channel open for async response
 
@@ -21,7 +25,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({
         isAuthenticated,
         pairedAccount,
-        connectionStatus: wsConnection ? wsConnection.readyState : 'disconnected'
+        connectionStatus: wsConnection ? wsConnection.readyState : 'disconnected',
+        wsConnected: wsConnection && wsConnection.readyState === WebSocket.OPEN
       });
       break;
 
@@ -86,6 +91,9 @@ async function handlePairing(code) {
 
       // Connect WebSocket
       connectWebSocket();
+      
+      // Update icon to show connected state
+      updateIcon('connected');
       
       return { success: true, userId: result.userId };
     } else {
@@ -378,6 +386,21 @@ function handleDisconnect() {
 
 function showStatus() {
   chrome.action.openPopup();
+}
+
+// Broadcast status updates to popup and other parts of extension
+function broadcastStatusUpdate() {
+  // Force popup refresh if it's open
+  chrome.runtime.sendMessage({
+    type: 'STATUS_UPDATED',
+    status: {
+      isAuthenticated,
+      pairedAccount,
+      wsConnected: wsConnection && wsConnection.readyState === WebSocket.OPEN
+    }
+  }).catch(() => {
+    // Popup might not be open, ignore error
+  });
 }
 
 // Handle agent start work signal
