@@ -78,10 +78,9 @@ async function getReplicaUrl() {
     console.log('Could not get active tab, using fallback');
   }
   
-  // Test known working URLs
+  // Test known working URLs - get current Replit URL dynamically  
   const testUrls = [
-    'https://35b41b27-3518-4d73-9be2-9148161a11b0-00-1mpblxvlw6efo.kirk.repl.co',
-    'http://localhost:5000'
+    'http://localhost:5000'  // Start with localhost for development
   ];
   
   for (const testUrl of testUrls) {
@@ -116,12 +115,21 @@ async function handlePairing(code) {
     
     const response = await fetch(`${baseUrl}/api/extension/pair`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ 
         code, 
         extensionId: chrome.runtime.id 
       })
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Pairing response error:', response.status, errorText);
+      throw new Error(`Server error: ${response.status}`);
+    }
 
     const result = await response.json();
     
