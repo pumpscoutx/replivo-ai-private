@@ -352,15 +352,8 @@ function extractContentFromPage(selectors, includeText = true, includeAttributes
 
 // Utility functions
 function updateIcon(status) {
-  const iconPaths = {
-    connected: 'icons/icon-connected-16.png',
-    disconnected: 'icons/icon-16.png',
-    error: 'icons/icon-error-16.png'
-  };
-  
-  chrome.action.setIcon({ 
-    path: iconPaths[status] || iconPaths.disconnected 
-  });
+  // Skip icon updates since we don't have custom icons
+  console.log(`Status changed to: ${status}`);
 }
 
 function handleDisconnect() {

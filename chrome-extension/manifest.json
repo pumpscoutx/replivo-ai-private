@@ -10,7 +10,8 @@
     "activeTab", 
     "downloads", 
     "alarms",
-    "webNavigation"
+    "webNavigation",
+    "contextMenus"
   ],
   "host_permissions": [
     "https://*.example.com/*"
