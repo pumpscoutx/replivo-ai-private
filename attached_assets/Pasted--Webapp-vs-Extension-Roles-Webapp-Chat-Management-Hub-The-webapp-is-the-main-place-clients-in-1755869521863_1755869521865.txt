@@ -1,0 +1,129 @@
+🔹 Webapp vs Extension Roles
+Webapp = Chat & Management Hub
+
+The webapp is the main place clients interact with their agents.
+
+Features:
+
+Real-time chat (text + optional voice).
+
+Hire/fire agents.
+
+Task configuration (standing instructions).
+
+Dashboard showing all agent activities & reports.
+
+Notifications for approvals.
+
+Extension = Silent Execution Layer
+
+Runs in the background, connected to the user’s browser.
+
+Executes actions like:
+
+Responding to emails.
+
+Scheduling meetings.
+
+Scraping data, posting to social media, etc.
+
+Sends results + status back to the webapp dashboard.
+
+🔹 Client Dashboard After Hiring
+
+When a client hires their first agent, the dashboard becomes their “Control Room”.
+
+1. Main Dashboard Layout
+
+Top bar: Quick view → Total hired agents, pending approvals, active tasks.
+
+Left side menu:
+
+My Agents (list of hired main + sub agents).
+
+Notifications / Approvals.
+
+Task History.
+
+Settings / Permissions.
+
+Main panel:
+
+Live Feed (timeline of what each agent is doing in real-time).
+
+Task Log Cards (completed tasks, results, timestamps).
+
+Agent Reports (weekly/monthly performance).
+
+2. Live Notifications
+
+Every action the agent takes appears inline in the dashboard feed, e.g.:
+
+📧 Customer Support Agent replied to John Doe’s email.
+⏰ Operations Agent scheduled a delivery for 2PM tomorrow.
+
+Sensitive tasks automatically trigger an approval request popup:
+
+⚠️ Marketing Agent wants to spend $100 on a Facebook ad. Approve / Deny?
+
+3. Agent Communication
+
+Agents speak in first person to feel human-like:
+
+“I’ve just updated the client database. Do you want me to export a report?”
+
+Client can respond in chat or voice.
+
+Each message/task gets logged in the history tab.
+
+4. Permissions & Security
+
+On first hire → client grants device/browser permissions (email, calendar, drive, social accounts).
+
+For every sensitive or financial task → agent asks permission before acting.
+
+Permissions can be set as:
+
+🔘 Always Ask
+
+🔘 Auto-Approve under $X
+
+🔘 Full Autonomy
+
+5. Reports & Metrics
+
+Weekly and monthly updates from each agent.
+
+Example:
+
+Customer Agent: 142 tickets resolved (+12% from last week).
+
+Sales Agent: Added 53 new leads, closed 4 deals.
+
+Presented in visual charts + agent chat summary.
+
+🔹 Example Flow (with Dashboard in Action)
+
+Client hires Sales Agent.
+
+Dashboard shows new card: “Sales Agent — Active.”
+
+In live feed:
+
+“I drafted an intro email for 20 new leads. Ready to send — approve?”
+
+Client clicks Approve → agent sends via extension.
+
+Next day, dashboard shows:
+
+“18 leads opened, 3 replied. I scheduled 2 calls for you.”
+
+Client always sees a complete log of everything done + pending approvals.
+
+✅ In short:
+
+Webapp = brain + voice (chat, dashboard, reports, approvals).
+
+Extension = hands (does the background execution).
+
+Dashboard = control panel (full visibility, live feed, agent reports, approvals).
