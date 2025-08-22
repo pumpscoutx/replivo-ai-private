@@ -56,13 +56,27 @@ async function getReplicaUrl() {
   try {
     const tabs = await chrome.tabs.query({active: true, currentWindow: true});
     const activeTab = tabs[0];
-    if (activeTab && activeTab.url.includes('replit')) {
+    if (activeTab && (activeTab.url.includes('replit') || activeTab.url.includes('.dev'))) {
       const url = new URL(activeTab.url);
+      console.log('Detected Replit URL:', url.origin);
       return url.origin;
     }
   } catch (error) {
     console.log('Could not get active tab, using fallback');
   }
+  
+  // Better fallback detection
+  try {
+    // Try to get from storage if we have a recent URL
+    const data = await chrome.storage.local.get(['lastReplicaUrl']);
+    if (data.lastReplicaUrl) {
+      console.log('Using stored Replit URL:', data.lastReplicaUrl);
+      return data.lastReplicaUrl;
+    }
+  } catch (error) {
+    console.log('No stored URL found');
+  }
+  
   return 'http://localhost:5000'; // Fallback for local development
 }
 
@@ -70,6 +84,11 @@ async function getReplicaUrl() {
 async function handlePairing(code) {
   try {
     const baseUrl = await getReplicaUrl();
+    console.log('Pairing with base URL:', baseUrl);
+    
+    // Store the URL for future use
+    await chrome.storage.local.set({ lastReplicaUrl: baseUrl });
+    
     const response = await fetch(`${baseUrl}/api/extension/pair`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -109,7 +128,17 @@ async function handlePairing(code) {
 async function connectWebSocket() {
   try {
     const baseUrl = await getReplicaUrl();
-    const wsUrl = baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/extension-ws';
+    let wsUrl;
+    
+    if (baseUrl.startsWith('https://')) {
+      wsUrl = baseUrl.replace('https://', 'wss://') + '/extension-ws';
+    } else if (baseUrl.startsWith('http://')) {
+      wsUrl = baseUrl.replace('http://', 'ws://') + '/extension-ws';
+    } else {
+      // Fallback: assume http for localhost
+      wsUrl = `ws://${baseUrl}/extension-ws`;
+    }
+    
     console.log('Connecting to WebSocket:', wsUrl);
     wsConnection = new WebSocket(wsUrl);
     
