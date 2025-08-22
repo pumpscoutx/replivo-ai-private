@@ -274,12 +274,22 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }:
                 data-testid={`button-add-${subAgent.name.toLowerCase().replace(' ', '-')}`}
                 onClick={() => onAdd?.(subAgent)}
                 size="sm"
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
               >
                 <span className="text-lg font-bold mr-1">+</span>
                 ${formatPrice(subAgent.price).replace('$', '')}/mo
               </Button>
             )}
+            
+            <Button
+              data-testid={`button-hire-${subAgent.name.toLowerCase().replace(' ', '-')}`}
+              onClick={() => window.location.href = `/hire/${subAgent.id}`}
+              size="sm"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-semibold"
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              Hire
+            </Button>
           </div>
         </div>
       </motion.div>

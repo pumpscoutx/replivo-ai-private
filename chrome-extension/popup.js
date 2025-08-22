@@ -118,10 +118,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function openDashboard() {
-    chrome.tabs.create({ 
-      url: 'http://localhost:5000/' 
-    });
+  async function openDashboard() {
+    // Get the current Replit URL
+    try {
+      const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+      const activeTab = tabs[0];
+      let dashboardUrl = 'http://localhost:5000/'; // fallback
+      
+      if (activeTab && activeTab.url.includes('replit')) {
+        const url = new URL(activeTab.url);
+        dashboardUrl = url.origin + '/';
+      }
+      
+      chrome.tabs.create({ url: dashboardUrl });
+    } catch (error) {
+      chrome.tabs.create({ url: 'http://localhost:5000/' });
+    }
     window.close();
   }
 

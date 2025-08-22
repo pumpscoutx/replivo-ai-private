@@ -13,7 +13,9 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "https://*.example.com/*"
+    "https://*.example.com/*",
+    "https://*.replit.dev/*",
+    "https://*.repl.co/*"
   ],
   "background": {
     "service_worker": "background.js"

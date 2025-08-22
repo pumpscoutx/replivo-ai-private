@@ -41,10 +41,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// Get the current Replit URL dynamically
+async function getReplicaUrl() {
+  try {
+    const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+    const activeTab = tabs[0];
+    if (activeTab && activeTab.url.includes('replit')) {
+      const url = new URL(activeTab.url);
+      return url.origin;
+    }
+  } catch (error) {
+    console.log('Could not get active tab, using fallback');
+  }
+  return 'http://localhost:5000'; // Fallback for local development
+}
+
 // Extension pairing flow
 async function handlePairing(code) {
   try {
-    const response = await fetch('http://localhost:5000/api/extension/pair', {
+    const baseUrl = await getReplicaUrl();
+    const response = await fetch(`${baseUrl}/api/extension/pair`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -77,9 +93,12 @@ async function handlePairing(code) {
 }
 
 // WebSocket connection for real-time commands
-function connectWebSocket() {
+async function connectWebSocket() {
   try {
-    wsConnection = new WebSocket('ws://localhost:5000/extension-ws');
+    const baseUrl = await getReplicaUrl();
+    const wsUrl = baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/extension-ws';
+    console.log('Connecting to WebSocket:', wsUrl);
+    wsConnection = new WebSocket(wsUrl);
     
     wsConnection.onopen = () => {
       console.log('Connected to Replivo orchestrator');
