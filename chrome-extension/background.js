@@ -6,23 +6,6 @@ let isAuthenticated = false;
 // Extension installation and setup
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Replivo Helper installed');
-  createContextMenus();
-});
-
-// Create context menus for quick actions
-function createContextMenus() {
-  chrome.contextMenus.create({
-    id: 'replivo-status',
-    title: 'Replivo Helper Status',
-    contexts: ['action']
-  });
-}
-
-// Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'replivo-status') {
-    showStatus();
-  }
 });
 
 // Message handling from popup and content scripts
