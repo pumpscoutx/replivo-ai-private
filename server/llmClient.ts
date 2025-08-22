@@ -25,9 +25,9 @@ export interface LLMResponse {
 // Map agent types to their corresponding API keys
 function getAgentAPIKey(agentType: AgentType): string {
   const keyMap: Record<AgentType, string | undefined> = {
-    'business-growth': process.env.OPEN_ROUTER1,
-    'operations': process.env.OPEN_ROUTER2,
-    'people-finance': process.env.OPEN_ROUTER3
+    'business-growth': process.env.OPENAI_API_KEY1,
+    'operations': process.env.OPENAI_API_KEY2,
+    'people-finance': process.env.OPENAI_API_KEY3
   };
 
   const key = keyMap[agentType];
