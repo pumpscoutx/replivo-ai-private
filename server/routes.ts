@@ -60,27 +60,54 @@ function formatActionDescription(action: string, toolName: string, parameters?: 
 }
 
 async function executeToolAction(toolName: string, action: string, parameters?: any): Promise<any> {
-  // Execute real actions via browser extension
-  console.log(`Executing REAL ${action} on ${toolName} with parameters:`, parameters);
+  const userId = parameters?.userId || 'demo-user';
   
-  // This connects to actual browser extension for real execution
+  // Check if user has this tool detected and available
+  const detectedTools = await storage.getDetectedTools(userId);
+  const availableTool = detectedTools.find(tool => 
+    tool.toolName.toLowerCase() === toolName.toLowerCase() && tool.installed
+  );
+  
+  if (!availableTool) {
+    return { 
+      status: 'failed', 
+      error: `${toolName} not detected on device. Please run device scan first.`,
+      action, 
+      tool: toolName 
+    };
+  }
+
+  if (!availableTool.isLoggedIn && (action.includes('send') || action.includes('post') || action.includes('create'))) {
+    return { 
+      status: 'failed', 
+      error: `${toolName} detected but not logged in. Please log in first.`,
+      action, 
+      tool: toolName 
+    };
+  }
+
+  // Execute real action via browser extension using detected tool
+  console.log(`Executing REAL ${action} on detected ${toolName} with parameters:`, parameters);
+  
   const command = {
     request_id: `tool-${Date.now()}`,
     agent_id: 'system',
     capability: action,
+    tool: toolName,
     args: parameters || {}
   };
 
   // Send command to extension for real execution
   if (extensionWS) {
-    const success = await extensionWS.sendCommand(parameters?.userId || 'demo-user', command);
+    const success = await extensionWS.sendCommand(userId, command);
     if (success) {
       return { 
         status: 'executed', 
         action, 
         tool: toolName, 
         timestamp: new Date().toISOString(),
-        real: true 
+        real: true,
+        detectedTool: availableTool
       };
     }
   }
@@ -295,17 +322,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = hireAgentSchema.parse(req.body);
       const { agentType, subAgent, task, context, userId } = validatedData;
 
+      // Get user's detected device capabilities
+      const detectedTools = await storage.getDetectedTools(userId);
+      const deviceContext = detectedTools.length > 0 ? 
+        `\n\nDETECTED DEVICE CAPABILITIES:\n${detectedTools.map(tool => 
+          `- ${tool.toolName}: ${tool.isLoggedIn ? '✅ LOGGED IN' : '⚠️  available'} (${tool.permissions?.join(', ') || 'basic access'})`
+        ).join('\n')}` : '\n\n⚠️  No device scan performed yet. Use browser extension to detect capabilities.';
+
       // Call the appropriate agent LLM based on type
       let agentResponse: string;
       switch (agentType) {
         case 'business-growth':
-          agentResponse = await callBusinessGrowthAgent(task, context, subAgent);
+          agentResponse = await callBusinessGrowthAgent(task, `${context || ''}${deviceContext}`, subAgent);
           break;
         case 'operations':
-          agentResponse = await callOperationsAgent(task, context, subAgent);
+          agentResponse = await callOperationsAgent(task, `${context || ''}${deviceContext}`, subAgent);
           break;
         case 'people-finance':
-          agentResponse = await callPeopleFinanceAgent(task, context, subAgent);
+          agentResponse = await callPeopleFinanceAgent(task, `${context || ''}${deviceContext}`, subAgent);
           break;
         default:
           throw new Error(`Unknown agent type: ${agentType}`);

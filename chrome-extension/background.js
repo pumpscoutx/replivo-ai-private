@@ -93,6 +93,10 @@ async function getReplicaUrl() {
       if (response.ok) {
         console.log('Found working URL:', testUrl);
         await chrome.storage.local.set({ lastReplicaUrl: testUrl });
+        
+        // Automatically scan for browser tools after connecting
+        scanBrowserTools(testUrl);
+        
         return testUrl;
       }
     } catch (e) {
@@ -154,6 +158,60 @@ async function handlePairing(code) {
   } catch (error) {
     console.error('Pairing error:', error);
     throw error;
+  }
+}
+
+// Automatically scan browser for available tools
+async function scanBrowserTools(baseUrl) {
+  try {
+    console.log('Scanning browser for available tools...');
+    
+    // Get all open tabs to detect services
+    const tabs = await chrome.tabs.query({});
+    const detectedTools = [];
+    
+    // Common services to check for
+    const services = [
+      { name: 'Gmail', domain: 'mail.google.com', permissions: ['email:send', 'email:read'] },
+      { name: 'Google Calendar', domain: 'calendar.google.com', permissions: ['calendar:create', 'calendar:read'] },
+      { name: 'Google Drive', domain: 'drive.google.com', permissions: ['file:read', 'file:write'] },
+      { name: 'LinkedIn', domain: 'linkedin.com', permissions: ['message:send', 'profile:read'] },
+      { name: 'Slack', domain: 'slack.com', permissions: ['message:send', 'channel:read'] },
+      { name: 'Trello', domain: 'trello.com', permissions: ['board:edit', 'card:create'] },
+      { name: 'Asana', domain: 'asana.com', permissions: ['task:create', 'project:edit'] },
+      { name: 'Salesforce', domain: 'salesforce.com', permissions: ['contact:edit', 'lead:create'] }
+    ];
+    
+    // Check which services are open/logged in
+    for (const service of services) {
+      const serviceTabs = tabs.filter(tab => 
+        tab.url && tab.url.includes(service.domain)
+      );
+      
+      if (serviceTabs.length > 0) {
+        detectedTools.push({
+          name: service.name,
+          category: service.name.includes('Google') ? 'productivity' : 
+                   service.name === 'LinkedIn' ? 'social' : 'productivity',
+          isLoggedIn: true, // If tab is open, assume logged in
+          permissions: service.permissions
+        });
+      }
+    }
+    
+    // Send detected tools to server
+    if (detectedTools.length > 0) {
+      await fetch(`${baseUrl}/api/device-tools/demo-user/browser-tools`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tools: detectedTools })
+      });
+      
+      console.log('Detected browser tools:', detectedTools);
+    }
+    
+  } catch (error) {
+    console.error('Error scanning browser tools:', error);
   }
 }
 
