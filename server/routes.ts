@@ -5,6 +5,7 @@ import { deviceToolsRouter } from "./routes/device-tools";
 import { agentConfigRouter } from "./routes/agent-config";
 import extensionRouter from "./routes/extension";
 import aiBrowserRouter from "./routes/ai-browser";
+import { UniversalAccessManager } from "./universal-access-rules";
 import { insertCustomRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -1169,6 +1170,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/agent-config", agentConfigRouter);
   app.use("/api/extension", extensionRouter);
   app.use("/api/ai-browser", aiBrowserRouter);
+
+  // Universal access endpoints for AI agents
+  app.get('/api/universal-access/permissions/:platform', (req, res) => {
+    const { platform } = req.params;
+    const permissions = UniversalAccessManager.getPermissions(platform);
+    
+    res.json({
+      success: true,
+      platform,
+      permissions,
+      accessLevel: "UNIVERSAL",
+      restrictions: []
+    });
+  });
+
+  app.get('/api/universal-access/report', (req, res) => {
+    const report = UniversalAccessManager.generateAccessReport();
+    res.json({
+      success: true,
+      report
+    });
+  });
 
   const httpServer = createServer(app);
   return httpServer;
