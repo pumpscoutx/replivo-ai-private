@@ -264,9 +264,9 @@ export class MemStorage implements IStorage {
       const fullSubAgent: SubAgent = { 
         rating: 45,
         reviewCount: 0,
-        recentUpdates: [],
-        demoScript: null,
-        integrations: [],
+        recentUpdates: subAgent.recentUpdates ? [...subAgent.recentUpdates] : [],
+        demoScript: subAgent.demoScript || null,
+        integrations: subAgent.integrations ? [...subAgent.integrations] : [],
         totalHires: 0,
         taskStatus: 'idle',
         currentTask: null,
@@ -383,8 +383,8 @@ export class MemStorage implements IStorage {
       rating: 45,
       reviewCount: 0,
       isBundle: true,
-      subAgentIds: [],
-      tasks: [],
+      subAgentIds: insertAgent.subAgentIds ? [...insertAgent.subAgentIds] : [],
+      tasks: insertAgent.tasks ? [...insertAgent.tasks] : [],
       featured: false,
       ...insertAgent, 
       id 
@@ -412,9 +412,9 @@ export class MemStorage implements IStorage {
     const subAgent: SubAgent = { 
       rating: 45,
       reviewCount: 0,
-      recentUpdates: [],
-      demoScript: null,
-      integrations: [],
+      recentUpdates: insertSubAgent.recentUpdates ? [...insertSubAgent.recentUpdates] : [],
+      demoScript: insertSubAgent.demoScript || null,
+      integrations: insertSubAgent.integrations ? [...insertSubAgent.integrations] : [],
       totalHires: 0,
       taskStatus: 'idle',
       currentTask: null,
@@ -447,9 +447,14 @@ export class MemStorage implements IStorage {
   async createUserPermission(insertPermission: InsertUserPermission): Promise<UserPermission> {
     const id = randomUUID();
     const permission: UserPermission = { 
+      domain: insertPermission.domain ?? null,
+      autonomyLevel: insertPermission.autonomyLevel,
+      scope: insertPermission.scope,
+      userId: insertPermission.userId,
+      agentId: insertPermission.agentId,
+      expiresAt: insertPermission.expiresAt ?? null,
       isActive: true,
       createdAt: new Date().toISOString(),
-      ...insertPermission, 
       id 
     };
     this.userPermissions.set(id, permission);
@@ -505,9 +510,16 @@ export class MemStorage implements IStorage {
   async createCommandLog(insertCommand: InsertCommandLog): Promise<CommandLog> {
     const id = randomUUID();
     const command: CommandLog = { 
+      args: insertCommand.args ?? {},
+      result: insertCommand.result ?? null,
+      executedAt: insertCommand.executedAt ?? null,
       status: 'pending',
+      userId: insertCommand.userId,
+      agentId: insertCommand.agentId,
+      requestId: insertCommand.requestId,
+      capability: insertCommand.capability,
+      signature: insertCommand.signature,
       createdAt: new Date().toISOString(),
-      ...insertCommand, 
       id 
     };
     this.commandLogs.set(id, command);
@@ -532,8 +544,14 @@ export class MemStorage implements IStorage {
   async createVoiceInteraction(insertInteraction: InsertVoiceInteraction): Promise<VoiceInteraction> {
     const id = randomUUID();
     const interaction: VoiceInteraction = { 
+      userId: insertInteraction.userId,
+      agentId: insertInteraction.agentId,
+      transcript: insertInteraction.transcript,
+      intent: insertInteraction.intent ?? null,
+      response: insertInteraction.response ?? null,
+      audioUrl: insertInteraction.audioUrl ?? null,
+      duration: insertInteraction.duration ?? null,
       createdAt: new Date().toISOString(),
-      ...insertInteraction, 
       id 
     };
     this.voiceInteractions.set(id, interaction);
@@ -550,10 +568,15 @@ export class MemStorage implements IStorage {
   async createTaskExecution(insertTask: InsertTaskExecution): Promise<TaskExecution> {
     const id = randomUUID();
     const task: TaskExecution = { 
+      userId: insertTask.userId,
+      agentType: insertTask.agentType,
+      subAgent: insertTask.subAgent ?? null,
+      task: insertTask.task,
+      context: insertTask.context ?? null,
+      response: insertTask.response,
       status: 'pending',
-      executedAt: new Date().toISOString(),
+      executedAt: insertTask.executedAt ?? null,
       createdAt: new Date().toISOString(),
-      ...insertTask, 
       id 
     };
     this.taskExecutions.set(id, task);
@@ -572,10 +595,19 @@ export class MemStorage implements IStorage {
   async createAgentConfiguration(config: InsertAgentConfiguration): Promise<AgentConfiguration> {
     const id = randomUUID();
     const fullConfig: AgentConfiguration = {
-      id,
+      userId: config.userId,
+      agentId: config.agentId,
+      agentType: config.agentType,
+      autonomousTasks: config.autonomousTasks ?? null,
+      confirmTasks: config.confirmTasks ?? null,
+      suggestTasks: config.suggestTasks ?? null,
+      allowedTools: config.allowedTools ?? null,
+      restrictedTools: config.restrictedTools ?? null,
+      maxConcurrentTasks: config.maxConcurrentTasks ?? null,
+      autoApproveLimit: config.autoApproveLimit ?? null,
       lastUpdated: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      ...config,
+      id
     };
     this.agentConfigurations.set(id, fullConfig);
     return fullConfig;
@@ -606,10 +638,14 @@ export class MemStorage implements IStorage {
   async createConversationHistory(conversation: InsertConversationHistory): Promise<ConversationHistory> {
     const id = randomUUID();
     const fullConversation: ConversationHistory = {
-      id,
+      userId: conversation.userId,
+      agentType: conversation.agentType,
+      conversationId: conversation.conversationId,
+      context: conversation.context ?? null,
+      messages: conversation.messages ?? null,
       lastActivity: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      ...conversation,
+      id
     };
     this.conversationHistories.set(id, fullConversation);
     return fullConversation;
