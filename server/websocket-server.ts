@@ -85,6 +85,26 @@ export class ExtensionWebSocketServer {
         await this.handleCommandResult(message);
         break;
 
+      case 'ai_task_completed':
+        await this.handleAITaskCompleted(message);
+        break;
+
+      case 'ai_task_failed':
+        await this.handleAITaskFailed(message);
+        break;
+
+      case 'page_context_update':
+        await this.handlePageContextUpdate(message);
+        break;
+
+      case 'smart_element_found':
+        await this.handleSmartElementFound(message);
+        break;
+
+      case 'automation_opportunity':
+        await this.handleAutomationOpportunity(message);
+        break;
+
       case 'task_result':
         await this.handleTaskResult(message);
         break;
@@ -336,5 +356,235 @@ export class ExtensionWebSocketServer {
     } catch (error) {
       console.error('Error handling task result:', error);
     }
+  }
+
+  // Enhanced AI task handling methods
+  private async handleAITaskCompleted(message: any) {
+    try {
+      const { taskId, result, context, executionTime } = message;
+      
+      console.log(`AI Task ${taskId} completed in ${executionTime}ms`);
+      
+      // Store task result for analytics
+      await storage.storeTaskResult({
+        taskId,
+        status: 'completed',
+        result,
+        context,
+        executionTime,
+        completedAt: new Date().toISOString()
+      });
+
+      // Broadcast to all connected dashboards
+      await this.broadcastToExtensions({
+        type: 'ai_task_completed',
+        taskId,
+        result,
+        executionTime,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error handling AI task completion:', error);
+    }
+  }
+
+  private async handleAITaskFailed(message: any) {
+    try {
+      const { taskId, error, context } = message;
+      
+      console.log(`AI Task ${taskId} failed:`, error);
+      
+      // Store failure for learning and debugging
+      await storage.storeTaskResult({
+        taskId,
+        status: 'failed',
+        error,
+        context,
+        failedAt: new Date().toISOString()
+      });
+
+      // Broadcast failure to dashboards
+      await this.broadcastToExtensions({
+        type: 'ai_task_failed',
+        taskId,
+        error,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error handling AI task failure:', error);
+    }
+  }
+
+  private async handlePageContextUpdate(message: any) {
+    try {
+      const { tabId, url, context, timestamp } = message;
+      
+      console.log(`Page context updated for tab ${tabId}: ${url}`);
+      
+      // Store context for AI learning
+      await storage.storePageContext({
+        tabId,
+        url,
+        context,
+        timestamp
+      });
+
+      // Send context analysis back to extension if needed
+      const intelligence = await this.analyzePageForAutomation(context);
+      
+      if (intelligence.opportunities.length > 0) {
+        // Find the connection for this context update
+        const connections = Array.from(this.connections.values());
+        const relevantConnection = connections.find(conn => 
+          conn.ws.readyState === WebSocket.OPEN
+        );
+
+        if (relevantConnection) {
+          relevantConnection.ws.send(JSON.stringify({
+            type: 'automation_suggestions',
+            tabId,
+            intelligence,
+            timestamp: new Date().toISOString()
+          }));
+        }
+      }
+
+    } catch (error) {
+      console.error('Error handling page context update:', error);
+    }
+  }
+
+  private async handleSmartElementFound(message: any) {
+    try {
+      const { elementDescription, strategy, confidence, selector } = message;
+      
+      console.log(`Smart element found: ${elementDescription} (${strategy}, ${confidence})`);
+      
+      // Store element discovery for improving AI models
+      await storage.storeElementDiscovery({
+        description: elementDescription,
+        strategy,
+        confidence,
+        selector,
+        discoveredAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error handling smart element discovery:', error);
+    }
+  }
+
+  private async handleAutomationOpportunity(message: any) {
+    try {
+      const { opportunity, pageContext, confidence } = message;
+      
+      console.log(`Automation opportunity detected:`, opportunity);
+      
+      // Store opportunity for user suggestions
+      await storage.storeAutomationOpportunity({
+        type: opportunity.type,
+        description: opportunity.description,
+        actions: opportunity.actions,
+        pageContext,
+        confidence,
+        detectedAt: new Date().toISOString()
+      });
+
+      // Broadcast to dashboards for user notification
+      await this.broadcastToExtensions({
+        type: 'automation_opportunity_detected',
+        opportunity,
+        confidence,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error handling automation opportunity:', error);
+    }
+  }
+
+  private async analyzePageForAutomation(context: any): Promise<{
+    opportunities: Array<{
+      type: string;
+      description: string;
+      confidence: number;
+    }>;
+    suggestions: string[];
+  }> {
+    const opportunities = [];
+    const suggestions = [];
+
+    // Analyze based on page type and available elements
+    if (context.pageType === 'gmail' && context.isLoggedIn) {
+      opportunities.push({
+        type: 'email_automation',
+        description: 'Email composition and management',
+        confidence: 0.9
+      });
+      suggestions.push('Compose and send emails automatically');
+    }
+
+    if (context.forms && context.forms.length > 0) {
+      opportunities.push({
+        type: 'form_automation',
+        description: 'Form filling and submission',
+        confidence: 0.8
+      });
+      suggestions.push('Fill forms with saved data');
+    }
+
+    if (context.buttons && context.buttons.filter((b: any) => b.visible).length > 3) {
+      opportunities.push({
+        type: 'workflow_automation',
+        description: 'Multi-step workflow execution',
+        confidence: 0.75
+      });
+      suggestions.push('Automate repetitive button clicking workflows');
+    }
+
+    return { opportunities, suggestions };
+  }
+
+  // Enhanced command sending with AI capabilities
+  public async sendAICommand(userId: string, aiCommand: any): Promise<boolean> {
+    const userConnections = Array.from(this.connections.values())
+      .filter(conn => conn.userId === userId && conn.isAuthenticated);
+
+    if (userConnections.length === 0) {
+      console.warn(`No active extensions for user: ${userId}`);
+      return false;
+    }
+
+    // Enhanced command with AI metadata
+    const enhancedCommand = {
+      ...aiCommand,
+      ai_enhanced: true,
+      sent_at: new Date().toISOString(),
+      user_id: userId
+    };
+
+    // Sign the enhanced command
+    const signedCommand = this.commandSigner.signCommand(enhancedCommand);
+
+    // Send to all user's extensions
+    const promises = userConnections.map(connection => {
+      return new Promise<boolean>((resolve) => {
+        try {
+          connection.ws.send(JSON.stringify({
+            type: 'ai_command',
+            signed_command: signedCommand
+          }));
+          resolve(true);
+        } catch (error) {
+          console.error('Error sending AI command:', error);
+          resolve(false);
+        }
+      });
+    });
+
+    const results = await Promise.all(promises);
+    return results.some(success => success);
   }
 }

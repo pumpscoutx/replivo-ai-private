@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { deviceToolsRouter } from "./routes/device-tools";
 import { agentConfigRouter } from "./routes/agent-config";
 import extensionRouter from "./routes/extension";
+import aiBrowserRouter from "./routes/ai-browser";
 import { insertCustomRequestSchema } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -1167,6 +1168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/device-tools", deviceToolsRouter);
   app.use("/api/agent-config", agentConfigRouter);
   app.use("/api/extension", extensionRouter);
+  app.use("/api/ai-browser", aiBrowserRouter);
 
   const httpServer = createServer(app);
   return httpServer;

@@ -1,32 +1,58 @@
-// Replivo Helper Background Service Worker
+// Replivo Helper Background Service Worker - Enhanced AI Coordination
 let wsConnection = null;
 let pairedAccount = null;
 let isAuthenticated = false;
+let aiPlanningActive = false;
+let currentTaskContext = null;
 
 // Extension installation and setup
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Replivo Helper installed');
 });
 
-// Message handling from popup and content scripts
+// Enhanced message handling with AI coordination
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case 'PAIR_EXTENSION':
       handlePairing(message.code)
         .then(result => {
           sendResponse(result);
-          // Update popup if it's open by broadcasting status change
           broadcastStatusUpdate();
         })
         .catch(error => sendResponse({ success: false, error: error.message }));
-      return true; // Keep channel open for async response
+      return true;
+
+    case 'EXECUTE_AI_TASK':
+      executeAITask(message.task, sender.tab)
+        .then(result => sendResponse(result))
+        .catch(error => sendResponse({ success: false, error: error.message }));
+      return true;
+
+    case 'NATURAL_LANGUAGE_COMMAND':
+      handleNaturalLanguageCommand(message.command, sender.tab)
+        .then(result => sendResponse(result))
+        .catch(error => sendResponse({ success: false, error: error.message }));
+      return true;
+
+    case 'GET_PAGE_INTELLIGENCE':
+      getPageIntelligence(sender.tab)
+        .then(result => sendResponse(result))
+        .catch(error => sendResponse({ success: false, error: error.message }));
+      return true;
+
+    case 'PAGE_CONTEXT_UPDATE':
+      handlePageContextUpdate(message.context, sender.tab);
+      sendResponse({ success: true });
+      break;
 
     case 'GET_STATUS':
       sendResponse({
         isAuthenticated,
         pairedAccount,
         connectionStatus: wsConnection ? wsConnection.readyState : 'disconnected',
-        wsConnected: wsConnection && wsConnection.readyState === WebSocket.OPEN
+        wsConnected: wsConnection && wsConnection.readyState === WebSocket.OPEN,
+        aiPlanningActive,
+        currentTaskContext
       });
       break;
 
@@ -50,6 +76,219 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.warn('Unknown message type:', message.type);
   }
 });
+
+// AI Task Execution Orchestrator
+async function executeAITask(task, tab) {
+  console.log('Executing AI task:', task);
+  aiPlanningActive = true;
+  currentTaskContext = { task, tabId: tab.id, startTime: Date.now() };
+  
+  try {
+    // Step 1: Get current page context
+    const pageContext = await chrome.tabs.sendMessage(tab.id, {
+      type: 'GET_PAGE_CONTEXT'
+    });
+    
+    // Step 2: Plan the task using AI
+    const taskPlan = await chrome.tabs.sendMessage(tab.id, {
+      type: 'PLAN_NATURAL_LANGUAGE_TASK',
+      request: task.naturalLanguage || task.description
+    });
+    
+    if (!taskPlan.success) {
+      throw new Error('Failed to plan task: ' + taskPlan.error);
+    }
+    
+    // Step 3: Execute the plan
+    const executionResult = await chrome.tabs.sendMessage(tab.id, {
+      type: 'EXECUTE_TASK_PLAN',
+      plan: taskPlan.plan
+    });
+    
+    // Step 4: Report results to server
+    if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+      wsConnection.send(JSON.stringify({
+        type: 'ai_task_completed',
+        taskId: task.id,
+        result: executionResult,
+        context: pageContext,
+        executionTime: Date.now() - currentTaskContext.startTime
+      }));
+    }
+    
+    return {
+      success: true,
+      task: task,
+      plan: taskPlan.plan,
+      execution: executionResult,
+      context: pageContext
+    };
+    
+  } catch (error) {
+    console.error('AI task execution failed:', error);
+    
+    // Report failure to server
+    if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+      wsConnection.send(JSON.stringify({
+        type: 'ai_task_failed',
+        taskId: task.id,
+        error: error.message,
+        context: currentTaskContext
+      }));
+    }
+    
+    throw error;
+  } finally {
+    aiPlanningActive = false;
+    currentTaskContext = null;
+  }
+}
+
+// Natural Language Command Handler
+async function handleNaturalLanguageCommand(command, tab) {
+  console.log('Processing natural language command:', command);
+  
+  try {
+    // Convert to AI task format
+    const aiTask = {
+      id: Date.now().toString(),
+      naturalLanguage: command,
+      description: command,
+      priority: 'normal'
+    };
+    
+    return await executeAITask(aiTask, tab);
+    
+  } catch (error) {
+    console.error('Natural language command failed:', error);
+    throw error;
+  }
+}
+
+// Enhanced Page Intelligence Gathering
+async function getPageIntelligence(tab) {
+  try {
+    // Get comprehensive page context
+    const [pageContext, readyState] = await Promise.all([
+      chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_CONTEXT' }),
+      chrome.tabs.sendMessage(tab.id, { type: 'CHECK_PAGE_READY' })
+    ]);
+    
+    // Analyze page for automation opportunities
+    const intelligence = {
+      basic: {
+        url: tab.url,
+        title: tab.title,
+        ready: readyState.ready
+      },
+      context: pageContext.context,
+      automationOpportunities: await analyzeAutomationOpportunities(pageContext.context),
+      suggestedActions: await generateSuggestedActions(pageContext.context),
+      timestamp: Date.now()
+    };
+    
+    return { success: true, intelligence };
+    
+  } catch (error) {
+    console.error('Failed to gather page intelligence:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Analyze page for automation opportunities
+async function analyzeAutomationOpportunities(context) {
+  const opportunities = [];
+  
+  if (context.pageType === 'gmail') {
+    opportunities.push({
+      type: 'email_automation',
+      description: 'Can compose, send, and organize emails',
+      confidence: 0.9,
+      actions: ['compose_email', 'send_email', 'organize_inbox']
+    });
+  }
+  
+  if (context.pageType === 'linkedin') {
+    opportunities.push({
+      type: 'networking_automation',
+      description: 'Can send messages, post updates, and manage connections',
+      confidence: 0.85,
+      actions: ['send_message', 'post_update', 'connect_with_people']
+    });
+  }
+  
+  if (context.forms && context.forms.length > 0) {
+    opportunities.push({
+      type: 'form_automation',
+      description: 'Can fill and submit forms automatically',
+      confidence: 0.8,
+      actions: ['fill_form', 'submit_form', 'validate_fields']
+    });
+  }
+  
+  if (context.buttons && context.buttons.length > 0) {
+    opportunities.push({
+      type: 'workflow_automation',
+      description: 'Can click buttons and navigate workflows',
+      confidence: 0.75,
+      actions: ['click_buttons', 'navigate_workflow', 'complete_process']
+    });
+  }
+  
+  return opportunities;
+}
+
+// Generate suggested actions based on page context
+async function generateSuggestedActions(context) {
+  const suggestions = [];
+  
+  if (context.pageType === 'gmail' && context.isLoggedIn) {
+    suggestions.push({
+      action: 'compose_email',
+      description: 'Compose a new email',
+      naturalLanguage: 'compose email to [recipient] about [subject]'
+    });
+  }
+  
+  if (context.pageType === 'linkedin' && context.isLoggedIn) {
+    suggestions.push({
+      action: 'send_message',
+      description: 'Send a LinkedIn message',
+      naturalLanguage: 'send message to [contact] saying [message]'
+    });
+  }
+  
+  if (context.forms && context.forms.length > 0) {
+    suggestions.push({
+      action: 'fill_form',
+      description: 'Fill out the form on this page',
+      naturalLanguage: 'fill form with [field1]=[value1], [field2]=[value2]'
+    });
+  }
+  
+  return suggestions;
+}
+
+// Handle page context updates for continuous learning
+function handlePageContextUpdate(context, tab) {
+  console.log('Page context updated:', context);
+  
+  // Send context update to server for AI learning
+  if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+    wsConnection.send(JSON.stringify({
+      type: 'page_context_update',
+      tabId: tab.id,
+      url: tab.url,
+      context: context,
+      timestamp: Date.now()
+    }));
+  }
+  
+  // Update current task context if active
+  if (currentTaskContext && currentTaskContext.tabId === tab.id) {
+    currentTaskContext.latestContext = context;
+  }
+}
 
 // Get the current Replit URL dynamically
 async function getReplicaUrl() {

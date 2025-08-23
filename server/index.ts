@@ -44,7 +44,10 @@ app.use((req, res, next) => {
   const wsServer = new ExtensionWebSocketServer(server);
   console.log('Extension WebSocket server initialized');
   
-  // Make WebSocket server available to routes
+  // Connect AI Browser Coordinator to WebSocket server for real-time coordination
+  const { aiBrowserCoordinator } = await import('./ai-browser-coordinator');
+  
+  // Make WebSocket server available to routes and AI coordinator
   const { setExtensionWebSocketServer } = await import('./routes');
   setExtensionWebSocketServer(wsServer);
 

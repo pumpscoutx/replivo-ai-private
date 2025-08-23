@@ -73,6 +73,12 @@ export interface IStorage {
   createActionNotification(notification: InsertActionNotification): Promise<ActionNotification>;
   getUserNotifications(userId: string, limit?: number, offset?: number): Promise<ActionNotification[]>;
   markNotificationRead(notificationId: string): Promise<void>;
+  
+  // AI Browser Automation methods
+  storeTaskResult(data: any): Promise<any>;
+  storePageContext(data: any): Promise<any>;
+  storeElementDiscovery(data: any): Promise<any>;
+  storeAutomationOpportunity(data: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -93,6 +99,12 @@ export class MemStorage implements IStorage {
   private actionExecutions: Map<string, ActionExecution>;
   private actionNotifications: Map<string, ActionNotification>;
   private deviceScanner: DeviceScanner;
+  
+  // AI Browser Automation storage
+  private aiTaskResults: Map<string, any>;
+  private pageContexts: Map<string, any>;
+  private elementDiscoveries: Map<string, any>;
+  private automationOpportunities: Map<string, any>;
 
   constructor() {
     this.users = new Map();
@@ -112,6 +124,13 @@ export class MemStorage implements IStorage {
     this.actionExecutions = new Map();
     this.actionNotifications = new Map();
     this.deviceScanner = DeviceScanner.getInstance();
+    
+    // Initialize AI Browser Automation storage
+    this.aiTaskResults = new Map();
+    this.pageContexts = new Map();
+    this.elementDiscoveries = new Map();
+    this.automationOpportunities = new Map();
+    
     this.initializeData();
   }
 
@@ -761,6 +780,51 @@ export class MemStorage implements IStorage {
       notification.read = true;
       this.actionNotifications.set(notificationId, notification);
     }
+  }
+
+  // AI Browser Automation methods implementation
+  async storeTaskResult(data: any): Promise<any> {
+    const id = randomUUID();
+    const taskResult = {
+      id,
+      ...data,
+      storedAt: new Date().toISOString()
+    };
+    this.aiTaskResults.set(id, taskResult);
+    return taskResult;
+  }
+
+  async storePageContext(data: any): Promise<any> {
+    const id = randomUUID();
+    const pageContext = {
+      id,
+      ...data,
+      storedAt: new Date().toISOString()
+    };
+    this.pageContexts.set(id, pageContext);
+    return pageContext;
+  }
+
+  async storeElementDiscovery(data: any): Promise<any> {
+    const id = randomUUID();
+    const elementDiscovery = {
+      id,
+      ...data,
+      storedAt: new Date().toISOString()
+    };
+    this.elementDiscoveries.set(id, elementDiscovery);
+    return elementDiscovery;
+  }
+
+  async storeAutomationOpportunity(data: any): Promise<any> {
+    const id = randomUUID();
+    const opportunity = {
+      id,
+      ...data,
+      storedAt: new Date().toISOString()
+    };
+    this.automationOpportunities.set(id, opportunity);
+    return opportunity;
   }
 }
 
