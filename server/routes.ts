@@ -686,6 +686,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                            message.toLowerCase().includes('email') ||
                            message.toLowerCase().includes('open') ||
                            message.toLowerCase().includes('compose') ||
+                           message.toLowerCase().includes('post') ||
+                           message.toLowerCase().includes('create') ||
+                           message.toLowerCase().includes('linkedin') ||
+                           message.toLowerCase().includes('gmail') ||
+                           message.toLowerCase().includes('sheets') ||
                            agentResponse.toLowerCase().includes('sending') ||
                            agentResponse.toLowerCase().includes('opening') ||
                            agentResponse.toLowerCase().includes('executing');
@@ -734,6 +739,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             args: { url: 'https://linkedin.com' }
           };
           executionStatus = 'Opening LinkedIn...';
+        } else if (message.toLowerCase().includes('gmail')) {
+          command = {
+            request_id: `chat-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://gmail.com' }
+          };
+          executionStatus = 'Opening Gmail...';
+        } else if (message.toLowerCase().includes('sheets') || message.toLowerCase().includes('google sheets')) {
+          command = {
+            request_id: `chat-${Date.now()}`,
+            capability: 'open_url',
+            args: { url: 'https://sheets.google.com' }
+          };
+          executionStatus = 'Opening Google Sheets...';
         }
 
         if (command) {
