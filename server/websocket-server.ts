@@ -73,8 +73,30 @@ export class ExtensionWebSocketServer {
         break;
 
       case 'dashboard_connect':
-        // Handle dashboard WebSocket connection
-        console.log('Dashboard connected for user:', message.userId);
+        // Handle dashboard WebSocket connection - auto-authenticate for demo
+        const { userId } = message;
+        console.log('Dashboard connected for user:', userId);
+        
+        if (userId) {
+          // Create a temporary connection for demo purposes
+          const connectionId = `${userId}_demo_extension`;
+          this.connections.set(connectionId, {
+            ws,
+            userId: userId,
+            extensionId: 'demo_extension',
+            isAuthenticated: true,
+            lastSeen: new Date()
+          });
+          
+          // Send auth success
+          ws.send(JSON.stringify({
+            type: 'auth_success',
+            userId: userId,
+            connectionId: connectionId
+          }));
+          
+          console.log(`Dashboard authenticated for user: ${userId}`);
+        }
         break;
 
       case 'pong':

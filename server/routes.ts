@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           agentType,
           conversationId: conversationId || Date.now().toString(),
           messages: newMessages,
-          context: `lastInteraction: ${new Date().toISOString()}`
+          context: [`lastInteraction: ${new Date().toISOString()}`]
         });
       }
 
@@ -694,32 +694,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let executionStatus = '';
 
       if (shouldExecute && !needsApproval) {
-        // Determine appropriate command based on message content
+        // Direct execution for critical tasks like email sending
         let command = null;
         
-        if (message.toLowerCase().includes('gmail') || message.toLowerCase().includes('email') || message.toLowerCase().includes('send')) {
-          // Check if this is a specific email sending task
-          const emailMatch = message.match(/send.*email.*to\s+([^\s]+@[^\s]+)/i) || message.match(/email.*([^\s]+@[^\s]+)/i);
+        if (message.toLowerCase().includes('email') || message.toLowerCase().includes('send')) {
+          // Extract email details from message
+          const emailMatch = message.match(/send.*email.*to\s+([^\s]+@[^\s]+)/i) || 
+                             message.match(/email.*to\s+([^\s]+@[^\s]+)/i) ||
+                             message.match(/([^\s]+@[^\s]+)/);
           
           if (emailMatch) {
             const recipient = emailMatch[1];
+            
+            // Extract subject
+            const subjectMatch = message.match(/subject[:\s]+"([^"]+)"|with subject ([^,\n]+)/i);
+            const subject = subjectMatch ? (subjectMatch[1] || subjectMatch[2]).trim() : 'Email from Agent';
+            
+            // Extract message content
+            const messageMatch = message.match(/message[:\s]+"([^"]+)"|and message ([^,\n]+)/i) ||
+                                message.match(/body[:\s]+"([^"]+)"|body ([^,\n]+)/i);
+            const emailBody = messageMatch ? (messageMatch[1] || messageMatch[2]).trim() : 
+              'Hello,\n\nThis is an automated email from your business agent.\n\nBest regards';
+            
             command = {
               request_id: `chat-${Date.now()}`,
               capability: 'compose_email',
               args: { 
                 recipient: recipient,
-                subject: message.includes('business') || message.includes('services') ? 'Business Services Inquiry' : 'Email from Agent',
-                body: message.includes('business') || message.includes('services') ? 'Hello,\n\nI hope this email finds you well. I wanted to reach out to discuss our business services and how we can help your organization.\n\nWe offer comprehensive solutions that can drive growth and efficiency for your business. I would love to schedule a time to discuss your specific needs and how we can support your goals.\n\nPlease let me know if you would be interested in learning more.\n\nBest regards,\nBusiness Development Team' : 'Hello,\n\nThis is an automated email from your business agent.\n\nBest regards'
+                subject: subject,
+                body: emailBody
               }
             };
-            executionStatus = `Composing and sending email to ${recipient}...`;
-          } else {
-            command = {
-              request_id: `chat-${Date.now()}`,
-              capability: 'open_url',
-              args: { url: 'https://gmail.com' }
-            };
-            executionStatus = 'Opening Gmail...';
+            executionStatus = `Composing and sending email to ${recipient} with subject: ${subject}`;
           }
         } else if (message.toLowerCase().includes('linkedin')) {
           command = {
@@ -728,13 +734,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             args: { url: 'https://linkedin.com' }
           };
           executionStatus = 'Opening LinkedIn...';
-        } else if (message.toLowerCase().includes('salesforce')) {
-          command = {
-            request_id: `chat-${Date.now()}`,
-            capability: 'open_url',
-            args: { url: 'https://salesforce.com' }
-          };
-          executionStatus = 'Opening Salesforce...';
         }
 
         if (command) {
@@ -748,6 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } catch (error) {
             console.error('Command execution error:', error);
+            cleanResponse += `\n\n⚠️ **Execution failed:** ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         }
       }

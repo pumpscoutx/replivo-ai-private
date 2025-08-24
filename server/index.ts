@@ -47,6 +47,9 @@ app.use((req, res, next) => {
   // Connect AI Browser Coordinator to WebSocket server for real-time coordination
   const { aiBrowserCoordinator } = await import('./ai-browser-coordinator');
   
+  // Connect the AI Browser Coordinator to the WebSocket server
+  // This will be handled through the WebSocket server's internal message handling
+  
   // Make WebSocket server available to routes and AI coordinator
   const { setExtensionWebSocketServer } = await import('./routes');
   setExtensionWebSocketServer(wsServer);
