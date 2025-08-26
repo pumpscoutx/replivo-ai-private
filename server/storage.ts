@@ -385,12 +385,12 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const agent: Agent = { 
       ...insertAgent,
-      rating: 45,
-      reviewCount: 0,
-      isBundle: true,
+      rating: (insertAgent as any).rating ?? 45,
+      reviewCount: (insertAgent as any).reviewCount ?? 0,
+      isBundle: (insertAgent as any).isBundle ?? true,
       subAgentIds: (insertAgent.subAgentIds ? [...(insertAgent.subAgentIds as any[])] : []) as any,
       tasks: (insertAgent.tasks ? [...(insertAgent.tasks as any[])] : []) as any,
-      featured: false,
+      featured: (insertAgent as any).featured ?? false,
       id 
     };
     this.agents.set(id, agent);

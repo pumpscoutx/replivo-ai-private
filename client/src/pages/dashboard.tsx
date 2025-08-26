@@ -18,6 +18,7 @@ import {
   Mail, Calendar, DollarSign, Shield, Eye, CheckSquare, X, ChevronRight,
   Mic, MicOff, Volume2, VolumeX
 } from "lucide-react";
+import type { Agent } from "@shared/schema";
 
 interface Message {
   id: string;
@@ -49,11 +50,8 @@ export default function Dashboard() {
   const [selectedAgent, setSelectedAgent] = useState<string>('business-growth');
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState(0);
-  const [connectedAgents] = useState([
-    { id: 'business-growth', name: 'Business Growth', status: 'active', tasksToday: 8 },
-    { id: 'operations', name: 'Operations', status: 'active', tasksToday: 12 },
-    { id: 'customer-support', name: 'Customer Support', status: 'active', tasksToday: 15 }
-  ]);
+  const [connectedAgents, setConnectedAgents] = useState<any[]>([]);
+  const [agentStatus, setAgentStatus] = useState<Record<string, 'online' | 'offline' | 'unknown'>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -421,6 +419,55 @@ export default function Dashboard() {
     }
   });
 
+  // Load available agents and map to dashboard cards
+  const { data: availableAgents } = useQuery<Agent[]>({
+    queryKey: ["/api/agents/featured"]
+  });
+
+  const getAgentTypeFromCategory = (category: string): string => {
+    const categoryMap: Record<string, string> = {
+      "growth": "business-growth",
+      "operations": "operations",
+      "people-finance": "people-finance"
+    };
+    return categoryMap[category] || "business-growth";
+  };
+
+  useEffect(() => {
+    if (availableAgents) {
+      const mapped = availableAgents.map((a) => {
+        const id = getAgentTypeFromCategory(a.category);
+        const status = agentStatus[id] === 'online' ? 'active' : 'unknown';
+        return { id, name: a.name, status, tasksToday: 0 };
+      });
+      setConnectedAgents(mapped);
+      // Kick off connectivity checks automatically
+      mapped.forEach((a) => {
+        if (!agentStatus[a.id]) {
+          testAgent.mutate(a.id);
+        }
+      });
+    }
+  }, [availableAgents, agentStatus]);
+
+  // Quick connectivity test per agent
+  const testAgent = useMutation({
+    mutationFn: async (agentType: string) => {
+      const response = await apiRequest("POST", `/api/agents/test/${agentType}`, {});
+      return response.json();
+    },
+    onSuccess: (_data, agentType: string) => {
+      setAgentStatus((prev) => ({ ...prev, [agentType]: 'online' }));
+    },
+    onError: (_error, agentType: string) => {
+      setAgentStatus((prev) => ({ ...prev, [agentType]: 'offline' }));
+    }
+  });
+
+  const runTest = (agentType: string) => {
+    testAgent.mutate(agentType);
+  };
+
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'agents', label: 'My Agents', icon: Users },
@@ -515,8 +562,13 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-green-400 text-xs font-medium">Active</span>
+                    <div className={`w-2 h-2 rounded-full ${agentStatus[agent.id] === 'online' ? 'bg-green-500' : agentStatus[agent.id] === 'offline' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                    <span className={`text-xs font-medium ${agentStatus[agent.id] === 'online' ? 'text-green-400' : agentStatus[agent.id] === 'offline' ? 'text-red-400' : 'text-yellow-400'}`}>
+                      {agentStatus[agent.id] === 'online' ? 'Online' : agentStatus[agent.id] === 'offline' ? 'Offline' : 'Unknown'}
+                    </span>
+                    <Button size="sm" variant="outline" className="h-6 px-2 text-xs border-gray-600" onClick={() => runTest(agent.id)}>
+                      Test
+                    </Button>
                   </div>
                 </div>
               </CardContent>
