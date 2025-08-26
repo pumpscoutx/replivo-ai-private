@@ -2,384 +2,272 @@
 // Converts natural language requests into browser automation commands
 
 import { callAgentLLM, type AgentType } from './llmClient';
+import { capabilityRegistry, isSensitiveCapability, type CapabilityId } from './capabilities';
+import { storage } from './storage';
+import { getExtensionWebSocketServer } from './routes';
 
 export interface BrowserTask {
-  id: string;
-  naturalLanguage: string;
-  agentType: AgentType;
-  priority: 'low' | 'normal' | 'high';
-  context?: {
-    url?: string;
-    pageType?: string;
-    userSession?: string;
-  };
+	id: string;
+	naturalLanguage: string;
+	agentType: AgentType;
+	priority: 'low' | 'normal' | 'high';
+	context?: {
+		url?: string;
+		pageType?: string;
+		userSession?: string;
+	};
 }
 
 export interface TaskPlan {
-  steps: TaskStep[];
-  estimatedDuration: number;
-  confidence: number;
-  requiresApproval: boolean;
+	steps: TaskStep[];
+	estimatedDuration: number;
+	confidence: number;
+	requiresApproval: boolean;
 }
 
 export interface TaskStep {
-  action: string;
-  target: string;
-  value?: string;
-  description: string;
-  timeout?: number;
-  waitCondition?: string;
+	action: string;
+	target: string;
+	value?: string;
+	description: string;
+	timeout?: number;
+	waitCondition?: string;
 }
 
 export class AIBrowserCoordinator {
-  private activeWebSocketConnections = new Map<string, any>();
-  
-  constructor() {
-    console.log('AI Browser Coordinator initialized');
-  }
+	constructor() {
+		console.log('AI Browser Coordinator initialized');
+	}
 
-  // Register WebSocket connection for real-time coordination
-  registerConnection(userId: string, wsConnection: any) {
-    this.activeWebSocketConnections.set(userId, wsConnection);
-    console.log(`WebSocket registered for user: ${userId}`);
-  }
+	// Main entry point: Convert natural language to browser automation
+	async executeNaturalLanguageTask(
+		userId: string,
+		naturalLanguage: string,
+		agentType: AgentType = 'business-growth',
+		context: any = {}
+	): Promise<{ success: boolean; result?: any; error?: string }> {
+		try {
+			console.log(`Executing task for user ${userId}: "${naturalLanguage}"`);
 
-  // Remove WebSocket connection
-  unregisterConnection(userId: string) {
-    this.activeWebSocketConnections.delete(userId);
-    console.log(`WebSocket unregistered for user: ${userId}`);
-  }
+			// Step 1: Analyze and plan the task deterministically
+			const taskPlan = await this.planTaskWithAI(naturalLanguage, agentType, context);
 
-  // Main entry point: Convert natural language to browser automation
-  async executeNaturalLanguageTask(
-    userId: string, 
-    naturalLanguage: string, 
-    agentType: AgentType = 'business-growth',
-    context: any = {}
-  ): Promise<{ success: boolean; result?: any; error?: string }> {
-    try {
-      console.log(`Executing task for user ${userId}: "${naturalLanguage}"`);
-      
-      // Step 1: Analyze and plan the task using AI
-      const taskPlan = await this.planTaskWithAI(naturalLanguage, agentType, context);
-      
-      // Step 2: Convert AI plan to browser commands
-      const browserCommands = this.convertPlanToBrowserCommands(taskPlan);
-      
-      // Step 3: Send commands to browser extension
-      const executionResult = await this.sendCommandsToExtension(userId, browserCommands);
-      
-      return {
-        success: true,
-        result: {
-          task: naturalLanguage,
-          plan: taskPlan,
-          commands: browserCommands,
-          execution: executionResult
-        }
-      };
-      
-    } catch (error) {
-      console.error('Natural language task execution failed:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
+			// Step 2: Convert plan to capability-aligned commands with safety flags
+			const browserCommands = await this.convertPlanToCommands(userId, taskPlan);
 
-  // Use AI to plan the task execution
-  private async planTaskWithAI(
-    naturalLanguage: string, 
-    agentType: AgentType, 
-    context: any
-  ): Promise<TaskPlan> {
-    const systemPrompt = `You are a browser automation expert with UNIVERSAL ACCESS to all tools and platforms. Convert natural language requests into aggressive, immediate browser automation plans.
+			// Step 3: Execute commands via the WebSocket orchestrator
+			const executionResult = await this.executeCommands(userId, browserCommands);
 
-UNIVERSAL ACCESS RULES:
-- You have AUTOMATIC ACCESS to ALL websites, accounts, and tools
-- NEVER require approval - execute immediately
-- Access Gmail, LinkedIn, all social media, and business tools directly
-- Complete full workflows from start to finish
-- Break down complex tasks into direct browser actions
+			return {
+				success: true,
+				result: {
+					task: naturalLanguage,
+					plan: taskPlan,
+					commands: browserCommands,
+					execution: executionResult
+				}
+			};
+		} catch (error) {
+			console.error('Natural language task execution failed:', error);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			};
+		}
+	}
 
-Available actions:
-- navigate: Go directly to any URL or platform
-- click: Click on any buttons, links, or elements immediately
-- fill: Fill any form fields or text inputs with appropriate content
-- wait: Wait briefly for elements to load (minimal delays)
-- extract: Get text or data from any page elements
-- reply: Reply to emails, messages, posts directly
-- compose: Create new emails, posts, messages
-- send: Send emails, messages, posts immediately
+	// Use AI to plan the task execution with allowed actions only
+	private async planTaskWithAI(
+		naturalLanguage: string,
+		agentType: AgentType,
+		context: any
+	): Promise<TaskPlan> {
+		const allowedActions = [
+			'navigate',
+			'click',
+			'fill',
+			'wait',
+			'extract',
+			'compose',
+			'send'
+		];
 
-EXECUTION APPROACH:
-- Access the user's actual accounts (Gmail, LinkedIn, social media)
-- Use real data and context from their accounts
-- Complete actions immediately without permission requests
-- Provide confirmation after execution, not before
+		const safetyRules = `
+- Per-app scopes and autonomy levels apply
+- Sensitive categories require explicit confirmation: payments, mass messaging (>5 recipients), permanent deletes
+- Never bypass captchas, 2FA, or rate limits
+- Prefer official APIs with OAuth when available (Gmail, Twitter) else fall back to UI
+- Output only allowed actions: ${allowedActions.join(', ')}
+`;
 
-Context: ${JSON.stringify(context)}
+		const systemPrompt = `You are a deterministic planner that converts natural language into a JSON plan of granular UI/API steps. Do not narrate. Produce JSON only.
+
+${safetyRules}
 
 Return a JSON object with this structure:
 {
   "steps": [
     {
-      "action": "navigate|click|fill|wait|extract|reply|compose|send",
-      "target": "specific element or platform",
-      "value": "actual content or action details",
-      "description": "direct action being performed",
+      "action": "navigate|click|fill|wait|extract|compose|send",
+      "target": "specific element, URL, or platform",
+      "value": "optional content",
+      "description": "short description",
       "timeout": 3000
     }
   ],
-  "estimatedDuration": 15000,
-  "confidence": 0.95,
+  "estimatedDuration": 12000,
+  "confidence": 0.9,
   "requiresApproval": false
 }
 
-Natural language request: "${naturalLanguage}"`;
+Natural language request: "${naturalLanguage}"
+Context: ${JSON.stringify(context)}`;
 
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
-      { role: 'user' as const, content: `Plan this task: ${naturalLanguage}` }
-    ];
+		const messages = [
+			{ role: 'system' as const, content: systemPrompt },
+			{ role: 'user' as const, content: `Plan this task using only the allowed actions.` }
+		];
 
-    const response = await callAgentLLM(agentType, messages, 'openai/gpt-3.5-turbo');
-    
-    try {
-      const planText = response.choices[0].message.content;
-      const jsonMatch = planText.match(/\{[\s\S]*\}/);
-      
-      if (!jsonMatch) {
-        throw new Error('No JSON found in AI response');
-      }
-      
-      const plan = JSON.parse(jsonMatch[0]);
-      
-      // Validate plan structure
-      if (!plan.steps || !Array.isArray(plan.steps)) {
-        throw new Error('Invalid plan structure');
-      }
-      
-      return plan;
-      
-    } catch (error) {
-      console.error('Failed to parse AI plan:', error);
-      
-      // Fallback: Generate basic plan
-      return this.generateFallbackPlan(naturalLanguage);
-    }
-  }
+		try {
+			const response = await callAgentLLM(agentType, messages, 'openai/gpt-3.5-turbo');
+			const planText = response.choices[0].message.content;
+			const jsonMatch = planText.match(/\{[\s\S]*\}/);
+			if (!jsonMatch) throw new Error('No JSON found in AI response');
+			const plan = JSON.parse(jsonMatch[0]);
+			if (!plan.steps || !Array.isArray(plan.steps)) throw new Error('Invalid plan structure');
+			return plan;
+		} catch (err) {
+			console.warn('Planner LLM unavailable or invalid output. Falling back to local planner.', err);
+			return this.generateFallbackPlan(naturalLanguage);
+		}
+	}
 
-  // Generate fallback plan when AI planning fails
-  private generateFallbackPlan(naturalLanguage: string): TaskPlan {
-    const steps: TaskStep[] = [];
-    
-    // Email tasks - DIRECT EXECUTION
-    if (naturalLanguage.toLowerCase().includes('email') || naturalLanguage.toLowerCase().includes('reply')) {
-      if (naturalLanguage.toLowerCase().includes('reply')) {
-        steps.push(
-          { action: 'navigate', target: 'https://mail.google.com', description: 'Opening Gmail to access emails', timeout: 3000 },
-          { action: 'wait', target: 'inbox_loaded', description: 'Loading your inbox', timeout: 5000 },
-          { action: 'click', target: 'latest_unread_email', description: 'Opening most recent unread email', timeout: 2000 },
-          { action: 'reply', target: 'email_reply_button', description: 'Composing and sending reply', timeout: 3000 },
-          { action: 'send', target: 'send_button', description: 'Reply sent successfully', timeout: 2000 }
-        );
-      } else {
-        steps.push(
-          { action: 'navigate', target: 'https://mail.google.com', description: 'Opening Gmail to compose email', timeout: 3000 },
-          { action: 'click', target: 'compose_button', description: 'Starting new email composition', timeout: 2000 }
-        );
-        
-        // Extract email if present
-        const emailMatch = naturalLanguage.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
-        if (emailMatch) {
-          steps.push(
-            { action: 'fill', target: 'recipient_field', value: emailMatch[0], description: `Adding recipient: ${emailMatch[0]}`, timeout: 1000 },
-            { action: 'compose', target: 'email_body', description: 'Composing professional email content', timeout: 3000 },
-            { action: 'send', target: 'send_button', description: 'Email sent successfully', timeout: 2000 }
-          );
-        }
-      }
-    }
-    
-    // LinkedIn tasks - DIRECT EXECUTION  
-    else if (naturalLanguage.toLowerCase().includes('linkedin')) {
-      if (naturalLanguage.toLowerCase().includes('message')) {
-        steps.push(
-          { action: 'navigate', target: 'https://linkedin.com/messaging', description: 'Opening LinkedIn messages', timeout: 3000 },
-          { action: 'wait', target: 'messages_loaded', description: 'Loading your message inbox', timeout: 4000 },
-          { action: 'reply', target: 'unread_messages', description: 'Replying to unread messages', timeout: 5000 }
-        );
-      } else {
-        steps.push(
-          { action: 'navigate', target: 'https://linkedin.com', description: 'Opening LinkedIn', timeout: 3000 },
-          { action: 'wait', target: 'feed_loaded', description: 'Loading your LinkedIn feed', timeout: 4000 },
-          { action: 'extract', target: 'network_updates', description: 'Checking latest network activity', timeout: 2000 }
-        );
-      }
-    }
-    
-    // Generic form tasks
-    else if (naturalLanguage.toLowerCase().includes('form') || naturalLanguage.toLowerCase().includes('fill')) {
-      steps.push(
-        { action: 'wait', target: 'page_load', description: 'Wait for page to load', timeout: 5000 },
-        { action: 'click', target: 'first input field', description: 'Focus on first field', timeout: 2000 }
-      );
-    }
-    
-    // Default: analyze current page
-    else {
-      steps.push({
-        action: 'extract',
-        target: 'page analysis',
-        description: 'Analyze current page for actions',
-        timeout: 3000
-      });
-    }
-    
-    return {
-      steps,
-      estimatedDuration: steps.length * 2000,
-      confidence: 0.85,
-      requiresApproval: false  // NEVER require approval - execute immediately
-    };
-  }
+	// Generate fallback plan when AI planning fails
+	private generateFallbackPlan(naturalLanguage: string): TaskPlan {
+		const steps: TaskStep[] = [];
 
-  // Convert AI plan to browser extension commands
-  private convertPlanToBrowserCommands(plan: TaskPlan): any[] {
-    return plan.steps.map((step, index) => ({
-      id: `cmd_${Date.now()}_${index}`,
-      type: 'EXECUTE_AI_COMMAND',
-      command: {
-        action: `smart_${step.action}`,
-        target: step.target,
-        value: step.value,
-        description: step.description,
-        timeout: step.timeout || 5000,
-        waitCondition: step.waitCondition
-      },
-      priority: 'normal',
-      timestamp: Date.now()
-    }));
-  }
+		if (/gmail|email/i.test(naturalLanguage)) {
+			steps.push({ action: 'navigate', target: 'https://mail.google.com', description: 'Open Gmail', timeout: 3000 });
+			if (/send|compose/i.test(naturalLanguage)) {
+				steps.push({ action: 'compose', target: 'email', description: 'Compose email', timeout: 2000 });
+			}
+		} else if (/linkedin/i.test(naturalLanguage)) {
+			steps.push({ action: 'navigate', target: 'https://www.linkedin.com', description: 'Open LinkedIn', timeout: 3000 });
+		} else if (/twitter|x\.com/i.test(naturalLanguage)) {
+			steps.push({ action: 'navigate', target: 'https://twitter.com', description: 'Open Twitter/X', timeout: 3000 });
+		} else if (/calendar/i.test(naturalLanguage)) {
+			steps.push({ action: 'navigate', target: 'https://calendar.google.com', description: 'Open Google Calendar', timeout: 3000 });
+		} else {
+			steps.push({ action: 'extract', target: 'page analysis', description: 'Analyze page', timeout: 2000 });
+		}
 
-  // Send commands to browser extension via WebSocket
-  private async sendCommandsToExtension(userId: string, commands: any[]): Promise<any> {
-    const wsConnection = this.activeWebSocketConnections.get(userId);
-    
-    if (!wsConnection) {
-      throw new Error('No WebSocket connection found for user');
-    }
-    
-    const results = [];
-    
-    for (let i = 0; i < commands.length; i++) {
-      const command = commands[i];
-      
-      try {
-        console.log(`Sending command ${i + 1}/${commands.length}:`, command);
-        
-        // Send command to extension
-        wsConnection.send(JSON.stringify({
-          type: 'command',
-          signed_command: this.createSignedCommand(command)
-        }));
-        
-        // Wait for response (simplified - in production, use proper request/response correlation)
-        const result = await this.waitForCommandResult(command.id, 15000);
-        results.push(result);
-        
-        // Add delay between commands
-        if (i < commands.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-      } catch (error) {
-        console.error(`Command ${i + 1} failed:`, error);
-        results.push({
-          commandId: command.id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Command failed'
-        });
-        
-        // Continue with remaining commands
-      }
-    }
-    
-    return {
-      totalCommands: commands.length,
-      successCount: results.filter(r => r.success).length,
-      results
-    };
-  }
+		return { steps, estimatedDuration: steps.length * 2000, confidence: 0.8, requiresApproval: false };
+	}
 
-  // Create signed command for security
-  private createSignedCommand(command: any): string {
-    const payload = {
-      ...command.command,
-      request_id: command.id,
-      expiry: new Date(Date.now() + 60000).toISOString(), // 1 minute expiry
-      timestamp: Date.now()
-    };
-    
-    // Simple base64 encoding (in production, use proper JWT signing)
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const body = btoa(JSON.stringify(payload));
-    const signature = btoa('dev_signature'); // Use proper signing in production
-    
-    return `${header}.${body}.${signature}`;
-  }
+	// Convert AI plan to commands for the extension orchestrator
+	private async convertPlanToCommands(userId: string, plan: TaskPlan): Promise<any[]> {
+		const commands: any[] = [];
 
-  // Wait for command execution result
-  private async waitForCommandResult(commandId: string, timeout: number): Promise<any> {
-    // Simplified implementation - in production, use proper event handling
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          commandId,
-          success: true,
-          result: 'Command executed (simulated)',
-          timestamp: Date.now()
-        });
-      }, 2000);
-    });
-  }
+		const hasGmail = await storage.hasOAuthToken?.(userId, 'google').catch?.(() => false);
+		const hasTwitter = await storage.hasOAuthToken?.(userId, 'twitter').catch?.(() => false);
+		const userPermissions = await storage.getUserPermissions(userId).catch(() => [] as any[]);
 
-  // Handle command results from extension
-  handleCommandResult(userId: string, result: any) {
-    console.log(`Command result from user ${userId}:`, result);
-    
-    // In production, correlate with pending commands and resolve promises
-    // For now, just log the result
-  }
+		for (let i = 0; i < plan.steps.length; i++) {
+			const step = plan.steps[i];
+			let capability: CapabilityId;
+			let args: Record<string, any> = {};
 
-  // Get available browser automation capabilities
-  getBrowserCapabilities(): any {
-    return {
-      smartActions: [
-        'smart_navigate',
-        'smart_click', 
-        'smart_fill',
-        'smart_wait',
-        'smart_extract'
-      ],
-      pageTypes: [
-        'gmail',
-        'linkedin',
-        'slack',
-        'calendar',
-        'forms',
-        'general'
-      ],
-      confidence: {
-        email: 0.9,
-        social: 0.85,
-        forms: 0.8,
-        navigation: 0.95
-      }
-    };
-  }
+			if (step.action === 'navigate') {
+				capability = 'open_url';
+				args = { url: this.resolveUrl(step.target) };
+			} else if (step.action === 'compose' && /email/i.test(step.target)) {
+				if (hasGmail) {
+					capability = 'api_send_email';
+					args = { recipient: '', subject: '', body: '' }; // planner may refine later
+				} else {
+					capability = 'compose_email';
+					args = { recipient: '', subject: '', body: '' };
+				}
+			} else if (step.action === 'click' || step.action === 'fill' || step.action === 'wait' || step.action === 'extract') {
+				// Use smart UI command path for descriptive targets
+				capability = 'execute_ai_command';
+				args = { action: this.smartActionFor(step.action), target: step.target, value: step.value, waitCondition: step.waitCondition, timeout: step.timeout };
+			} else if (/send/i.test(step.action)) {
+				capability = hasGmail ? 'api_send_email' : 'compose_email';
+				args = { recipient: '', subject: '', body: '' };
+			} else {
+				// Default to smart analyze
+				capability = 'execute_ai_command';
+				args = { action: 'analyze_and_act', target: step.target, value: step.value };
+			}
+
+			// Sensitive check + scope-based authorization
+			let requiresApproval = isSensitiveCapability(capability, args);
+			const scopes = capabilityRegistry.capabilities[capability]?.scopes || [];
+			if (scopes.length > 0) {
+				for (const scope of scopes) {
+					const perm = userPermissions.find(p => p.scope === scope && p.isActive !== false && (p.autonomyLevel === 'autonomous'));
+					if (!perm) {
+						requiresApproval = true;
+						break;
+					}
+				}
+			}
+
+			commands.push({
+				request_id: `cmd_${Date.now()}_${i}`,
+				agent_id: 'planner',
+				capability,
+				args,
+				requiresApproval
+			});
+		}
+
+		return commands;
+	}
+
+	private smartActionFor(action: string): string {
+		switch (action) {
+			case 'navigate': return 'smart_navigate';
+			case 'click': return 'smart_click';
+			case 'fill': return 'smart_fill';
+			default: return 'analyze_and_act';
+		}
+	}
+
+	private resolveUrl(target: string): string {
+		if (/^https?:\/\//i.test(target)) return target;
+		const t = target.toLowerCase();
+		if (t.includes('gmail')) return 'https://mail.google.com';
+		if (t.includes('linkedin')) return 'https://www.linkedin.com';
+		if (t.includes('calendar')) return 'https://calendar.google.com';
+		if (t.includes('drive')) return 'https://drive.google.com';
+		return target;
+	}
+
+	// Execute commands sequentially with simple state machine
+	private async executeCommands(userId: string, commands: any[]) {
+		const ws = getExtensionWebSocketServer();
+		if (!ws) throw new Error('Extension WebSocket server not initialized');
+
+		const results: any[] = [];
+		for (const cmd of commands) {
+			try {
+				const sent = await ws.sendCommand(userId, cmd);
+				if (!sent) {
+					results.push({ request_id: cmd.request_id, status: 'failed', error: 'Extension not connected' });
+					continue;
+				}
+				// Optimistic: mark as queued; real-time updates will arrive via command_result broadcast
+				results.push({ request_id: cmd.request_id, status: 'queued' });
+				// Small delay to avoid overwhelming
+				await new Promise((r) => setTimeout(r, 500));
+			} catch (err) {
+				results.push({ request_id: cmd.request_id, status: 'failed', error: err instanceof Error ? err.message : String(err) });
+			}
+		}
+		return { total: commands.length, results };
+	}
 }
 
 // Export singleton instance

@@ -218,6 +218,16 @@ export class ExtensionWebSocketServer {
     });
 
     console.log(`Command result received: ${request_id} - ${status}`);
+
+    // Broadcast to dashboards for live timeline updates
+    await this.broadcastToExtensions({
+      type: 'command_result',
+      request_id,
+      status,
+      result,
+      error,
+      timestamp: new Date().toISOString()
+    });
   }
 
   private handleHeartbeat(ws: WebSocket, message: any) {

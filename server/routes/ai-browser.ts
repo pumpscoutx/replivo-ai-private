@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { aiBrowserCoordinator } from '../ai-browser-coordinator';
 import type { AgentType } from '../llmClient';
+import { capabilityRegistry } from '../capabilities';
 
 const router = Router();
 
@@ -43,16 +44,13 @@ router.post('/execute-task', async (req, res) => {
   }
 });
 
-// Get browser automation capabilities
+// Get browser automation capabilities (registry only)
 router.get('/capabilities', (req, res) => {
   try {
-    const capabilities = aiBrowserCoordinator.getBrowserCapabilities();
-    
     res.json({
       success: true,
-      capabilities
+      registry: capabilityRegistry
     });
-
   } catch (error) {
     console.error('Failed to get capabilities:', error);
     res.status(500).json({

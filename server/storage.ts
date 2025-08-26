@@ -105,6 +105,9 @@ export class MemStorage implements IStorage {
   private pageContexts: Map<string, any>;
   private elementDiscoveries: Map<string, any>;
   private automationOpportunities: Map<string, any>;
+ 
+  // OAuth tokens by user and provider
+  private oauthTokens: Map<string, { provider: string; accessToken: string; refreshToken?: string; expiresAt?: string }>;
 
   constructor() {
     this.users = new Map();
@@ -130,6 +133,7 @@ export class MemStorage implements IStorage {
     this.pageContexts = new Map();
     this.elementDiscoveries = new Map();
     this.automationOpportunities = new Map();
+    this.oauthTokens = new Map();
     
     this.initializeData();
   }
@@ -264,9 +268,9 @@ export class MemStorage implements IStorage {
       const fullSubAgent: SubAgent = { 
         rating: 45,
         reviewCount: 0,
-        recentUpdates: subAgent.recentUpdates ? [...subAgent.recentUpdates] : [],
+        recentUpdates: (subAgent.recentUpdates ? [...(subAgent.recentUpdates as any[])] : []) as any,
         demoScript: subAgent.demoScript || null,
-        integrations: subAgent.integrations ? [...subAgent.integrations] : [],
+        integrations: (subAgent.integrations ? [...(subAgent.integrations as any[])] : []) as any,
         totalHires: 0,
         taskStatus: 'idle',
         currentTask: null,
@@ -277,7 +281,7 @@ export class MemStorage implements IStorage {
     });
 
     // Initialize sample main agents
-    const agents: InsertAgent[] = [
+    const agents: any[] = [
       {
         name: "Business Growth",
         description: "Scale your revenue with intelligent lead generation, sales automation, and growth optimization strategies.",
@@ -289,7 +293,7 @@ export class MemStorage implements IStorage {
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "content")
-          .map(sa => sa.id),
+          .map(sa => sa.id) as string[],
         tasks: [
           "Generating qualified leads...",
           "Optimizing conversion funnels...",
@@ -310,7 +314,7 @@ export class MemStorage implements IStorage {
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "analytics")
-          .map(sa => sa.id),
+          .map(sa => sa.id) as string[],
         tasks: [
           "Automating workflows...",
           "Managing resources...",
@@ -331,7 +335,7 @@ export class MemStorage implements IStorage {
         isBundle: true,
         subAgentIds: Array.from(this.subAgents.values())
           .filter(sa => sa.category === "support")
-          .map(sa => sa.id),
+          .map(sa => sa.id) as string[],
         tasks: [
           "Processing payroll...",
           "Managing benefits...",
@@ -380,13 +384,13 @@ export class MemStorage implements IStorage {
   async createAgent(insertAgent: InsertAgent): Promise<Agent> {
     const id = randomUUID();
     const agent: Agent = { 
+      ...insertAgent,
       rating: 45,
       reviewCount: 0,
       isBundle: true,
-      subAgentIds: insertAgent.subAgentIds ? [...insertAgent.subAgentIds] : [],
-      tasks: insertAgent.tasks ? [...insertAgent.tasks] : [],
+      subAgentIds: (insertAgent.subAgentIds ? [...(insertAgent.subAgentIds as any[])] : []) as any,
+      tasks: (insertAgent.tasks ? [...(insertAgent.tasks as any[])] : []) as any,
       featured: false,
-      ...insertAgent, 
       id 
     };
     this.agents.set(id, agent);
@@ -412,9 +416,9 @@ export class MemStorage implements IStorage {
     const subAgent: SubAgent = { 
       rating: 45,
       reviewCount: 0,
-      recentUpdates: insertSubAgent.recentUpdates ? [...insertSubAgent.recentUpdates] : [],
+      recentUpdates: (insertSubAgent.recentUpdates ? [...(insertSubAgent.recentUpdates as any[])] : []) as any,
       demoScript: insertSubAgent.demoScript || null,
-      integrations: insertSubAgent.integrations ? [...insertSubAgent.integrations] : [],
+      integrations: (insertSubAgent.integrations ? [...(insertSubAgent.integrations as any[])] : []) as any,
       totalHires: 0,
       taskStatus: 'idle',
       currentTask: null,
@@ -513,12 +517,12 @@ export class MemStorage implements IStorage {
       args: insertCommand.args ?? {},
       result: insertCommand.result ?? null,
       executedAt: insertCommand.executedAt ?? null,
-      status: 'pending',
+      status: insertCommand.status ?? 'pending',
       userId: insertCommand.userId,
       agentId: insertCommand.agentId,
       requestId: insertCommand.requestId,
       capability: insertCommand.capability,
-      signature: insertCommand.signature,
+      signature: (insertCommand as any).signature ?? '',
       createdAt: new Date().toISOString(),
       id 
     };
@@ -539,6 +543,21 @@ export class MemStorage implements IStorage {
     if (command) {
       this.commandLogs.set(command.id, { ...command, ...updates });
     }
+  }
+
+  // --- Minimal OAuth token storage ---
+  async storeOAuthToken(userId: string, provider: string, accessToken: string, refreshToken?: string, expiresAt?: string): Promise<void> {
+    this.oauthTokens.set(`${userId}:${provider}`, { provider, accessToken, refreshToken, expiresAt });
+  }
+
+  async hasOAuthToken(userId: string, provider: string): Promise<boolean> {
+    return this.oauthTokens.has(`${userId}:${provider}`);
+  }
+
+  async getOAuthToken(userId: string, provider: string): Promise<{ accessToken: string; refreshToken?: string; expiresAt?: string } | null> {
+    const rec = this.oauthTokens.get(`${userId}:${provider}`);
+    if (!rec) return null;
+    return { accessToken: rec.accessToken, refreshToken: rec.refreshToken, expiresAt: rec.expiresAt };
   }
 
   async createVoiceInteraction(insertInteraction: InsertVoiceInteraction): Promise<VoiceInteraction> {
@@ -598,13 +617,14 @@ export class MemStorage implements IStorage {
       userId: config.userId,
       agentId: config.agentId,
       agentType: config.agentType,
-      autonomousTasks: config.autonomousTasks ?? null,
-      confirmTasks: config.confirmTasks ?? null,
-      suggestTasks: config.suggestTasks ?? null,
-      allowedTools: config.allowedTools ?? null,
-      restrictedTools: config.restrictedTools ?? null,
-      maxConcurrentTasks: config.maxConcurrentTasks ?? null,
-      autoApproveLimit: config.autoApproveLimit ?? null,
+      autonomousTasks: (config.autonomousTasks as any[]) ?? [],
+      confirmTasks: (config.confirmTasks as any[]) ?? [],
+      suggestTasks: (config.suggestTasks as any[]) ?? [],
+      allowedTools: (config.allowedTools as string[]) ?? [],
+      permissions: (config.permissions as string[]) ?? [],
+      workingHours: (config as any).workingHours ?? {},
+      notifications: (config as any).notifications ?? {},
+      conversationContext: (config as any).conversationContext ?? {},
       lastUpdated: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       id
@@ -614,7 +634,7 @@ export class MemStorage implements IStorage {
   }
 
   async getAgentConfiguration(userId: string, agentType: string): Promise<AgentConfiguration | undefined> {
-    for (const config of this.agentConfigurations.values()) {
+    for (const config of Array.from(this.agentConfigurations.values())) {
       if (config.userId === userId && config.agentType === agentType) {
         return config;
       }
@@ -652,7 +672,7 @@ export class MemStorage implements IStorage {
   }
 
   async getConversationHistory(userId: string, agentType: string): Promise<ConversationHistory | undefined> {
-    for (const conversation of this.conversationHistories.values()) {
+    for (const conversation of Array.from(this.conversationHistories.values())) {
       if (conversation.userId === userId && conversation.agentType === agentType) {
         return conversation;
       }
@@ -690,6 +710,11 @@ export class MemStorage implements IStorage {
         id,
         lastDetected: new Date().toISOString(),
         createdAt: new Date().toISOString(),
+        permissions: (toolData as any).permissions ?? [],
+        version: (toolData as any).version ?? null,
+        executable: (toolData as any).executable ?? null,
+        installed: (toolData as any).installed ?? false,
+        isLoggedIn: (toolData as any).isLoggedIn ?? null,
         ...toolData,
       };
       this.detectedTools.set(id, tool);
@@ -721,6 +746,9 @@ export class MemStorage implements IStorage {
     const newPermission: ToolPermission = {
       id: randomUUID(),
       ...permission,
+      permissions: (permission as any).permissions ?? [],
+      granted: (permission as any).granted ?? false,
+      grantedAt: (permission as any).grantedAt ?? new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
     this.toolPermissions.set(newPermission.id, newPermission);
@@ -750,6 +778,13 @@ export class MemStorage implements IStorage {
     const newAction: PendingAction = {
       id: randomUUID(),
       ...action,
+      result: (action as any).result ?? null,
+      note: (action as any).note ?? null,
+      status: (action as any).status ?? 'pending_approval',
+      parameters: (action as any).parameters ?? '{}',
+      requiresApproval: (action as any).requiresApproval ?? true,
+      approvedAt: (action as any).approvedAt ?? null,
+      rejectedAt: (action as any).rejectedAt ?? null,
       createdAt: new Date().toISOString()
     };
     this.pendingActions.set(newAction.id, newAction);
@@ -776,6 +811,7 @@ export class MemStorage implements IStorage {
   async createActionExecution(execution: InsertActionExecution): Promise<ActionExecution> {
     const newExecution: ActionExecution = {
       id: randomUUID(),
+      parameters: (execution as any).parameters ?? '{}',
       ...execution,
       createdAt: new Date().toISOString()
     };
