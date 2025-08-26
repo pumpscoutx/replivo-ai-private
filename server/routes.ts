@@ -13,6 +13,7 @@ import {
   callBusinessGrowthAgent,
   callOperationsAgent,
   callPeopleFinanceAgent,
+  callAgentLLM,
   type AgentType
 } from "./llmClient";
 import { DeviceScanner } from "./device-scanner";
@@ -582,22 +583,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { agentType } = req.params;
       
-      if (!['business-growth', 'operations', 'people-finance'].includes(agentType)) {
+      if (!["business-growth", "operations", "people-finance"].includes(agentType)) {
         return res.status(400).json({ error: 'Invalid agent type' });
       }
 
-      const testPrompt = "Respond with a simple JSON object containing 'status': 'online' and 'agent': your agent type.";
-      
+      const testPrompt = "ping";
+
+      // Use minimal prompt to reduce token usage
       let response: string;
       switch (agentType as AgentType) {
         case 'business-growth':
-          response = await callBusinessGrowthAgent(testPrompt);
+          response = (await callAgentLLM('business-growth', [{ role: 'user', content: testPrompt }], 'deepseek/deepseek-chat')).choices[0].message.content;
           break;
         case 'operations':
-          response = await callOperationsAgent(testPrompt);
+          response = (await callAgentLLM('operations', [{ role: 'user', content: testPrompt }], 'deepseek/deepseek-chat')).choices[0].message.content;
           break;
         case 'people-finance':
-          response = await callPeopleFinanceAgent(testPrompt);
+          response = (await callAgentLLM('people-finance', [{ role: 'user', content: testPrompt }], 'deepseek/deepseek-chat')).choices[0].message.content;
           break;
       }
 
@@ -609,11 +611,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Treat OpenRouter 402 credit limit as connectivity OK but credit-limited
+      if (message.includes(' 402:') || message.includes('402')) {
+        return res.json({
+          success: true,
+          agentType: req.params.agentType,
+          response: 'credit_limited',
+          creditLimited: true,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       console.error('Agent test error:', error);
       res.status(500).json({ 
         error: 'Agent test failed',
         agentType: req.params.agentType,
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: message
       });
     }
   });

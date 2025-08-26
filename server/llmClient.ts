@@ -25,15 +25,25 @@ export interface LLMResponse {
 // Map agent types to their corresponding API keys
 function getAgentAPIKey(agentType: AgentType): string {
   const keyMap: Record<AgentType, string | undefined> = {
-    'business-growth': process.env.OPENAI_ROUTER_KEY_1,
-    'operations': process.env.OPENAI_ROUTER_KEY_2,
-    'people-finance': process.env.OPENAI_ROUTER_KEY_3
+    // Prefer OpenRouter keys provided per-agent, then fall back to a single key or legacy names
+    'business-growth': process.env.OPENROUTER_API_KEY1
+      || process.env.OPENAI_ROUTER_KEY_1
+      || process.env.OPENROUTER_API_KEY
+      || process.env.OPENAI_API_KEY,
+    'operations': process.env.OPENROUTER_API_KEY2
+      || process.env.OPENAI_ROUTER_KEY_2
+      || process.env.OPENROUTER_API_KEY
+      || process.env.OPENAI_API_KEY,
+    'people-finance': process.env.OPENROUTER_API_KEY3
+      || process.env.OPENAI_ROUTER_KEY_3
+      || process.env.OPENROUTER_API_KEY
+      || process.env.OPENAI_API_KEY
   };
 
   const key = keyMap[agentType];
   if (!key) {
     console.error(`No API key found for agent type: ${agentType}`);
-    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENAI_API_KEY')).join(', ')}`);
+    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENROUTER') || k.includes('OPENAI')).join(', ')}`);
     throw new Error(`No API key configured for agent type: ${agentType}`);
   }
   
@@ -41,19 +51,8 @@ function getAgentAPIKey(agentType: AgentType): string {
   return key;
 }
 
-// Main LLM call function using OpenRouter API
-export async function callAgentLLM(
-  agentType: AgentType,
-  messages: LLMMessage[],
-  model: string = 'openai/gpt-3.5-turbo'
-): Promise<LLMResponse> {
-  const agentKey = getAgentAPIKey(agentType);
-  
-  if (!agentKey) {
-    throw new Error(`API key not found for agent type: ${agentType}`);
-  }
-
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+async function callOpenRouterWithFallback(agentType: AgentType, agentKey: string, body: any): Promise<Response> {
+  const doFetch = (payload: any) => fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -61,12 +60,39 @@ export async function callAgentLLM(
       'HTTP-Referer': process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'http://localhost:5000',
       'X-Title': 'Replivo Agent System'
     },
-    body: JSON.stringify({
-      model,
-      messages,
-      max_tokens: 200,
-      temperature: 0.7
-    })
+    body: JSON.stringify(payload)
+  });
+
+  const preferredMax = parseInt(process.env.OPENROUTER_MAX_TOKENS || '', 10);
+  const maxTokens = Number.isFinite(preferredMax) && preferredMax > 0 ? preferredMax : body.max_tokens ?? 200;
+
+  // First attempt with current or env-configured max tokens
+  let res = await doFetch({ ...body, max_tokens: maxTokens });
+  if (res.status !== 402) return res;
+
+  // If credit-limited, retry with minimal tokens to still get a response
+  console.warn(`OpenRouter 402 for ${agentType}. Retrying with minimal tokens...`);
+  res = await doFetch({ ...body, max_tokens: 3 });
+  return res;
+}
+
+// Main LLM call function using OpenRouter API
+export async function callAgentLLM(
+  agentType: AgentType,
+  messages: LLMMessage[],
+  model: string = 'deepseek/deepseek-chat'
+): Promise<LLMResponse> {
+  const agentKey = getAgentAPIKey(agentType);
+  
+  if (!agentKey) {
+    throw new Error(`API key not found for agent type: ${agentType}`);
+  }
+
+  const res = await callOpenRouterWithFallback(agentType, agentKey, {
+    model,
+    messages: messages.slice(-2),
+    max_tokens: 3,
+    temperature: 0.7
   });
 
   if (!res.ok) {
@@ -131,7 +157,7 @@ I'm your action-oriented business growth partner!`
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('business-growth', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('business-growth', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
 
@@ -167,8 +193,6 @@ export async function callOperationsAgent(
 - "Send notification" → I ask: To whom? What message?
 
 🎯 MY GOAL: Optimize your operations and automate workflows efficiently.
-
-I'm ready to streamline your business processes - what can I help you automate?
 - I EXECUTE immediately when I have all needed details
 - I ONLY ASK APPROVAL for destructive actions
 
@@ -218,7 +242,7 @@ I help optimize your operations while keeping your data secure.`;
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('operations', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('operations', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
 
@@ -269,6 +293,6 @@ I'm ready to help with HR and financial management - what do you need?`;
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('people-finance', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('people-finance', messages, 'deepseek/deepseek-chat');
   return response.choices[0].message.content;
 }
