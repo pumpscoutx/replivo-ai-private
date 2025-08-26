@@ -5,6 +5,7 @@ import { deviceToolsRouter } from "./routes/device-tools";
 import { agentConfigRouter } from "./routes/agent-config";
 import extensionRouter from "./routes/extension";
 import aiBrowserRouter from "./routes/ai-browser";
+import oauthRouter from "./routes/oauth";
 import { UniversalAccessManager } from "./universal-access-rules";
 import { insertCustomRequestSchema } from "@shared/schema";
 import { z } from "zod";
@@ -22,6 +23,10 @@ let extensionWS: ExtensionWebSocketServer | null = null;
 
 export function setExtensionWebSocketServer(ws: ExtensionWebSocketServer) {
   extensionWS = ws;
+}
+
+export function getExtensionWebSocketServer(): ExtensionWebSocketServer | null {
+  return extensionWS;
 }
 
 // Helper functions for device control
@@ -208,6 +213,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch custom requests" });
     }
   });
+
+  // OAuth routes (status/connect placeholders)
+  app.use('/api/oauth', oauthRouter);
 
   // Extension API routes
   app.post("/api/extension/pair", async (req, res) => {

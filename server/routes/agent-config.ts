@@ -25,27 +25,27 @@ agentConfigRouter.get('/:userId/:agentType', async (req, res) => {
         agentId: `${userId}-${agentType}`,
         agentType,
         userId,
-        autonomousTasks: defaultTasks.autonomous,
-        confirmTasks: defaultTasks.confirm,
-        suggestTasks: defaultTasks.suggest,
-        allowedTools: [],
-        permissions: [],
+        autonomousTasks: defaultTasks.autonomous as any[],
+        confirmTasks: defaultTasks.confirm as any[],
+        suggestTasks: defaultTasks.suggest as any[],
+        allowedTools: [] as string[],
+        permissions: [] as string[],
         workingHours: {
           enabled: false,
           start: '09:00',
           end: '17:00',
           timezone: 'UTC'
-        },
+        } as any,
         notifications: {
           taskCompletion: true,
           errorAlerts: true,
           dailySummary: false
-        },
+        } as any,
         conversationContext: {
           rememberPreferences: true,
           maintainHistory: true,
           personalizedResponses: true
-        }
+        } as any
       });
     }
     

@@ -595,6 +595,23 @@ async function executeCapability(command) {
     
     case 'take_screenshot':
       return await takeScreenshot(args);
+
+    case 'execute_ai_command': {
+      // Forward to content script smart executor
+      const tabId = args.tabId || (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
+      if (!tabId) throw new Error('No active tab for execute_ai_command');
+      const response = await chrome.tabs.sendMessage(tabId, {
+        type: 'EXECUTE_AI_COMMAND',
+        command: {
+          action: args.action,
+          target: args.target,
+          value: args.value,
+          waitCondition: args.waitCondition,
+          timeout: args.timeout
+        }
+      });
+      return response;
+    }
     
     default:
       throw new Error(`Unknown capability: ${capability}`);

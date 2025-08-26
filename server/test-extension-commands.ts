@@ -41,8 +41,9 @@ export class ExtensionTestCommands {
         userId,
         agentId: command.agent_id,
         capability: command.capability,
-        args: command.args,
-        status: 'sent'
+        args: command.args as any,
+        status: 'sent',
+        signature: ''
       });
       console.log('Form filling command sent successfully');
     } else {
@@ -82,8 +83,9 @@ export class ExtensionTestCommands {
         userId,
         agentId: command.agent_id,
         capability: command.capability,
-        args: command.args,
-        status: 'sent'
+        args: command.args as any,
+        status: 'sent',
+        signature: ''
       });
       console.log('Content extraction command sent successfully');
     } else {
@@ -116,8 +118,9 @@ export class ExtensionTestCommands {
         userId,
         agentId: command.agent_id,
         capability: command.capability,
-        args: command.args,
-        status: 'sent'
+        args: command.args as any,
+        status: 'sent',
+        signature: ''
       });
       console.log('Click command sent successfully');
     } else {
@@ -149,8 +152,9 @@ export class ExtensionTestCommands {
         userId,
         agentId: command.agent_id,
         capability: command.capability,
-        args: command.args,
-        status: 'sent'
+        args: command.args as any,
+        status: 'sent',
+        signature: ''
       });
       console.log('Navigation command sent successfully');
     } else {
@@ -191,8 +195,7 @@ export class ExtensionTestCommands {
       status: cmd.status,
       createdAt: cmd.createdAt,
       executedAt: cmd.executedAt,
-      result: cmd.result,
-      error: cmd.error
+      result: cmd.result
     }));
   }
 
