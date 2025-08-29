@@ -67,7 +67,7 @@ export class TaskExecutor {
     const response = await callAgentLLM('business-growth', [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
-    ], 'meta-llama/llama-3.1-8b-instruct');
+    ], 'llama3-8b-8192');
 
     try {
       let content = response.choices[0].message.content;

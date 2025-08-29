@@ -1,5 +1,5 @@
-// LLM Client for Replivo Agents - OpenRouter/Deepseek Integration
-// Each agent type uses its dedicated API key for quota isolation and key rotation
+// LLM Client for Replivo Agents - Groq Direct Integration
+// Each agent type uses its dedicated Groq API key for quota isolation and key rotation
 
 export type AgentType = 'business-growth' | 'operations' | 'people-finance';
 
@@ -22,18 +22,18 @@ export interface LLMResponse {
   };
 }
 
-// Map agent types to their corresponding API keys
+// Map agent types to their corresponding Groq API keys
 function getAgentAPIKey(agentType: AgentType): string {
   const keyMap: Record<AgentType, string | undefined> = {
-    'business-growth': process.env.OPENROUTER_API_KEY1,
-    'operations': process.env.OPENROUTER_API_KEY2,
-    'people-finance': process.env.OPENROUTER_API_KEY3
+    'business-growth': process.env.GROQ_API_KEY1,
+    'operations': process.env.GROQ_API_KEY2,
+    'people-finance': process.env.GROQ_API_KEY3
   };
 
   const key = keyMap[agentType];
   if (!key) {
     console.error(`No API key found for agent type: ${agentType}`);
-    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENROUTER_API_KEY')).join(', ')}`);
+    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('GROQ_API_KEY')).join(', ')}`);
     throw new Error(`No API key configured for agent type: ${agentType}`);
   }
   
@@ -41,11 +41,11 @@ function getAgentAPIKey(agentType: AgentType): string {
   return key;
 }
 
-// Main LLM call function using OpenRouter API
+// Main LLM call function using Groq API directly
 export async function callAgentLLM(
   agentType: AgentType,
   messages: LLMMessage[],
-  model: string = 'meta-llama/llama-3.1-8b-instruct'
+  model: string = 'llama3-8b-8192'
 ): Promise<LLMResponse> {
   const agentKey = getAgentAPIKey(agentType);
   
@@ -53,13 +53,12 @@ export async function callAgentLLM(
     throw new Error(`API key not found for agent type: ${agentType}`);
   }
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${agentKey}`,
-      'HTTP-Referer': process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'http://localhost:5000',
-      'X-Title': 'Replivo Agent System'
+      'User-Agent': 'Replivo Agent System'
     },
     body: JSON.stringify({
       model,
@@ -105,7 +104,7 @@ export async function callBusinessGrowthAgent(
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('business-growth', messages, 'meta-llama/llama-3.1-8b-instruct');
+  const response = await callAgentLLM('business-growth', messages, 'llama3-8b-8192');
   return response.choices[0].message.content;
 }
 
@@ -124,7 +123,7 @@ export async function callOperationsAgent(
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('operations', messages, 'meta-llama/llama-3.1-8b-instruct');
+  const response = await callAgentLLM('operations', messages, 'llama3-8b-8192');
   return response.choices[0].message.content;
 }
 
@@ -202,6 +201,6 @@ I protect your financial and employee data while helping you manage these critic
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('people-finance', messages, 'meta-llama/llama-3.1-8b-instruct');
+  const response = await callAgentLLM('people-finance', messages, 'llama3-8b-8192');
   return response.choices[0].message.content;
 }
