@@ -762,6 +762,24 @@ export class MemStorage implements IStorage {
       this.actionNotifications.set(notificationId, notification);
     }
   }
+
+  async addTaskExecution(execution: InsertTaskExecution): Promise<TaskExecution> {
+    const newExecution: TaskExecution = {
+      id: randomUUID(),
+      ...execution,
+      createdAt: new Date().toISOString()
+    };
+    this.taskExecutions.set(newExecution.id, newExecution);
+    return newExecution;
+  }
+
+  async getTaskExecutions(userId: string, limit: number = 50): Promise<TaskExecution[]> {
+    const executions = Array.from(this.taskExecutions.values());
+    return executions
+      .filter(e => e.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+  }
 }
 
 export const storage = new MemStorage();

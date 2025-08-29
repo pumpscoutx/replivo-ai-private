@@ -14,6 +14,7 @@ import {
 } from "./llmClient";
 import { DeviceScanner } from "./device-scanner";
 import { ExtensionWebSocketServer } from "./websocket-server";
+import { TaskExecutor } from "./task-executor";
 
 // Global WebSocket server instance
 let extensionWS: ExtensionWebSocketServer | null = null;
@@ -737,15 +738,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (command) {
           try {
-            const success = extensionWS ? await extensionWS.sendCommand(userId, command) : false;
-            if (success) {
-              executed = true;
-              cleanResponse += `\n\n✅ **Executing:** ${executionStatus}`;
+            // Use the new task executor for proper execution
+            if (extensionWS) {
+              const taskExecutor = new TaskExecutor(extensionWS);
+              
+              // Convert the command to a natural language task
+              let taskDescription = '';
+              if (command.capability === 'compose_email') {
+                taskDescription = `Send email to ${command.args.recipient} with subject "${command.args.subject}"`;
+              } else if (command.capability === 'open_url') {
+                taskDescription = `Open ${command.args.url}`;
+              }
+              
+              if (taskDescription) {
+                await taskExecutor.executeNaturalLanguageTask(taskDescription, userId);
+                executed = true;
+                cleanResponse += `\n\n✅ **Task executed successfully:** ${executionStatus}`;
+              } else {
+                cleanResponse += `\n\n⚠️ **Task execution failed:** Unable to convert command to task.`;
+              }
             } else {
               cleanResponse += `\n\n⚠️ **Extension not connected.** Please pair your browser extension first.`;
             }
           } catch (error) {
             console.error('Command execution error:', error);
+            cleanResponse += `\n\n❌ **Execution failed:** ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         }
       }
@@ -1160,6 +1177,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Pending actions error:', error);
       res.status(500).json({ error: 'Failed to fetch pending actions' });
+    }
+  });
+
+  // Natural language task execution
+  const executeTaskSchema = z.object({
+    task: z.string().min(1, "Task description is required"),
+    userId: z.string().default("demo-user"),
+    context: z.string().optional(),
+    agentType: z.enum(['business-growth', 'operations', 'people-finance']).optional()
+  });
+
+  app.post("/api/tasks/execute", async (req, res) => {
+    try {
+      const validatedData = executeTaskSchema.parse(req.body);
+      const { task, userId, context, agentType } = validatedData;
+
+      if (!extensionWS) {
+        return res.status(500).json({ 
+          error: 'WebSocket server not initialized',
+          success: false 
+        });
+      }
+
+      // Create task executor instance
+      const taskExecutor = new TaskExecutor(extensionWS);
+
+      console.log(`Executing natural language task: "${task}" for user: ${userId}`);
+
+      // Execute the task
+      const taskPlan = await taskExecutor.executeNaturalLanguageTask(task, userId, context);
+
+      // Store task execution in database
+      await storage.addTaskExecution({
+        userId,
+        agentType: agentType || 'business-growth',
+        subAgent: 'Task Executor',
+        task,
+        context: context || '',
+        response: JSON.stringify(taskPlan),
+        status: 'completed',
+        executedAt: new Date().toISOString()
+      });
+
+      res.json({
+        success: true,
+        taskPlan,
+        message: `Task executed successfully: ${taskPlan.description}`,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Task execution error:', error);
+      res.status(500).json({ 
+        error: 'Failed to execute task',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false 
+      });
+    }
+  });
+
+  // Quick task execution endpoints
+  app.post("/api/tasks/send-email", async (req, res) => {
+    try {
+      const { recipient, subject, body, userId = "demo-user" } = req.body;
+
+      if (!recipient || !subject || !body) {
+        return res.status(400).json({ 
+          error: 'Recipient, subject, and body are required',
+          success: false 
+        });
+      }
+
+      if (!extensionWS) {
+        return res.status(500).json({ 
+          error: 'WebSocket server not initialized',
+          success: false 
+        });
+      }
+
+      const taskExecutor = new TaskExecutor(extensionWS);
+      await taskExecutor.sendEmail(recipient, subject, body, userId);
+
+      res.json({
+        success: true,
+        message: `Email sent to ${recipient}`,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Email sending error:', error);
+      res.status(500).json({ 
+        error: 'Failed to send email',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false 
+      });
+    }
+  });
+
+  app.post("/api/tasks/open-website", async (req, res) => {
+    try {
+      const { url, userId = "demo-user" } = req.body;
+
+      if (!url) {
+        return res.status(400).json({ 
+          error: 'URL is required',
+          success: false 
+        });
+      }
+
+      if (!extensionWS) {
+        return res.status(500).json({ 
+          error: 'WebSocket server not initialized',
+          success: false 
+        });
+      }
+
+      const taskExecutor = new TaskExecutor(extensionWS);
+      await taskExecutor.openWebsite(url, userId);
+
+      res.json({
+        success: true,
+        message: `Website opened: ${url}`,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Website opening error:', error);
+      res.status(500).json({ 
+        error: 'Failed to open website',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false 
+      });
+    }
+  });
+
+  // Get task execution history
+  app.get("/api/tasks/history", async (req, res) => {
+    try {
+      const { userId = "demo-user", limit = 10 } = req.query;
+
+      if (!extensionWS) {
+        return res.status(500).json({ 
+          error: 'WebSocket server not initialized',
+          success: false 
+        });
+      }
+
+      const taskExecutor = new TaskExecutor(extensionWS);
+      const history = taskExecutor.getExecutionHistory(userId as string, Number(limit));
+
+      res.json({
+        success: true,
+        history,
+        count: history.length,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error getting execution history:', error);
+      res.status(500).json({ 
+        error: 'Failed to get execution history',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false 
+      });
+    }
+  });
+
+  // Get specific task execution
+  app.get("/api/tasks/execution/:executionId", async (req, res) => {
+    try {
+      const { executionId } = req.params;
+
+      if (!extensionWS) {
+        return res.status(500).json({ 
+          error: 'WebSocket server not initialized',
+          success: false 
+        });
+      }
+
+      const taskExecutor = new TaskExecutor(extensionWS);
+      const execution = taskExecutor.getExecution(executionId);
+
+      if (!execution) {
+        return res.status(404).json({ 
+          error: 'Execution not found',
+          success: false 
+        });
+      }
+
+      res.json({
+        success: true,
+        execution,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error getting execution:', error);
+      res.status(500).json({ 
+        error: 'Failed to get execution',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false 
+      });
     }
   });
 

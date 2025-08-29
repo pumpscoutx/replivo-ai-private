@@ -1,0 +1,7 @@
+@echo off
+set OPENAI_API_KEY1=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
+set OPENAI_API_KEY2=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
+set OPENAI_API_KEY3=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
+set JWT_SECRET=dev-secret-key-for-development
+set NODE_ENV=development
+npm run dev 

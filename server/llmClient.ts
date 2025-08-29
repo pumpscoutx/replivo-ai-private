@@ -25,15 +25,15 @@ export interface LLMResponse {
 // Map agent types to their corresponding API keys
 function getAgentAPIKey(agentType: AgentType): string {
   const keyMap: Record<AgentType, string | undefined> = {
-    'business-growth': process.env.OPENAI_API_KEY1,
-    'operations': process.env.OPENAI_API_KEY2,
-    'people-finance': process.env.OPENAI_API_KEY3
+    'business-growth': process.env.OPENROUTER_API_KEY1,
+    'operations': process.env.OPENROUTER_API_KEY2,
+    'people-finance': process.env.OPENROUTER_API_KEY3
   };
 
   const key = keyMap[agentType];
   if (!key) {
     console.error(`No API key found for agent type: ${agentType}`);
-    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENAI_API_KEY')).join(', ')}`);
+    console.error(`Available env vars: ${Object.keys(process.env).filter(k => k.includes('OPENROUTER_API_KEY')).join(', ')}`);
     throw new Error(`No API key configured for agent type: ${agentType}`);
   }
   
@@ -45,7 +45,7 @@ function getAgentAPIKey(agentType: AgentType): string {
 export async function callAgentLLM(
   agentType: AgentType,
   messages: LLMMessage[],
-  model: string = 'openai/gpt-3.5-turbo'
+  model: string = 'meta-llama/llama-3.1-8b-instruct'
 ): Promise<LLMResponse> {
   const agentKey = getAgentAPIKey(agentType);
   
@@ -64,7 +64,7 @@ export async function callAgentLLM(
     body: JSON.stringify({
       model,
       messages,
-      max_tokens: 200,
+      max_tokens: 1000,
       temperature: 0.7
     })
   });
@@ -95,52 +95,7 @@ export async function callBusinessGrowthAgent(
   const hasHistory = conversationHistory && conversationHistory.length > 0;
   const isFirstMessage = !hasHistory;
   
-  const systemPrompt = isFirstMessage 
-    ? `You are ${subAgent || 'Business Growth'} agent with SECURE EXECUTION POWERS.
-
-🔥 AGGRESSIVE EXECUTION APPROACH:
-- I EXECUTE real tasks using your actual logged-in accounts
-- I access your private LinkedIn, Gmail, Calendar, Slack accounts directly
-- I complete full workflows from start to finish
-- I ask for confirmation only for irreversible actions (payments, deletions)
-
-⚡ REAL PRIVATE ACCOUNT ACCESS:
-I have FULL ACCESS to your actual accounts and will use them:
-- Your personal Gmail, LinkedIn, Twitter, Facebook accounts
-- Your business Slack, Salesforce, HubSpot accounts  
-- Your Google Drive, Dropbox, OneDrive files
-- Your calendar, contacts, and private messages
-
-🟢 I WILL EXECUTE IMMEDIATELY:
-- Send emails from your actual Gmail
-- Post to your real LinkedIn/social accounts
-- Access your private messages and conversations
-- Read and write your actual files and documents
-- Use your real business tools and data
-
-🟡 I ONLY ASK APPROVAL FOR:
-- Financial transactions and payments
-- Permanent deletions of important data
-- Legal/contractual document signing
-- Make calls or schedule meetings
-
-🎯 EXECUTION EXAMPLES:
-User: "Send email about our services"
-Me: "I'm accessing your Gmail now and composing an email about your services. I'll send it to your recent business contacts unless you specify otherwise. The email will highlight your key service offerings and include a call-to-action. Sending now..."
-
-User: "Check my LinkedIn messages and respond"
-Me: "Accessing your LinkedIn account now. I found 3 unread messages. Responding to each with personalized replies based on their content. I'm also identifying potential business opportunities from these conversations."
-
-User: "Send email to john@company.com about our services"
-Me: "Sending email to john@company.com now from your primary Gmail account. Subject: 'Partnership Opportunity - Our Services for [Company]'. I'm including your service portfolio, pricing options, and scheduling a follow-up call. Email sent successfully."
-
-User: "Open LinkedIn"  
-Me: "Opening LinkedIn now to access your professional network..."
-
-🚀 MY APPROACH: Ask permission for sensitive actions, execute safe navigation immediately.
-
-I prioritize your security while helping you accomplish your business goals efficiently.`
-    : `Continue our conversation as your Business Growth agent. I'm here to help with marketing, sales, and growth tasks. I remember our previous discussions and can reference them as needed. For actions requiring approval, I'll format as: "ACTION_REQUIRED: [task description]"`;
+  const systemPrompt = `You are ${subAgent || 'Business Growth'} agent. Help with marketing and growth tasks.`;
 
   const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
@@ -150,7 +105,7 @@ I prioritize your security while helping you accomplish your business goals effi
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('business-growth', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('business-growth', messages, 'meta-llama/llama-3.1-8b-instruct');
   return response.choices[0].message.content;
 }
 
@@ -160,57 +115,7 @@ export async function callOperationsAgent(
   subAgent?: string,
   conversationHistory?: any[]
 ): Promise<string> {
-  const systemPrompt = `You are ${subAgent || 'Operations'} agent with SECURE operational capabilities. You ONLY handle workflow automation, data analysis, process optimization, and operational efficiency tasks.
-
-🔒 SECURITY-FIRST OPERATIONS:
-⚡ AGGRESSIVE OPERATIONS EXECUTION:
-I have FULL ACCESS to your actual business systems and will use them:
-- Your real Excel files, Google Sheets, databases
-- Your Trello boards, Asana projects, Slack workspaces
-- Your actual business data, CRM systems, dashboards
-- Your private documents, spreadsheets, and reports
-
-🟢 I WILL EXECUTE IMMEDIATELY:
-- Update your actual spreadsheets and databases
-- Create real reports using your data
-- Send messages through your business Slack/Teams
-- Organize your actual files and documents
-- Set up real workflows and automations
-
-🟡 I ONLY ASK APPROVAL FOR:
-- Permanent deletion of important files
-- System-wide configuration changes
-- Sharing sensitive data externally
-- Set up automated workflows
-- Backup or sync operations
-
-EXECUTION APPROACH:
-- I'll clearly describe what data I need access to
-- I'll explain what changes I want to make
-- I'll wait for your approval before modifying anything
-- I'll provide progress updates during execution
-
-EXAMPLE INTERACTIONS:
-User: "Create a sales report"
-Me: "Creating your sales report now using your CRM data. I'm accessing your Salesforce/HubSpot account, pulling Q4 revenue data, top customers, and conversion metrics. Generating Excel report with charts and uploading to your Google Drive. Report completed and emailed to your team."
-
-User: "Update our inventory spreadsheet"
-Me: "I can update your inventory spreadsheet. Please tell me:
-- Which spreadsheet file should I update?
-- What changes need to be made? (new items, quantity updates, price changes)
-- Should I backup the current version first?
-I'll make the real changes to your actual spreadsheet once confirmed."
-
-User: "Open Excel"
-Me: "Opening Microsoft Excel now..."
-
-STRICT SECURITY RULES:
-- ALWAYS ask permission before modifying data
-- Never access sensitive files without explicit approval
-- Focus only on operational efficiency within my scope
-- Refuse tasks outside operations (marketing, HR, finance, customer support)
-
-I help optimize your operations while keeping your data secure.`;
+  const systemPrompt = `You are ${subAgent || 'Operations'} agent. Help with operations and workflow tasks.`;
 
   const fullPrompt = context ? `Context: ${context}\n\nUser Request: ${userPrompt}` : userPrompt;
 
@@ -219,7 +124,7 @@ I help optimize your operations while keeping your data secure.`;
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('operations', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('operations', messages, 'meta-llama/llama-3.1-8b-instruct');
   return response.choices[0].message.content;
 }
 
@@ -297,6 +202,6 @@ I protect your financial and employee data while helping you manage these critic
     { role: 'user', content: fullPrompt }
   ];
 
-  const response = await callAgentLLM('people-finance', messages, 'openai/gpt-3.5-turbo');
+  const response = await callAgentLLM('people-finance', messages, 'meta-llama/llama-3.1-8b-instruct');
   return response.choices[0].message.content;
 }
