@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Message {
   id: string;
@@ -28,7 +29,7 @@ export default function AgentRecommender() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -39,28 +40,84 @@ export default function AgentRecommender() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputValue;
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      // Call the agent advisor API
+      const response = await apiRequest("POST", "/api/agents/advisor", {
+        query: messageToSend,
+        userId: "demo-user"
+      });
+
+      const responseData = await response.json();
+
+      if (responseData.success) {
+        const botResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: responseData.advice,
+          isBot: true,
+          timestamp: new Date(),
+          suggestions: [
+            {
+              title: "Business Growth Agent",
+              description: "Scale your revenue with smart automation and lead generation.",
+              agentId: "business-growth"
+            },
+            {
+              title: "Operations Agent",
+              description: "Streamline workflows and boost efficiency with process automation.",
+              agentId: "operations"
+            },
+            {
+              title: "People & Finance Agent",
+              description: "Manage teams and finances effortlessly with AI assistance.",
+              agentId: "people-finance"
+            }
+          ]
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      } else {
+        // Fallback response
+        const botResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "I understand you're looking for AI agents to help with your business. Based on your needs, I recommend starting with our Business Growth Agent bundle, which includes specialized sub-agents for lead generation, sales qualification, and campaign management.",
+          isBot: true,
+          timestamp: new Date(),
+          suggestions: [
+            {
+              title: "Business Growth Agent",
+              description: "Scale your revenue with smart automation and lead generation.",
+              agentId: "business-growth"
+            }
+          ]
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      }
+    } catch (error) {
+      console.error("Agent advisor error:", error);
+      // Fallback response on error
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Perfect! Based on your needs, I recommend the Marketing Agent bundle. It includes:",
+        text: "I understand you're looking for AI agents to help with your business. Based on your needs, I recommend starting with our Business Growth Agent bundle, which includes specialized sub-agents for lead generation, sales qualification, and campaign management.",
         isBot: true,
         timestamp: new Date(),
         suggestions: [
           {
-            title: "Marketing Agent",
-            description: "Complete marketing automation with content creation, social media management, and analytics reporting.",
-            agentId: "marketing-agent"
+            title: "Business Growth Agent",
+            description: "Scale your revenue with smart automation and lead generation.",
+            agentId: "business-growth"
           }
         ]
       };
       
       setMessages(prev => [...prev, botResponse]);
+    } finally {
       setIsTyping(false);
-    }, 2000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -167,7 +224,7 @@ export default function AgentRecommender() {
                               size="sm" 
                               className="bg-primary text-white"
                             >
-                              <Link href="/">View Agent</Link>
+                              <Link href={`/agent/${suggestion.agentId}`}>View Agent</Link>
                             </Button>
                           </motion.div>
                         ))}

@@ -9,12 +9,14 @@ import CustomAgent from "@/pages/custom-agent";
 import AgentDetails from "@/pages/agent-details";
 import AgentHiring from "@/pages/agent-hiring";
 import Dashboard from "@/pages/dashboard";
+import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/custom-agent" component={CustomAgent} />
       <Route path="/agent/:id" component={AgentDetails} />

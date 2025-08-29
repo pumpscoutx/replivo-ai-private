@@ -7,11 +7,12 @@ import Footer from "@/components/layout/footer";
 import BackgroundEffects from "@/components/background-effects";
 import CursorEffects from "@/components/cursor-effects";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { Agent } from "@shared/schema";
 import { COMPANY_LOGOS } from "@/lib/constants";
 
 export default function Home() {
+  const [, setLocation] = useLocation();
   const { data: featuredAgents, isLoading } = useQuery<Agent[]>({
     queryKey: ["/api/agents/featured"]
   });
@@ -85,18 +86,19 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 <Button 
-                  onClick={scrollToAgents}
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-4 rounded-lg font-neiko font-bold text-lg transition-all transform hover:scale-105 shadow-xl border border-gray-700"
+                  onClick={() => setLocation("/login")}
+                  className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-lg font-neiko font-bold text-lg transition-all transform hover:scale-105 shadow-xl border border-blue-500"
                 >
                   <i className="fas fa-rocket mr-2"></i>
-                  BROWSE AGENTS
+                  GET STARTED
                 </Button>
                 <Button 
+                  onClick={scrollToAgents}
                   variant="outline"
                   className="border-2 border-gray-600 text-gray-300 hover:bg-gray-800/50 backdrop-blur-md px-8 py-4 rounded-lg font-neiko font-bold text-lg transition-all"
                 >
-                  <i className="fas fa-play mr-2"></i>
-                  WATCH DEMO
+                  <i className="fas fa-eye mr-2"></i>
+                  VIEW AGENTS
                 </Button>
               </motion.div>
 

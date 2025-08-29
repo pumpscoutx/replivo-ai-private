@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { deviceToolsRouter } from "./routes/device-tools";
@@ -16,11 +16,58 @@ import { DeviceScanner } from "./device-scanner";
 import { ExtensionWebSocketServer } from "./websocket-server";
 import { TaskExecutor } from "./task-executor";
 
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
+  }
+}
+
 // Global WebSocket server instance
 let extensionWS: ExtensionWebSocketServer | null = null;
 
 export function setExtensionWebSocketServer(ws: ExtensionWebSocketServer) {
   extensionWS = ws;
+}
+
+// User authentication and management
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  createdAt: Date;
+  lastLogin: Date;
+  googleId?: string;
+}
+
+// In-memory user storage (replace with database in production)
+const users = new Map<string, User>();
+const sessions = new Map<string, { userId: string; expires: Date }>();
+
+// Authentication middleware
+function authenticateUser(req: any, res: any, next: any) {
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.sessionToken;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const session = sessions.get(token);
+  if (!session || session.expires < new Date()) {
+    sessions.delete(token);
+    return res.status(401).json({ error: 'Session expired' });
+  }
+  
+  const user = users.get(session.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+  
+  req.user = user;
+  next();
 }
 
 // Helper functions for device control
@@ -657,9 +704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createConversationHistory({
           userId,
           agentType,
-          conversationId: conversationId || Date.now().toString(),
+          conversationId: conversationId || `conv_${Date.now()}`,
           messages: newMessages,
-          context: `lastInteraction: ${new Date().toISOString()}`
+          context: { lastInteraction: new Date().toISOString() } as any
         });
       }
 
@@ -775,7 +822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actionDescription,
         executed,
         executionStatus,
-        conversationId: conversationId || Date.now().toString(),
+        conversationId: conversationId || `conv_${Date.now()}`,
         timestamp: new Date().toISOString()
       });
 
@@ -1378,6 +1425,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: 'Failed to get execution',
         details: error instanceof Error ? error.message : 'Unknown error',
         success: false 
+      });
+    }
+  });
+
+  // Authentication routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+      
+      if (!email || !password || !name) {
+        return res.status(400).json({ error: 'Email, password, and name are required' });
+      }
+      
+      // Check if user already exists
+      const existingUser = Array.from(users.values()).find(u => u.email === email);
+      if (existingUser) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+      
+      // Create new user
+      const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const user: User = {
+        id: userId,
+        email,
+        name,
+        createdAt: new Date(),
+        lastLogin: new Date()
+      };
+      
+      users.set(userId, user);
+      
+      // Create session
+      const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessions.set(sessionToken, {
+        userId,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      });
+      
+      res.cookie('sessionToken', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+      
+      res.json({
+        success: true,
+        user: { id: user.id, email: user.email, name: user.name },
+        sessionToken
+      });
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Registration failed' });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+      
+      // Find user (in production, verify password hash)
+      const user = Array.from(users.values()).find(u => u.email === email);
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // Update last login
+      user.lastLogin = new Date();
+      users.set(user.id, user);
+      
+      // Create session
+      const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessions.set(sessionToken, {
+        userId: user.id,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      });
+      
+      res.cookie('sessionToken', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+      
+      res.json({
+        success: true,
+        user: { id: user.id, email: user.email, name: user.name },
+        sessionToken
+      });
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+
+  app.post("/api/auth/google", async (req, res) => {
+    try {
+      const { googleId, email, name, avatar } = req.body;
+      
+      if (!googleId || !email || !name) {
+        return res.status(400).json({ error: 'Google ID, email, and name are required' });
+      }
+      
+      // Find existing user or create new one
+      let user = Array.from(users.values()).find(u => u.googleId === googleId || u.email === email);
+      
+      if (!user) {
+        // Create new user
+        const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        user = {
+          id: userId,
+          email,
+          name,
+          avatar,
+          googleId,
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+        users.set(userId, user);
+      } else {
+        // Update existing user
+        user.lastLogin = new Date();
+        user.googleId = googleId;
+        user.avatar = avatar;
+        users.set(user.id, user);
+      }
+      
+      // Create session
+      const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessions.set(sessionToken, {
+        userId: user.id,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      });
+      
+      res.cookie('sessionToken', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+      
+      res.json({
+        success: true,
+        user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar },
+        sessionToken
+      });
+      
+    } catch (error) {
+      console.error('Google auth error:', error);
+      res.status(500).json({ error: 'Google authentication failed' });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.sessionToken;
+    if (token) {
+      sessions.delete(token);
+    }
+    
+    res.clearCookie('sessionToken');
+    res.json({ success: true });
+  });
+
+  app.get("/api/auth/me", authenticateUser, (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    
+    res.json({
+      success: true,
+      user: { 
+        id: req.user.id, 
+        email: req.user.email, 
+        name: req.user.name, 
+        avatar: req.user.avatar 
+      }
+    });
+  });
+
+  // Agent advisor endpoint
+  app.post("/api/agents/advisor", async (req, res) => {
+    try {
+      const { query, userId = "demo-user" } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Query is required' });
+      }
+
+      // Use the business growth agent to provide advice
+      const response = await callBusinessGrowthAgent(query, userId);
+      
+      res.json({
+        success: true,
+        advice: response,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Agent advisor error:', error);
+      res.status(500).json({ 
+        error: 'Failed to get advice',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

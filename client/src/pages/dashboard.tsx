@@ -50,9 +50,9 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState(0);
   const [connectedAgents] = useState([
-    { id: 'business-growth', name: 'Business Growth', status: 'active', tasksToday: 8 },
-    { id: 'operations', name: 'Operations', status: 'active', tasksToday: 12 },
-    { id: 'customer-support', name: 'Customer Support', status: 'active', tasksToday: 15 }
+    { id: 'business-growth', name: 'Business Growth', status: 'active', tasksToday: 8, color: 'blue' },
+    { id: 'operations', name: 'Operations', status: 'active', tasksToday: 12, color: 'green' },
+    { id: 'people-finance', name: 'People & Finance', status: 'active', tasksToday: 15, color: 'purple' }
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wsConnected, setWsConnected] = useState(false);
@@ -161,6 +161,29 @@ export default function Dashboard() {
       }
     };
   }, [extensionStatus?.paired]);
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      agentId: 'user',
+      agentName: 'You',
+      content: newMessage,
+      timestamp: new Date(),
+      type: 'message'
+    };
+    setMessages(prev => [...prev, userMessage]);
+    const messageToSend = newMessage;
+    setNewMessage('');
+
+    // Send to agent
+    chatMutation.mutate({
+      agentType: selectedAgent,
+      message: messageToSend
+    });
+  };
 
   const handleWebSocketMessage = (data: any) => {
     switch (data.type) {
@@ -424,6 +447,8 @@ export default function Dashboard() {
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'agents', label: 'My Agents', icon: Users },
+    { id: 'chat', label: 'Agent Chat', icon: MessageCircle },
+    { id: 'configure', label: 'Configure', icon: Settings },
     { id: 'approvals', label: 'Approvals', icon: CheckSquare, badge: pendingApprovals },
     { id: 'history', label: 'Task History', icon: History },
     { id: 'reports', label: 'Reports', icon: TrendingUp },
@@ -436,6 +461,10 @@ export default function Dashboard() {
         return renderOverview();
       case 'agents':
         return renderAgents();
+      case 'chat':
+        return renderChat();
+      case 'configure':
+        return renderConfigure();
       case 'approvals':
         return renderApprovals();
       case 'history':
@@ -710,14 +739,265 @@ export default function Dashboard() {
               </div>
               
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1 border-gray-600">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1 border-gray-600 hover:bg-gray-800"
+                  onClick={() => setActiveView('configure')}
+                >
                   <Settings className="w-3 h-3 mr-1" />
                   Configure
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1 border-gray-600">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1 border-gray-600 hover:bg-gray-800"
+                  onClick={() => {
+                    setSelectedAgent(agent.id);
+                    setActiveView('chat');
+                  }}
+                >
                   <MessageCircle className="w-3 h-3 mr-1" />
                   Chat
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChat = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Agent Chat</h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsVoiceChatEnabled(!isVoiceChatEnabled)}
+            className={`border-gray-600 ${isVoiceChatEnabled ? 'bg-blue-600 text-white' : 'text-gray-300'}`}
+          >
+            {isVoiceChatEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Agent Selection */}
+        <div className="lg:col-span-1">
+          <Card className="bg-gray-900 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Select Agent</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {connectedAgents.map((agent) => (
+                  <Button
+                    key={agent.id}
+                    variant={selectedAgent === agent.id ? "default" : "outline"}
+                    className={`w-full justify-start ${
+                      selectedAgent === agent.id 
+                        ? 'bg-blue-600 text-white' 
+                        : 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                    }`}
+                    onClick={() => setSelectedAgent(agent.id)}
+                  >
+                    <Avatar className="w-6 h-6 mr-2">
+                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                        {agent.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    {agent.name}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chat Interface */}
+        <div className="lg:col-span-3">
+          <Card className="bg-gray-900 border-gray-700 h-[600px] flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                Chat with {connectedAgents.find(a => a.id === selectedAgent)?.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
+              {/* Messages */}
+              <ScrollArea className="flex-1 mb-4">
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.agentId === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] p-3 rounded-lg ${
+                          message.agentId === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-800 text-gray-300'
+                        }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {formatTimeAgo(message.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+
+              {/* Input */}
+              <div className="flex gap-2">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 bg-gray-800 border-gray-600 text-white"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newMessage.trim()) {
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim() || chatMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderConfigure = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Agent Configuration</h2>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Settings className="w-4 h-4 mr-2" />
+          Save Changes
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {connectedAgents.map((agent) => (
+          <Card key={agent.id} className="bg-gray-900 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-blue-600 text-white">
+                    {agent.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                {agent.name} Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Auto-approval settings */}
+              <div>
+                <h4 className="text-white font-medium mb-3">Auto-Approval Settings</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div>
+                      <p className="text-white text-sm">Email Communications</p>
+                      <p className="text-gray-400 text-xs">Auto-approve email sending</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Always Allow
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div>
+                      <p className="text-white text-sm">Social Media Posts</p>
+                      <p className="text-gray-400 text-xs">Auto-approve social media content</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                    >
+                      Ask First
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div>
+                      <p className="text-white text-sm">Financial Transactions</p>
+                      <p className="text-gray-400 text-xs">Auto-approve payments under $50</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                    >
+                      Ask First
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Working hours */}
+              <div>
+                <h4 className="text-white font-medium mb-3">Working Hours</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-gray-400 text-sm">Start Time</label>
+                    <Input
+                      type="time"
+                      defaultValue="09:00"
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm">End Time</label>
+                    <Input
+                      type="time"
+                      defaultValue="17:00"
+                      className="bg-gray-800 border-gray-600 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification settings */}
+              <div>
+                <h4 className="text-white font-medium mb-3">Notifications</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 text-sm">Task completions</span>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                      Enabled
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 text-sm">Approval requests</span>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                      Enabled
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 text-sm">Error alerts</span>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                      Enabled
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -11,9 +11,10 @@ interface SubAgentCardProps {
   subAgent: SubAgent;
   onAdd?: (subAgent: SubAgent) => void;
   showAddButton?: boolean;
+  onShowCapabilities?: (subAgent: SubAgent) => void;
 }
 
-export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }: SubAgentCardProps) {
+export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, onShowCapabilities }: SubAgentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [sandboxOpen, setSandboxOpen] = useState(false);
@@ -279,17 +280,16 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }:
               Try Me
             </Button>
             
-            {showAddButton && (
-              <Button
-                data-testid={`button-add-${subAgent.name.toLowerCase().replace(' ', '-')}`}
-                onClick={() => onAdd?.(subAgent)}
-                size="sm"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
-              >
-                <span className="text-lg font-bold mr-1">+</span>
-                ${formatPrice(subAgent.price).replace('$', '')}/mo
-              </Button>
-            )}
+            <Button
+              data-testid={`button-capabilities-${subAgent.name.toLowerCase().replace(' ', '-')}`}
+              onClick={() => onShowCapabilities?.(subAgent)}
+              variant="outline"
+              size="sm"
+              className="flex-1 bg-gray-600/10 border-gray-600/30 text-gray-400 hover:bg-gray-600/20 hover:border-gray-500"
+            >
+              <Star className="w-3 h-3 mr-2" />
+              Capabilities
+            </Button>
             
             <Button
               data-testid={`button-hire-${subAgent.name.toLowerCase().replace(' ', '-')}`}
@@ -305,7 +305,7 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false }:
               disabled={!parentAgent}
             >
               <Zap className="w-3 h-3 mr-1" />
-              Hire
+              Hire Now
             </Button>
           </div>
         </div>

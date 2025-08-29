@@ -5,6 +5,7 @@ import { useRoute } from "wouter";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import SubAgentCard from "@/components/sub-agent-card";
+import CapabilitiesModal from "@/components/capabilities-modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Agent, SubAgent } from "@shared/schema";
@@ -12,6 +13,8 @@ import type { Agent, SubAgent } from "@shared/schema";
 export default function AgentDetails() {
   const [, params] = useRoute("/agent/:id");
   const [selectedSubAgents, setSelectedSubAgents] = useState<SubAgent[]>([]);
+  const [capabilitiesModalOpen, setCapabilitiesModalOpen] = useState(false);
+  const [selectedSubAgent, setSelectedSubAgent] = useState<SubAgent | null>(null);
   
   const { data: agent, isLoading } = useQuery<Agent>({
     queryKey: ["/api/agents", params?.id],
@@ -27,6 +30,84 @@ export default function AgentDetails() {
     agent?.subAgentIds?.includes(sa.id)
   ) || [];
 
+  // Define sub-agent capabilities and tasks
+  const getSubAgentCapabilities = (subAgentName: string) => {
+    const capabilities: Record<string, { tasks: string[], description: string, image: string }> = {
+      "Lead Generator": {
+        tasks: [
+          "Research potential leads from LinkedIn, company websites, and databases",
+          "Qualify leads based on company size, industry, and decision-making power",
+          "Create targeted lead lists with contact information",
+          "Track lead engagement and conversion rates",
+          "Generate lead scoring reports and analytics"
+        ],
+        description: "Automatically finds and qualifies high-value business leads",
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      },
+      "Sales Qualifier": {
+        tasks: [
+          "Conduct initial outreach via email and LinkedIn",
+          "Schedule discovery calls and meetings",
+          "Assess prospect needs and budget",
+          "Create qualification reports and handoff documentation",
+          "Track prospect responses and follow-up activities"
+        ],
+        description: "Qualifies prospects and schedules sales meetings",
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      },
+      "Campaign Manager": {
+        tasks: [
+          "Design and execute email marketing campaigns",
+          "A/B test subject lines and content",
+          "Monitor campaign performance metrics",
+          "Optimize send times and audience segmentation",
+          "Generate campaign reports and ROI analysis"
+        ],
+        description: "Manages marketing campaigns and optimizes performance",
+        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      },
+      "Analytics Specialist": {
+        tasks: [
+          "Track website traffic and conversion rates",
+          "Analyze customer behavior and user journeys",
+          "Create custom dashboards and reports",
+          "Identify growth opportunities and bottlenecks",
+          "Provide actionable insights and recommendations"
+        ],
+        description: "Provides deep analytics and actionable insights",
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      },
+      "Growth Hacker": {
+        tasks: [
+          "Implement viral marketing strategies",
+          "Optimize conversion funnels and landing pages",
+          "Run growth experiments and A/B tests",
+          "Scale successful marketing channels",
+          "Monitor and improve key growth metrics"
+        ],
+        description: "Implements growth strategies and optimizes conversions",
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      },
+      "Conversion Optimizer": {
+        tasks: [
+          "Analyze conversion rates across all touchpoints",
+          "Implement CRO strategies and best practices",
+          "Test different value propositions and CTAs",
+          "Optimize pricing and offer structures",
+          "Create conversion optimization roadmaps"
+        ],
+        description: "Optimizes conversion rates and revenue growth",
+        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+      }
+    };
+    
+    return capabilities[subAgentName] || {
+      tasks: ["Task automation", "Data processing", "Communication management"],
+      description: "Specialized AI agent for business automation",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=300"
+    };
+  };
+
   const handleAddSubAgent = (subAgent: SubAgent) => {
     setSelectedSubAgents(prev => {
       if (prev.find(sa => sa.id === subAgent.id)) {
@@ -34,6 +115,11 @@ export default function AgentDetails() {
       }
       return [...prev, subAgent];
     });
+  };
+
+  const handleShowCapabilities = (subAgent: SubAgent) => {
+    setSelectedSubAgent(subAgent);
+    setCapabilitiesModalOpen(true);
   };
 
   const isSubAgentSelected = (subAgentId: string) => {
@@ -198,11 +284,12 @@ export default function AgentDetails() {
                   className="relative"
                 >
                   <div className={`${isSubAgentSelected(subAgent.id) ? 'ring-2 ring-blue-500' : ''}`}>
-                    <SubAgentCard 
-                      subAgent={subAgent} 
-                      onAdd={handleAddSubAgent}
-                      showAddButton={true}
-                    />
+                                      <SubAgentCard 
+                    subAgent={subAgent} 
+                    onAdd={handleAddSubAgent}
+                    showAddButton={true}
+                    onShowCapabilities={handleShowCapabilities}
+                  />
                   </div>
                   {isSubAgentSelected(subAgent.id) && (
                     <motion.div
@@ -266,6 +353,14 @@ export default function AgentDetails() {
       </section>
 
       <Footer />
+
+      {/* Capabilities Modal */}
+      <CapabilitiesModal
+        isOpen={capabilitiesModalOpen}
+        onClose={() => setCapabilitiesModalOpen(false)}
+        subAgent={selectedSubAgent}
+        capabilities={selectedSubAgent ? getSubAgentCapabilities(selectedSubAgent.name) : undefined}
+      />
     </div>
   );
 }

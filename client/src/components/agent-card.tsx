@@ -99,18 +99,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         
-        {/* Companion Profile Picture */}
-        <motion.div 
-          className="absolute top-4 right-4 w-12 h-12 rounded-full border-3 border-white shadow-lg overflow-hidden"
-          animate={isHovered ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <img 
-            src={getCompanionImage(agent.name)}
-            alt="AI Companion"
-            className="w-full h-full object-cover"
-          />
-        </motion.div>
+
         
         {/* Featured Badge */}
         {agent.featured && (
@@ -158,28 +147,16 @@ export default function AgentCard({ agent }: AgentCardProps) {
           )}
         </AnimatePresence>
         
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center gap-3">
+        {/* Action Button */}
+        <div className="flex justify-center">
           <Button 
             asChild
-            variant="outline"
-            className="flex-1 border-2 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-lg font-neiko font-bold text-sm transition-all"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-neiko font-bold text-sm shadow-lg transition-all transform hover:scale-105 border border-blue-500"
           >
             <Link href={`/agent/${agent.id}`}>
               <i className="fas fa-eye mr-2"></i>
               VIEW AGENT
             </Link>
-          </Button>
-          
-          <Button 
-            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-neiko font-bold text-sm shadow-lg transition-all transform hover:scale-105 border border-gray-700"
-            onClick={() => {
-              // TODO: Implement hire flow with login check
-              console.log('Hire agent:', agent.name);
-            }}
-          >
-            <i className="fas fa-handshake mr-2"></i>
-            HIRE NOW
           </Button>
         </div>
       </div>
