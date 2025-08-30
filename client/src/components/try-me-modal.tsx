@@ -1,120 +1,41 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  X, 
-  Send, 
-  Star, 
-  MessageSquare, 
-  Target, 
-  Briefcase,
-  Play,
-  Eye
-} from "lucide-react";
-import type { Agent } from "@shared/schema";
+import { X, Send, MessageSquare, Zap, Star } from "lucide-react";
 
 interface TryMeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agent: Agent;
-  onHireNow: () => void;
+  agent: any;
+  capabilities: string[];
+  samplePrompts: string[];
+  onHire: () => void;
 }
 
-interface ChatMessage {
+interface Message {
   id: string;
   type: 'user' | 'agent';
   content: string;
   timestamp: Date;
 }
 
-export default function TryMeModal({ isOpen, onClose, agent, onHireNow }: TryMeModalProps) {
-  const getAgentIcon = (agentName: string) => {
-    const iconMap: { [key: string]: any } = {
-      "Content Creator": <Target className="w-6 h-6" />,
-      "Social Media Manager": <MessageSquare className="w-6 h-6" />,
-      "Business Assistant": <Briefcase className="w-6 h-6" />
-    };
-    return iconMap[agentName] || <Target className="w-6 h-6" />;
-  };
-
-  const getAgentColor = (agentName: string) => {
-    const colorMap: { [key: string]: string } = {
-      "Content Creator": "from-emerald-500 to-teal-600",
-      "Social Media Manager": "from-purple-500 to-pink-600",
-      "Business Assistant": "from-blue-500 to-indigo-600"
-    };
-    return colorMap[agentName] || "from-gray-500 to-gray-600";
-  };
-
-  const getAgentCapabilities = (agentName: string) => {
-    const capabilitiesMap: { [key: string]: string[] } = {
-      "Content Creator": ["Content Writing", "SEO Optimization", "Blog Posts", "Newsletters"],
-      "Social Media Manager": ["Post Scheduling", "Caption Writing", "Hashtag Generation", "Analytics"],
-      "Business Assistant": ["Email Drafting", "Document Summaries", "Report Generation", "Schedule Management"]
-    };
-    return capabilitiesMap[agentName] || ["AI Assistance", "Task Automation", "Content Creation"];
-  };
-
-  const [messages, setMessages] = useState<ChatMessage[]>([
+export default function TryMeModal({ isOpen, onClose, agent, capabilities, samplePrompts, onHire }: TryMeModalProps) {
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'agent',
-      content: `Hi! I'm your ${agent.name} AI assistant. I'm here to help you with ${getAgentCapabilities(agent.name).join(', ')}. What would you like to work on today?`,
+      content: `Hi! I'm your ${agent.name} AI assistant. I'm here to help you with ${capabilities.join(', ')}. What would you like to work on today?`,
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
-
-  const getSamplePrompts = (agentName: string) => {
-    const promptsMap: { [key: string]: string[] } = {
-      "Content Creator": [
-        "Write a blog post about AI in business",
-        "Create a product description for a tech gadget",
-        "Draft a newsletter for our company"
-      ],
-      "Social Media Manager": [
-        "Create a post for Instagram about our new product",
-        "Generate hashtags for a fitness campaign",
-        "Write a LinkedIn post about industry trends"
-      ],
-      "Business Assistant": [
-        "Draft a professional email to a client",
-        "Summarize this meeting transcript",
-        "Create a weekly report template"
-      ]
-    };
-    return promptsMap[agentName] || ["How can you help me?", "What are your capabilities?", "Show me an example"];
-  };
-
-  const formatRating = (rating: number) => {
-    return (rating / 10).toFixed(1);
-  };
-
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const fullStars = Math.floor(rating / 10);
-    const hasHalfStar = (rating % 10) >= 5;
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400/50 text-yellow-400" />);
-      } else {
-        stars.push(<Star key={i} className="w-4 h-4 text-gray-500" />);
-      }
-    }
-    return stars;
-  };
+  const [isTyping, setIsTyping] = useState(false);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
       content: inputValue,
@@ -127,38 +48,23 @@ export default function TryMeModal({ isOpen, onClose, agent, onHireNow }: TryMeM
 
     // Simulate AI response
     setTimeout(() => {
-      const agentResponse: ChatMessage = {
+      const responses = [
+        "I'd be happy to help with that! Let me create a comprehensive solution for you.",
+        "Great question! Here's how I can assist you with this task.",
+        "Perfect! I'll analyze this and provide you with the best approach.",
+        "Excellent! Let me break this down into actionable steps for you."
+      ];
+      
+      const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'agent',
-        content: getAgentResponse(inputValue, agent.name),
+        content: responses[Math.floor(Math.random() * responses.length)],
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, agentResponse]);
+
+      setMessages(prev => [...prev, agentMessage]);
       setIsTyping(false);
     }, 1500);
-  };
-
-  const getAgentResponse = (userInput: string, agentName: string) => {
-    const responses = {
-      "Content Creator": [
-        "I'd be happy to help you create engaging content! Based on your request, I can craft compelling copy that resonates with your audience and drives results.",
-        "Great idea! I can write SEO-optimized content that ranks well in search engines while maintaining readability and engagement.",
-        "Perfect! I'll create content that matches your brand voice and connects with your target audience."
-      ],
-      "Social Media Manager": [
-        "Excellent! I can help you create engaging social media content that builds your brand presence and drives engagement.",
-        "I'll craft posts that resonate with your audience and include trending hashtags to maximize reach.",
-        "Perfect! I can schedule your content and provide analytics to track performance."
-      ],
-      "Business Assistant": [
-        "I'm here to help streamline your business operations! I can draft professional communications and manage your tasks efficiently.",
-        "Great! I'll help you stay organized and productive with automated workflows and smart scheduling.",
-        "I can assist with document management, email drafting, and creating professional reports."
-      ]
-    };
-
-    const agentResponses = responses[agentName as keyof typeof responses] || responses["Business Assistant"];
-    return agentResponses[Math.floor(Math.random() * agentResponses.length)];
   };
 
   const handleSamplePrompt = (prompt: string) => {
@@ -169,220 +75,223 @@ export default function TryMeModal({ isOpen, onClose, agent, onHireNow }: TryMeM
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         >
+          {/* Backdrop */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="relative w-full max-w-4xl h-[80vh] bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden"
+            initial={{ scale: 0.9, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 50 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header */}
-            <div className={`p-6 bg-gradient-to-r ${getAgentColor(agent.name)} flex items-center justify-between`}>
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div className="flex items-center space-x-4">
-                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                  {getAgentIcon(agent.name)}
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{agent.name}</h2>
                   <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      {renderStars(agent.rating)}
+                    <div className="flex items-center">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(agent.rating / 10) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
+                      ))}
                     </div>
-                    <span className="text-white/80 text-sm">
-                      {formatRating(agent.rating)} ({agent.reviewCount} reviews)
-                    </span>
+                    <span className="text-sm text-gray-400">({agent.reviewCount} reviews)</span>
                   </div>
                 </div>
               </div>
               <Button
+                onClick={onClose}
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
-                className="text-white hover:bg-white/20"
+                className="text-gray-400 hover:text-white hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-700">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                  activeTab === 'chat' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 inline mr-2" />
-                Chat
-              </button>
-              <button
-                onClick={() => setActiveTab('capabilities')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                  activeTab === 'capabilities' 
-                    ? 'text-blue-400 border-b-2 border-blue-400' 
-                    : 'text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                <Target className="w-4 h-4 inline mr-2" />
-                Capabilities
-              </button>
-            </div>
-
             {/* Content */}
-            <div className="flex-1 overflow-hidden">
-              {activeTab === 'chat' && (
-                <div className="flex flex-col h-full">
-                  {/* Chat Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.type === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-800 text-gray-200'
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {message.timestamp.toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                    {isTyping && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex justify-start"
-                      >
-                        <div className="bg-gray-800 text-gray-200 p-3 rounded-lg">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
+            <div className="flex h-full">
+              {/* Chat Section */}
+              <div className="flex-1 flex flex-col">
+                {/* Tabs */}
+                <div className="flex border-b border-white/10">
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                      activeTab === 'chat' 
+                        ? 'text-cyan-400 border-b-2 border-cyan-400' 
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Chat
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('capabilities')}
+                    className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                      activeTab === 'capabilities' 
+                        ? 'text-cyan-400 border-b-2 border-cyan-400' 
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Capabilities
+                  </button>
+                </div>
 
-                  {/* Sample Prompts */}
-                  <div className="p-4 border-t border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">Try these examples:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {getSamplePrompts(agent.name).map((prompt, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSamplePrompt(prompt)}
-                          className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full transition-colors"
+                {/* Chat Messages */}
+                {activeTab === 'chat' && (
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                      {messages.map((message) => (
+                        <motion.div
+                          key={message.id}
+                          className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
                         >
-                          {prompt}
-                        </button>
+                          <div
+                            className={`max-w-[80%] p-4 rounded-2xl ${
+                              message.type === 'user'
+                                ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white'
+                                : 'bg-white/10 text-white border border-white/20'
+                            }`}
+                          >
+                            <p className="text-sm">{message.content}</p>
+                            <p className="text-xs opacity-70 mt-2">
+                              {message.timestamp.toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                      
+                      {isTyping && (
+                        <motion.div
+                          className="flex justify-start"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          <div className="bg-white/10 text-white border border-white/20 p-4 rounded-2xl">
+                            <div className="flex space-x-1">
+                              <motion.div
+                                className="w-2 h-2 bg-cyan-400 rounded-full"
+                                animate={{ scale: [1, 1.5, 1] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                              />
+                              <motion.div
+                                className="w-2 h-2 bg-cyan-400 rounded-full"
+                                animate={{ scale: [1, 1.5, 1] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                              />
+                              <motion.div
+                                className="w-2 h-2 bg-cyan-400 rounded-full"
+                                animate={{ scale: [1, 1.5, 1] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Sample Prompts */}
+                    <div className="p-4 border-t border-white/10">
+                      <p className="text-xs text-gray-400 mb-3">Try these prompts:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {samplePrompts.map((prompt, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleSamplePrompt(prompt)}
+                            className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300 hover:bg-white/10 hover:border-cyan-400/50 transition-all duration-300"
+                          >
+                            {prompt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input */}
+                    <div className="p-4 border-t border-white/10">
+                      <div className="flex space-x-3">
+                        <input
+                          type="text"
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                          placeholder="Ask me anything..."
+                          className="flex-1 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 transition-colors"
+                        />
+                        <Button
+                          onClick={handleSendMessage}
+                          disabled={!inputValue.trim() || isTyping}
+                          className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 disabled:opacity-50"
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Capabilities Tab */}
+                {activeTab === 'capabilities' && (
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {capabilities.map((capability, index) => (
+                        <motion.div
+                          key={capability}
+                          className="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-cyan-400/30 transition-all duration-300"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg flex items-center justify-center">
+                              <Zap className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-white font-medium">{capability}</span>
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
                   </div>
-
-                  {/* Input */}
-                  <div className="p-4 border-t border-gray-700">
-                    <div className="flex space-x-2">
-                      <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Type your message..."
-                        className="flex-1 bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400"
-                      />
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isTyping}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'capabilities' && (
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">What I can do for you:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {getAgentCapabilities(agent.name).map((capability, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-800 p-4 rounded-lg border border-gray-700"
-                      >
-                        <h4 className="font-medium text-white mb-2">{capability}</h4>
-                        <p className="text-sm text-gray-400">
-                          {getCapabilityDescription(capability, agent.name)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* Footer CTA */}
-            <div className="p-6 border-t border-gray-700 bg-gray-800/50">
-              <div className="flex space-x-3">
-                <Button
-                  onClick={onHireNow}
-                  className={`flex-1 bg-gradient-to-r ${getAgentColor(agent.name)} hover:opacity-90 text-white font-medium`}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Hire This Agent
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  View Full Profile
-                </Button>
-              </div>
+            {/* Floating CTA */}
+            <div className="absolute bottom-6 right-6 flex space-x-3">
+              <Button
+                onClick={onClose}
+                variant="outline"
+                className="bg-transparent border border-white/20 text-white hover:bg-white/10"
+              >
+                View Full Profile
+              </Button>
+              <Button
+                onClick={onHire}
+                className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 shadow-lg"
+              >
+                Hire This Agent →
+              </Button>
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-}
-
-function getCapabilityDescription(capability: string, agentName: string): string {
-  const descriptions: { [key: string]: { [key: string]: string } } = {
-    "Content Creator": {
-      "Content Writing": "Create engaging blog posts, articles, and web copy",
-      "SEO Optimization": "Optimize content for search engines and better rankings",
-      "Blog Posts": "Write compelling blog content that drives traffic",
-      "Newsletters": "Craft engaging email newsletters that convert"
-    },
-    "Social Media Manager": {
-      "Post Scheduling": "Schedule and publish posts across multiple platforms",
-      "Caption Writing": "Create engaging captions that drive engagement",
-      "Hashtag Generation": "Generate trending hashtags for maximum reach",
-      "Analytics": "Track performance and provide insights"
-    },
-    "Business Assistant": {
-      "Email Drafting": "Draft professional emails and responses",
-      "Document Summaries": "Summarize long documents and meetings",
-      "Report Generation": "Create comprehensive business reports",
-      "Schedule Management": "Manage calendars and set reminders"
-    }
-  };
-
-  return descriptions[agentName]?.[capability] || "AI-powered assistance for this task";
 } 
