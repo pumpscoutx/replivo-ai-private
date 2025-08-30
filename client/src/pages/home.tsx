@@ -6,6 +6,7 @@ import BackgroundEffects from "@/components/background-effects";
 import AgentCard from "@/components/agent-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 
 // Animated Typography Component
 const AnimatedText = ({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) => {
@@ -94,6 +95,16 @@ export default function Home() {
   const heroRef = useRef(null);
   const agentsRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Fetch featured agents
+  const { data: agents = [], isLoading: agentsLoading } = useQuery({
+    queryKey: ['agents', 'featured'],
+    queryFn: async () => {
+      const response = await fetch('/api/agents/featured');
+      if (!response.ok) throw new Error('Failed to fetch agents');
+      return response.json();
+    }
+  });
 
   // Scroll-based transforms
   const heroY = useTransform(scrollY, [0, 500], [0, -100]);
@@ -463,7 +474,7 @@ export default function Home() {
           </motion.div>
 
           {/* Loading Spinner */}
-          {!isLoaded && (
+          {agentsLoading && (
             <motion.div
               className="flex justify-center items-center py-20"
               initial={{ opacity: 0 }}
@@ -481,10 +492,19 @@ export default function Home() {
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
             initial={{ opacity: 0 }}
-            animate={{ opacity: isLoaded ? 1 : 0 }}
+            animate={{ opacity: isLoaded && !agentsLoading ? 1 : 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            {/* Agent cards will be rendered here */}
+            {agents.map((agent: any, index: number) => (
+              <motion.div
+                key={agent.id}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <AgentCard agent={agent} />
+              </motion.div>
+            ))}
           </motion.div>
 
           {/* CTA for Custom Agent */}

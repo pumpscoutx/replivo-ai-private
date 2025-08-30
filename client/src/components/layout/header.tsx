@@ -73,8 +73,8 @@ export default function Header() {
             </motion.span>
           </Link>
 
-          {/* Center Menu Items */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Center Menu Items - Small Font Navigation */}
+          <div className="hidden md:flex items-center space-x-2">
             {menuItems.map((item, index) => (
               <motion.div
                 key={item.href}
@@ -84,13 +84,13 @@ export default function Header() {
               >
                 <Link href={item.href}>
                   <motion.div
-                    className={`relative px-6 py-3 rounded-full font-neiko font-bold text-lg transition-all duration-300 ${
+                    className={`relative px-6 py-4 rounded-full font-neiko font-medium text-[13px] tracking-[0.5px] transition-all duration-300 leading-[1.4] ${
                       location === item.href 
                         ? "text-white bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-white/20" 
                         : "text-gray-300 hover:text-white"
                     }`}
                     whileHover={{ 
-                      scale: 1.05,
+                      scale: 1.08,
                       backgroundColor: "rgba(6, 182, 212, 0.1)",
                       borderColor: "rgba(6, 182, 212, 0.3)"
                     }}
@@ -99,31 +99,38 @@ export default function Header() {
                     {item.label}
                     {location === item.href && (
                       <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-600"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-purple-600"
                         layoutId="activeTab"
                         initial={false}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
+                    {/* Enhanced hover underline */}
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-cyan-500 to-purple-600"
+                      initial={{ width: 0 }}
+                      whileHover={{ width: "100%" }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    />
                   </motion.div>
                 </Link>
               </motion.div>
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Button - Small Font */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 10px 30px rgba(6, 182, 212, 0.4)"
+            }}
+            whileTap={{ scale: 0.95 }}
           >
             <Button 
-              className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-neiko font-bold text-lg shadow-lg border-0"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 30px rgba(6, 182, 212, 0.4)"
-              }}
-              whileTap={{ scale: 0.95 }}
+              className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-neiko font-medium text-[13px] tracking-[0.5px] shadow-lg border-0 leading-[1.4]"
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
