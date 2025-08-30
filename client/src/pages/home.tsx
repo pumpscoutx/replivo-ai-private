@@ -247,13 +247,47 @@ export default function Home() {
             </p>
           </motion.div>
 
+          {/* Filter and Sort Bar */}
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-between mb-12 p-6 bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/50"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+              <span className="text-gray-300 font-medium">Filter by:</span>
+              <div className="flex space-x-2">
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                  All Agents
+                </button>
+                <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors">
+                  Most Popular
+                </button>
+                <button className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors">
+                  Highest Rated
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-300 font-medium">Sort by:</span>
+              <select className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Rating (High to Low)</option>
+                <option>Most Popular</option>
+                <option>Recently Updated</option>
+                <option>Price (Low to High)</option>
+              </select>
+            </div>
+          </motion.div>
+
           {isLoading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : (
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
