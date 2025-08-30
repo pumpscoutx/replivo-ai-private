@@ -1,407 +1,553 @@
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import AgentCard from "@/components/agent-card";
-import AgentRecommender from "@/components/agent-recommender";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
 import BackgroundEffects from "@/components/background-effects";
-import CursorEffects from "@/components/cursor-effects";
+import AgentCard from "@/components/agent-card";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "wouter";
-import type { Agent } from "@shared/schema";
-import { COMPANY_LOGOS } from "@/lib/constants";
+import { Card, CardContent } from "@/components/ui/card";
+
+// Animated Typography Component
+const AnimatedText = ({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 100 + delay);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, text, delay]);
+
+  return (
+    <span className={className}>
+      {displayText}
+      <motion.span
+        className="inline-block w-0.5 h-6 bg-cyan-400 ml-1"
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ duration: 0.8, repeat: Infinity }}
+      />
+    </span>
+  );
+};
+
+// Morphing Text Component
+const MorphingText = ({ words, className = "" }: { words: string[]; className?: string }) => {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex(prev => (prev + 1) % words.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [words.length]);
+
+  return (
+    <motion.span
+      key={currentWordIndex}
+      className={className}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+    >
+      {words[currentWordIndex]}
+    </motion.span>
+  );
+};
+
+// Animated Counter Component
+const AnimatedCounter = ({ end, duration = 2, className = "" }: { end: number; duration?: number; className?: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref);
+
+  useEffect(() => {
+    if (isInView) {
+      let startTime: number;
+      let animationFrame: number;
+
+      const animate = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+        setCount(Math.floor(progress * end));
+        
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      };
+
+      animationFrame = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(animationFrame);
+    }
+  }, [isInView, end, duration]);
+
+  return <span ref={ref} className={className}>{count.toLocaleString()}+</span>;
+};
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { data: featuredAgents, isLoading } = useQuery<Agent[]>({
-    queryKey: ["/api/agents/featured"]
-  });
+  const { scrollY } = useScroll();
+  const heroRef = useRef(null);
+  const agentsRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const scrollToAgents = () => {
-    const agentsSection = document.getElementById("agents");
-    agentsSection?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Scroll-based transforms
+  const heroY = useTransform(scrollY, [0, 500], [0, -100]);
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
+  const agentsY = useTransform(scrollY, [300, 800], [100, 0]);
+  const agentsOpacity = useTransform(scrollY, [300, 600], [0, 1]);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black overflow-hidden">
       <BackgroundEffects />
-      <CursorEffects />
       <Header />
       
-      {/* Enhanced Hero Section */}
-      <section className="relative overflow-hidden bg-black pt-20 pb-40">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 bg-gradient-mesh"></div>
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}></div>
-        
-        {/* Floating Particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-cyan-400/30 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Center-aligned Hero Content */}
-          <div className="text-center max-w-5xl mx-auto">
-            {/* Enhanced Trust Indicator */}
-            <motion.div
-              className="inline-block bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-xl rounded-full px-8 py-3 mb-8 border border-cyan-400/30 shadow-2xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-            >
-              <span className="text-cyan-300 font-bold text-lg tracking-wide">
-                ⚡ Trusted by 10,000+ businesses worldwide
-              </span>
-            </motion.div>
-            
-            {/* Enhanced Main Headline with Better Typography */}
-            <motion.h1 
-              className="text-6xl md:text-8xl font-neiko font-black text-white mb-8 leading-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              HIRE SMART
-              <br />
-              <span className="text-gradient-electric bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                AI AGENTS
-              </span>
-              <br />
-              <span className="text-white/90">THAT WORK 24/7</span>
-            </motion.h1>
-            
-            {/* Enhanced Subtext with Better Contrast */}
-            <motion.p 
-              className="text-2xl md:text-3xl text-gray-200 mb-12 leading-relaxed max-w-4xl mx-auto font-light"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Transform your business with intelligent agents that automate marketing, analytics, support, and more. 
-              <br />
-              <span className="font-bold text-cyan-300 text-3xl md:text-4xl">Save 40+ hours per week</span> on repetitive tasks.
-            </motion.p>
-            
-            {/* Enhanced CTA Buttons */}
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-6 justify-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <Button 
-                onClick={() => setLocation("/login")}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 px-12 py-6 rounded-2xl font-neiko font-bold text-xl transition-all transform hover:scale-105 shadow-2xl border border-cyan-400/30 hover:shadow-cyan-500/25"
-              >
-                <i className="fas fa-rocket mr-3 text-2xl"></i>
-                GET STARTED NOW
-              </Button>
-              <Button 
-                onClick={scrollToAgents}
-                variant="outline"
-                className="border-2 border-gray-600 text-gray-300 hover:bg-gray-800/50 backdrop-blur-xl px-12 py-6 rounded-2xl font-neiko font-bold text-xl transition-all hover:border-cyan-400/50 hover:text-cyan-300"
-              >
-                <i className="fas fa-eye mr-3 text-2xl"></i>
-                VIEW AGENTS
-              </Button>
-            </motion.div>
-
-            {/* Enhanced Social Proof */}
-            <motion.div 
-              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              <div className="flex -space-x-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <motion.img 
-                    key={i}
-                    src={`https://images.unsplash.com/photo-${1500000000000 + i * 100000000}?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`}
-                    className="w-12 h-12 rounded-full border-3 border-white shadow-lg"
-                    alt="User"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                ))}
-              </div>
-              <div className="text-center sm:text-left">
-                <p className="font-bold text-white text-lg">10,000+ happy customers</p>
-                <div className="flex items-center justify-center sm:justify-start">
-                  <div className="flex text-yellow-400 mr-3">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <motion.i 
-                        key={star} 
-                        className="fas fa-star text-lg"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 0.5, delay: star * 0.1 }}
-                      ></motion.i>
-                    ))}
-                  </div>
-                  <span className="text-lg text-gray-300 font-semibold">4.9/5 rating</span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Enhanced Floating Cards */}
-          <motion.div 
-            className="relative mt-20"
-            initial={{ opacity: 0, y: 50 }}
+      {/* Hero Section */}
+      <motion.section 
+        ref={heroRef}
+        className="relative min-h-screen flex items-center justify-center pt-20"
+        style={{ y: heroY, opacity: heroOpacity }}
+      >
+        <div className="text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Trust Indicator */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
+            transition={{ duration: 0.8 }}
+            className="mb-8"
           >
-            <div className="relative max-w-4xl mx-auto">
-              <motion.img 
-                src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
-                alt="AI Dashboard"
-                className="rounded-3xl shadow-2xl border-4 border-gray-600/50 backdrop-blur-sm w-full"
-                animate={{ y: [-10, 10, -10] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-white/20 backdrop-blur-sm">
+              <motion.div
+                className="w-2 h-2 bg-green-400 rounded-full mr-3"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
               />
-              
-              {/* Enhanced Floating Revenue Card */}
-              <motion.div 
-                className="absolute -top-8 -left-8 bg-gradient-to-br from-green-400/95 to-emerald-500/95 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-green-300/30"
-                animate={{ y: [-8, 8, -8] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <i className="fas fa-chart-line text-white text-xl"></i>
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-lg">Revenue Up</p>
-                    <p className="text-white font-black text-2xl">+234%</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Enhanced Floating AI Agents Card */}
-              <motion.div 
-                className="absolute -bottom-8 -right-8 bg-gradient-to-br from-blue-400/95 to-cyan-500/95 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-blue-300/30"
-                animate={{ y: [8, -8, 8] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <i className="fas fa-robot text-white text-xl"></i>
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-lg">AI Agents</p>
-                    <p className="text-white font-black text-2xl">24/7 Active</p>
-                  </div>
-                </div>
-              </motion.div>
+              <span className="text-cyan-300 font-bold text-sm tracking-wider">
+                ⚡ TRUSTED BY <AnimatedCounter end={10000} className="text-white" />+ BUSINESSES
+              </span>
             </div>
           </motion.div>
-        </div>
 
-        {/* Enhanced Trusted By Section */}
-        <motion.div 
-          className="mt-32 text-center bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-xl rounded-3xl p-12 border border-gray-700/50 max-w-6xl mx-auto overflow-hidden shadow-2xl"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-        >
-          <p className="text-cyan-300 mb-12 text-lg uppercase tracking-wider font-bold font-neiko">TRUSTED BY INDUSTRY LEADERS</p>
-          <div className="relative">
-            <div className="flex space-x-16 moving-logos">
-              {[...COMPANY_LOGOS, ...COMPANY_LOGOS].map((company, index) => (
-                <motion.div
-                  key={`${company.name}-${index}`}
-                  className="flex flex-col items-center space-y-3 group flex-shrink-0"
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="w-20 h-20 bg-gradient-to-br from-gray-800/80 to-gray-700/80 rounded-3xl flex items-center justify-center group-hover:from-gray-700/80 group-hover:to-gray-600/80 transition-all border border-gray-600/30 shadow-lg">
-                    <i className={`${company.icon} text-4xl text-gray-300 group-hover:text-cyan-300 transition-colors`}></i>
-                  </div>
-                  <span className="font-bold text-gray-300 text-sm font-neiko">{company.name}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Enhanced Main Agents Section */}
-      <section id="agents" className="py-40 bg-gradient-to-b from-gray-900 to-black relative">
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-24"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
+          {/* Main Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="mb-8"
           >
-            <motion.div
-              className="inline-block bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-xl text-cyan-300 rounded-full px-8 py-3 mb-8 font-bold text-lg border border-cyan-400/30"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
-            >
-              <i className="fas fa-star mr-3"></i>
-              MOST POPULAR AGENTS
-            </motion.div>
-            <h2 className="text-6xl md:text-7xl font-neiko font-black text-white mb-8 leading-tight">
-              MEET YOUR NEW
+            <h1 className="text-6xl md:text-8xl font-neiko font-black mb-6">
+              <span className="text-gradient-electric">
+                <MorphingText 
+                  words={["HIRE", "WORK", "SCALE"]} 
+                  className="text-gradient-electric"
+                /> SMART
+              </span>
               <br />
-              <span className="text-gradient-electric">AI WORKFORCE</span>
-            </h2>
-            <p className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
-              Our elite AI agents work around the clock to transform your business operations. 
-              Each bundle contains specialized sub-agents that collaborate seamlessly.
+              <span className="text-white/90">AI AGENTS</span>
+            </h1>
+          </motion.div>
+
+          {/* Subtext */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mb-12"
+          >
+            <p className="text-xl md:text-2xl text-gray-300 font-light max-w-4xl mx-auto leading-relaxed">
+              Transform your business with intelligent AI agents that work 
+              <span className="text-cyan-300 font-semibold text-2xl md:text-3xl"> 24/7</span>. 
+              <br />
+              <span className="text-cyan-300 font-semibold">Save 40+ hours per week</span> with automated workflows.
             </p>
           </motion.div>
 
-          {/* Enhanced Filter and Sort Bar */}
-          <motion.div 
-            className="flex flex-col sm:flex-row items-center justify-between mb-16 p-8 bg-gradient-to-r from-gray-800/50 to-gray-700/50 backdrop-blur-xl rounded-3xl border border-gray-600/50 shadow-2xl"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            viewport={{ once: true }}
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
           >
-            <div className="flex items-center space-x-6 mb-6 sm:mb-0">
-              <span className="text-gray-200 font-bold text-lg">Filter by:</span>
-              <div className="flex space-x-3">
-                <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl text-sm font-bold hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg">
-                  All Agents
-                </button>
-                <button className="px-6 py-3 bg-gray-700/80 text-gray-300 rounded-xl text-sm font-bold hover:bg-gray-600/80 transition-all">
-                  Most Popular
-                </button>
-                <button className="px-6 py-3 bg-gray-700/80 text-gray-300 rounded-xl text-sm font-bold hover:bg-gray-600/80 transition-all">
-                  Highest Rated
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-200 font-bold text-lg">Sort by:</span>
-              <select className="px-6 py-3 bg-gray-700/80 text-gray-200 rounded-xl text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold">
-                <option>Rating (High to Low)</option>
-                <option>Most Popular</option>
-                <option>Recently Updated</option>
-                <option>Price (Low to High)</option>
-              </select>
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button 
+                onClick={() => setLocation("/login")}
+                className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-12 py-4 rounded-2xl font-neiko font-bold text-xl shadow-2xl border-0 group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "100%" }}
+                  transition={{ duration: 0.6 }}
+                />
+                <motion.i 
+                  className="fas fa-rocket mr-3"
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                GET STARTED NOW
+              </Button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button 
+                onClick={() => setLocation("/")}
+                variant="outline"
+                className="relative overflow-hidden bg-transparent border-2 border-white/30 hover:border-cyan-400 text-white px-12 py-4 rounded-2xl font-neiko font-bold text-xl backdrop-blur-sm group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-600/10"
+                  initial={{ scale: 0 }}
+                  whileHover={{ scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <span className="relative z-10">VIEW AGENTS</span>
+              </Button>
+            </motion.div>
           </motion.div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-20">
-              <motion.div 
-                className="animate-spin rounded-full h-16 w-16 border-b-4 border-cyan-500"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              ></motion.div>
-            </div>
-          ) : (
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-20"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {featuredAgents?.map((agent, index) => (
-                <motion.div
-                  key={agent.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <AgentCard agent={agent} />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-
-          {/* Enhanced CTA for Custom Agent */}
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
+          {/* Social Proof */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="mb-20"
           >
-            <div className="relative bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-xl rounded-3xl p-16 overflow-hidden border border-gray-600/50 shadow-2xl">
-              <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
-                backgroundSize: "cover",
-                backgroundPosition: "center"
-              }}></div>
-              <div className="relative">
-                <motion.div
-                  className="inline-block bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-xl rounded-full px-8 py-3 mb-8 border border-purple-400/30"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <span className="text-purple-300 font-bold text-lg font-neiko">
-                    <i className="fas fa-magic mr-3"></i>
-                    CUSTOM SOLUTIONS AVAILABLE
-                  </span>
-                </motion.div>
-                <h3 className="text-5xl font-neiko font-black text-white mb-6">
-                  NEED SOMETHING UNIQUE?
-                </h3>
-                <p className="text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-                  Our AI experts will design and build a custom agent tailored specifically to your business needs. 
-                  From concept to deployment in just 48 hours.
-                </p>
-                <Button 
-                  asChild
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-12 py-6 rounded-2xl font-neiko font-bold text-xl shadow-2xl transition-all transform hover:scale-105 border border-purple-400/30"
-                >
-                  <Link href="/custom-agent">
-                    <i className="fas fa-wand-magic-sparkles mr-3 text-2xl"></i>
-                    BUILD CUSTOM AGENT
-                  </Link>
-                </Button>
+            <div className="flex flex-col items-center space-y-4">
+              <p className="text-gray-400 text-lg font-medium">Trusted by industry leaders</p>
+              <div className="flex items-center space-x-8">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-700 border-3 border-cyan-500/30 flex items-center justify-center"
+                    whileHover={{ 
+                      scale: 1.2,
+                      borderColor: "rgba(6, 182, 212, 0.8)",
+                      boxShadow: "0 0 20px rgba(6, 182, 212, 0.4)"
+                    }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.i 
+                      className="fas fa-star text-yellow-400"
+                      animate={{ 
+                        rotate: [0, 10, -10, 0],
+                        scale: [1, 1.2, 1]
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: Infinity,
+                        delay: i * 0.2
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+              <div className="text-center">
+                <span className="text-white text-lg font-semibold">
+                  <AnimatedCounter end={10000} className="text-cyan-300" />+ happy customers
+                </span>
+                <div className="flex items-center justify-center mt-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <motion.i
+                      key={star}
+                      className="fas fa-star text-yellow-400 text-sm"
+                      animate={{ 
+                        scale: [1, 1.3, 1],
+                        filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"]
+                      }}
+                      transition={{ 
+                        duration: 1.5, 
+                        repeat: Infinity,
+                        delay: star * 0.1
+                      }}
+                    />
+                  ))}
+                  <span className="text-gray-400 ml-2 text-sm">4.9/5 rating</span>
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
-      </section>
 
-      {/* Agent Recommender Section */}
-      <AgentRecommender />
+        {/* Floating Cards */}
+        <motion.div
+          className="absolute top-1/4 left-10 hidden lg:block"
+          initial={{ opacity: 0, x: -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, delay: 1 }}
+        >
+          <Card className="bg-gradient-to-br from-cyan-500/20 to-purple-600/20 backdrop-blur-xl p-6 border border-white/20 shadow-2xl">
+            <CardContent className="p-0">
+              <div className="flex items-center space-x-4">
+                <motion.div
+                  className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  <i className="fas fa-chart-line text-green-400 text-xl" />
+                </motion.div>
+                <div>
+                  <p className="text-white font-bold text-lg">Revenue Up</p>
+                  <p className="text-cyan-300 font-bold text-2xl">
+                    <AnimatedCounter end={234} />%
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-      <Footer />
+        <motion.div
+          className="absolute top-1/3 right-10 hidden lg:block"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, delay: 1.2 }}
+        >
+          <Card className="bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-xl p-6 border border-white/20 shadow-2xl">
+            <CardContent className="p-0">
+              <div className="flex items-center space-x-4">
+                <motion.div
+                  className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ 
+                    duration: 4, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <i className="fas fa-robot text-purple-400 text-xl" />
+                </motion.div>
+                <div>
+                  <p className="text-white font-bold text-lg">AI Agents</p>
+                  <p className="text-purple-300 font-bold text-2xl">
+                    <AnimatedCounter end={50} />+
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.section>
+
+      {/* Trusted By Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-20"
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-xl p-12 rounded-3xl border border-white/10 shadow-2xl">
+            <motion.h2 
+              className="text-center text-3xl md:text-4xl font-neiko font-black text-white mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              TRUSTED BY INDUSTRY LEADERS
+            </motion.h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
+              {["Google", "Microsoft", "Amazon", "Meta"].map((company, index) => (
+                <motion.div
+                  key={company}
+                  className="flex items-center justify-center"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ 
+                    scale: 1.1,
+                    filter: "brightness(1.2)"
+                  }}
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl flex items-center justify-center border border-white/20">
+                    <i className={`fab fa-${company.toLowerCase()} text-white text-2xl`} />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Main Agents Section */}
+      <motion.section 
+        ref={agentsRef}
+        className="py-40 bg-gradient-to-b from-gray-900 to-black relative"
+        style={{ y: agentsY, opacity: agentsOpacity }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.div
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-white/20 mb-8"
+              whileHover={{ scale: 1.05 }}
+            >
+              <span className="text-cyan-300 font-bold text-sm tracking-wider">
+                ⭐ MOST POPULAR AGENTS
+              </span>
+            </motion.div>
+            
+            <h2 className="text-5xl md:text-7xl font-neiko font-black mb-8">
+              <span className="text-gradient-electric">MEET YOUR NEW</span>
+              <br />
+              <span className="text-white">AI WORKFORCE</span>
+            </h2>
+            
+            <p className="text-xl md:text-2xl text-gray-300 font-light max-w-4xl mx-auto">
+              Choose from our curated collection of specialized AI agents designed to transform your business operations
+            </p>
+          </motion.div>
+
+          {/* Filter and Sort Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl mb-12"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-6">
+              <div className="flex items-center space-x-4">
+                <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-6 py-2 rounded-xl font-bold">
+                  All Agents
+                </Button>
+                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-6 py-2 rounded-xl font-bold">
+                  Most Popular
+                </Button>
+                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-6 py-2 rounded-xl font-bold">
+                  Newest
+                </Button>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-400 font-medium">Sort by:</span>
+                <select className="bg-gray-800/50 border border-white/20 text-white px-4 py-2 rounded-xl font-bold focus:outline-none focus:border-cyan-400">
+                  <option>Rating</option>
+                  <option>Price</option>
+                  <option>Reviews</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Loading Spinner */}
+          {!isLoaded && (
+            <motion.div
+              className="flex justify-center items-center py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div
+                className="w-16 h-16 border-4 border-gray-700 border-t-cyan-500 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+            </motion.div>
+          )}
+
+          {/* Agents Grid */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isLoaded ? 1 : 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            {/* Agent cards will be rendered here */}
+          </motion.div>
+
+          {/* CTA for Custom Agent */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <div className="bg-gradient-to-r from-cyan-500/10 to-purple-600/10 backdrop-blur-xl p-12 rounded-3xl border border-white/10 shadow-2xl">
+              <motion.div
+                className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-600/20 border border-yellow-500/30 mb-8"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-yellow-300 font-bold text-sm tracking-wider">
+                  🚀 CUSTOM SOLUTION
+                </span>
+              </motion.div>
+              
+              <h3 className="text-4xl md:text-5xl font-neiko font-black mb-6">
+                <span className="text-gradient-electric">NEED SOMETHING</span>
+                <br />
+                <span className="text-white">SPECIAL?</span>
+              </h3>
+              
+              <p className="text-xl text-gray-300 font-light max-w-3xl mx-auto mb-8">
+                Can't find the perfect agent? Let us build a custom AI solution tailored to your specific business needs and workflows.
+              </p>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  onClick={() => setLocation("/custom-agent")}
+                  className="relative overflow-hidden bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-12 py-4 rounded-2xl font-neiko font-bold text-xl shadow-2xl border-0"
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "100%" }}
+                    transition={{ duration: 0.6 }}
+                  />
+                  <motion.i 
+                    className="fas fa-magic mr-3"
+                    animate={{ 
+                      rotate: [0, 10, -10, 0],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  BUILD CUSTOM AGENT
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
     </div>
   );
 }

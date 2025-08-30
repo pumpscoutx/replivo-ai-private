@@ -522,3 +522,389 @@ select:focus {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Mesmerizing Animation Effects */
+@keyframes glitch {
+  0%, 100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes morph-text {
+  0%, 100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(30deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes float-3d {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+  }
+  50% {
+    transform: translateY(-20px) rotateX(0deg) rotateY(10deg);
+  }
+  75% {
+    transform: translateY(-10px) rotateX(-5deg) rotateY(5deg);
+  }
+}
+
+@keyframes pulse-glow-intense {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.6), 0 0 60px rgba(6, 182, 212, 0.3);
+  }
+}
+
+@keyframes text-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Enhanced Utility Classes */
+.glitch-effect {
+  animation: glitch 0.3s infinite;
+}
+
+.glitch-effect:hover {
+  animation: glitch 0.1s infinite;
+}
+
+.morph-text {
+  animation: morph-text 3s ease-in-out infinite;
+}
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple-effect:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.float-3d {
+  animation: float-3d 6s ease-in-out infinite;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.pulse-glow-intense {
+  animation: pulse-glow-intense 2s ease-in-out infinite;
+}
+
+.text-reveal {
+  animation: text-reveal 1.5s ease-out forwards;
+}
+
+.gradient-shift {
+  background: linear-gradient(-45deg, #06b6d4, #8b5cf6, #06b6d4, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Enhanced Hover Effects */
+.hover-lift-enhanced {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift-enhanced:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Mesmerizing Background Elements */
+.floating-shapes-enhanced {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.floating-shapes-enhanced::before,
+.floating-shapes-enhanced::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1));
+  animation: float-3d 8s ease-in-out infinite;
+}
+
+.floating-shapes-enhanced::before {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.floating-shapes-enhanced::after {
+  top: 60%;
+  right: 15%;
+  animation-delay: 4s;
+}
+
+/* Enhanced Particle Effects */
+.particle-field-enhanced {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.particle-enhanced {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(6, 182, 212, 0.6);
+  border-radius: 50%;
+  animation: float 4s ease-in-out infinite;
+}
+
+.particle-enhanced:nth-child(odd) {
+  background: rgba(139, 92, 246, 0.6);
+  animation-duration: 6s;
+}
+
+.particle-enhanced:nth-child(3n) {
+  background: rgba(59, 130, 246, 0.6);
+  animation-duration: 8s;
+}
+
+/* Enhanced Card Animations */
+.card-mesmerizing {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-mesmerizing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.card-mesmerizing:hover::before {
+  left: 100%;
+}
+
+.card-mesmerizing:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Enhanced Button Effects */
+.btn-mesmerizing {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-mesmerizing::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-mesmerizing:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-mesmerizing:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.4);
+}
+
+/* Enhanced Text Effects */
+.text-mesmerizing {
+  position: relative;
+  overflow: hidden;
+}
+
+.text-mesmerizing::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+  transition: width 0.3s ease;
+}
+
+.text-mesmerizing:hover::after {
+  width: 100%;
+}
+
+/* Enhanced Loading Animations */
+.loading-mesmerizing {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.loading-mesmerizing::before,
+.loading-mesmerizing::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  animation: pulse-glow-intense 2s ease-in-out infinite;
+}
+
+.loading-mesmerizing::before {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, #06b6d4, #8b5cf6);
+  animation-delay: 0s;
+}
+
+.loading-mesmerizing::after {
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+  background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+  animation-delay: 1s;
+}
+
+/* Enhanced Scroll Animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s ease;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Enhanced Grid Patterns */
+.grid-mesmerizing {
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-move 20s linear infinite;
+}
+
+@keyframes grid-move {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+  .floating-shapes-enhanced::before,
+  .floating-shapes-enhanced::after {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .particle-enhanced {
+    width: 2px;
+    height: 2px;
+  }
+}
+
+/* Enhanced Focus States */
+.focus-mesmerizing:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.3);
+  transform: scale(1.02);
+}
+
+/* Enhanced Selection */
+::selection {
+  background: rgba(6, 182, 212, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(6, 182, 212, 0.3);
+  color: white;
+}
