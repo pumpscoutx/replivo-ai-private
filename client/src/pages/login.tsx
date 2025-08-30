@@ -37,10 +37,7 @@ export default function Login() {
 
     try {
       const endpoint = isRegistering ? "/api/auth/register" : "/api/auth/login";
-      const response = await apiRequest(endpoint, {
-        method: "POST",
-        body: JSON.stringify(formData)
-      });
+      const response = await apiRequest("POST", endpoint, formData);
 
       if (response.success) {
         // Store session token
@@ -81,10 +78,7 @@ export default function Login() {
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
       };
 
-      const response = await apiRequest("/api/auth/google", {
-        method: "POST",
-        body: JSON.stringify(mockGoogleUser)
-      });
+      const response = await apiRequest("POST", "/api/auth/google", mockGoogleUser);
 
       if (response.success) {
         localStorage.setItem("sessionToken", response.sessionToken);

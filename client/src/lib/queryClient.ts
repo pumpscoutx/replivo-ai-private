@@ -13,6 +13,12 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  
+  // Ensure url is a string
+  if (typeof url !== 'string') {
+    throw new Error(`Invalid URL parameter: ${url}. Expected string, got ${typeof url}`);
+  }
+  
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
   
   const res = await fetch(fullUrl, {
