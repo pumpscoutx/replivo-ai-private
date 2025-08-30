@@ -122,6 +122,106 @@ const COMPANY_LOGOS = [
   { name: "NextGen", logo: "🌟" }
 ];
 
+// Marketplace agents data
+const MARKETPLACE_AGENTS = [
+  {
+    id: "content-creator",
+    name: "Content Creator Pro",
+    specialty: "Blogs, Articles & Social Media",
+    description: "Creates engaging content that drives traffic and conversions. SEO-optimized writing with brand voice consistency.",
+    icon: "✍️",
+    color: "from-pink-500 to-rose-600",
+    rating: 4.9,
+    reviews: 2847,
+    price: 129,
+    skills: ["Content Writing", "SEO", "Social Media", "Brand Voice"],
+    hiringCount: 1247,
+    responseTime: "2.3s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop"
+  },
+  {
+    id: "social-manager",
+    name: "Social Media Manager",
+    specialty: "Platform Management & Engagement",
+    description: "Manages all social platforms, creates engaging posts, and builds authentic community relationships.",
+    icon: "📱",
+    color: "from-blue-500 to-cyan-600",
+    rating: 4.8,
+    reviews: 1956,
+    price: 149,
+    skills: ["Social Media", "Community", "Analytics", "Trending"],
+    hiringCount: 892,
+    responseTime: "1.8s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1611162617213-9d7c0c1f0f1c?w=400&h=300&fit=crop"
+  },
+  {
+    id: "business-assistant",
+    name: "Business Assistant",
+    specialty: "Productivity & Operations",
+    description: "Handles emails, scheduling, document management, and operational tasks to streamline your workflow.",
+    icon: "💼",
+    color: "from-green-500 to-emerald-600",
+    rating: 4.7,
+    reviews: 1634,
+    price: 99,
+    skills: ["Email Management", "Scheduling", "Documents", "Operations"],
+    hiringCount: 756,
+    responseTime: "3.1s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=300&fit=crop"
+  },
+  {
+    id: "data-analyst",
+    name: "Data Analyst Expert",
+    specialty: "Insights & Performance",
+    description: "Transforms raw data into actionable insights with comprehensive analytics and predictive modeling.",
+    icon: "📊",
+    color: "from-purple-500 to-indigo-600",
+    rating: 4.9,
+    reviews: 2189,
+    price: 179,
+    skills: ["Data Analysis", "Predictive Models", "Reporting", "Visualization"],
+    hiringCount: 634,
+    responseTime: "4.2s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
+  },
+  {
+    id: "customer-support",
+    name: "Customer Support Hero",
+    specialty: "24/7 Support & Resolution",
+    description: "Provides exceptional customer service with quick response times and comprehensive issue resolution.",
+    icon: "🦸",
+    color: "from-orange-500 to-red-600",
+    rating: 4.8,
+    reviews: 3421,
+    price: 89,
+    skills: ["Customer Service", "Problem Solving", "Multi-language", "CRM"],
+    hiringCount: 1892,
+    responseTime: "1.5s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop"
+  },
+  {
+    id: "sales-accelerator",
+    name: "Sales Accelerator",
+    specialty: "Lead Generation & Closing",
+    description: "Identifies prospects, nurtures relationships, and closes deals with proven sales methodologies.",
+    icon: "🚀",
+    color: "from-yellow-500 to-orange-600",
+    rating: 4.6,
+    reviews: 1278,
+    price: 199,
+    skills: ["Lead Generation", "Sales Process", "CRM", "Follow-up"],
+    hiringCount: 445,
+    responseTime: "2.8s",
+    availability: "24/7",
+    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop"
+  }
+];
+
 // Enhanced Agent Card Component with full styling
 const AgentCard = ({ agent, isActive }: { 
   agent: typeof AGENT_TYPES[0]; 
@@ -499,7 +599,7 @@ const Terminal = ({ agent, isActive }: {
 const TryMeModal = ({ isOpen, onClose, agent, onHire }: {
   isOpen: boolean;
   onClose: () => void;
-  agent: typeof AGENT_TYPES[0];
+  agent: typeof AGENT_TYPES[0] | typeof MARKETPLACE_AGENTS[0];
   onHire: () => void;
 }) => {
   const [selectedCapability, setSelectedCapability] = useState('content');
@@ -660,7 +760,7 @@ const TryMeModal = ({ isOpen, onClose, agent, onHire }: {
 const HireModal = ({ isOpen, onClose, agent }: {
   isOpen: boolean;
   onClose: () => void;
-  agent: typeof AGENT_TYPES[0];
+  agent: typeof AGENT_TYPES[0] | typeof MARKETPLACE_AGENTS[0];
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
@@ -1032,7 +1132,7 @@ const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.6 }}
             >
               <motion.span
-                key={textAlternate}
+                key={textAlternate ? "hire" : "build"}
                 initial={{ opacity: 0, x: textAlternate ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: textAlternate ? 20 : -20 }}
@@ -1663,6 +1763,264 @@ const HeroSection = () => {
   );
 };
 
+// Marketplace Card Component
+const MarketplaceCard = ({ agent, index }: { 
+  agent: typeof MARKETPLACE_AGENTS[0]; 
+  index: number;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showTryMeModal, setShowTryMeModal] = useState(false);
+  const [showHireModal, setShowHireModal] = useState(false);
+
+  return (
+    <>
+      <motion.div
+        className="group relative bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-6 hover:border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/20 h-full flex flex-col overflow-hidden"
+        initial={{ opacity: 0, y: 30, rotateY: -15 }}
+        animate={{ opacity: 1, y: 0, rotateY: 0 }}
+        transition={{ duration: 0.6, delay: index * 0.1 }}
+        whileHover={{ 
+          scale: 1.03,
+          y: -12,
+          rotateY: 5,
+          boxShadow: "0 30px 60px rgba(6, 182, 212, 0.25)"
+        }}
+        style={{
+          transformStyle: "preserve-3d",
+          perspective: "1000px"
+        }}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+      >
+        {/* Floating Animation */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{ 
+            y: [0, -10, 0],
+            rotate: [0, 1, 0]
+          }}
+          transition={{ 
+            duration: 6, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500">
+          <div 
+            className="w-full h-full bg-cover bg-center rounded-3xl"
+            style={{ backgroundImage: `url(${agent.image})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <motion.div
+              className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl border border-white/20 flex items-center justify-center text-3xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.3 }}
+            >
+              {agent.icon}
+            </motion.div>
+            
+            {/* Live Hiring Counter */}
+            <motion.div
+              className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-xl rounded-full px-3 py-1 border border-green-500/30"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-xs text-green-400 font-semibold">
+                🔥 {agent.hiringCount} hired
+              </span>
+            </motion.div>
+          </div>
+
+          {/* Agent Info */}
+          <div className="mb-4">
+            <motion.h3 
+              className="text-xl font-bold text-white mb-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              {agent.name}
+            </motion.h3>
+            
+            <motion.p 
+              className="text-sm text-gray-300 mb-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {agent.specialty}
+            </motion.p>
+            
+            <motion.p 
+              className="text-xs text-gray-400 leading-relaxed"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              {agent.description}
+            </motion.p>
+          </div>
+
+          {/* Skills */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {agent.skills.map((skill, skillIndex) => (
+              <motion.span
+                key={skill}
+                className="px-2 py-1 bg-white/10 backdrop-blur-xl rounded-full text-xs text-gray-300 border border-white/20"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + skillIndex * 0.1 }}
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+              >
+                {skill}
+              </motion.span>
+            ))}
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <div className="text-lg font-bold text-white">{agent.rating}</div>
+              <div className="text-xs text-gray-400">Rating</div>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <div className="text-lg font-bold text-white">{agent.responseTime}</div>
+              <div className="text-xs text-gray-400">Response</div>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="text-lg font-bold text-white">{agent.availability}</div>
+              <div className="text-xs text-gray-400">Available</div>
+            </motion.div>
+          </div>
+
+          {/* Rating Stars */}
+          <div className="flex items-center gap-1 mb-4">
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={`text-lg ${i < Math.floor(agent.rating) ? 'text-yellow-400' : 'text-gray-600'}`}
+                whileHover={{ scale: 1.2, color: "#fbbf24" }}
+                transition={{ duration: 0.2 }}
+              >
+                ★
+              </motion.div>
+            ))}
+            <span className="text-sm text-gray-400 ml-2">({agent.reviews} reviews)</span>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-auto space-y-3">
+            {/* Try Me Button */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => setShowTryMeModal(true)}
+                variant="outline"
+                className="w-full bg-white/5 hover:bg-white/10 border-white/20 text-white hover:text-white transition-all duration-300"
+                size="sm"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Try Me
+              </Button>
+            </motion.div>
+
+            {/* Hire Now Button */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => setShowHireModal(true)}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
+                size="sm"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Hire Now - ${agent.price}/mo
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Animated Border */}
+        <motion.div
+          className="absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20"
+          animate={{ 
+            background: [
+              "linear-gradient(45deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))",
+              "linear-gradient(45deg, rgba(147, 51, 234, 0.2), rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2))",
+              "linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2), rgba(6, 182, 212, 0.2))"
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+
+        {/* Connecting Lines Effect */}
+        <motion.div
+          className="absolute -right-2 top-1/2 w-4 h-0.5 bg-gradient-to-r from-cyan-500/50 to-transparent"
+          animate={{ 
+            scaleX: [0, 1, 0],
+            opacity: [0, 0.5, 0]
+          }}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity,
+            delay: index * 0.2
+          }}
+        />
+      </motion.div>
+
+      {/* Try Me Modal */}
+      <AnimatePresence>
+        <TryMeModal 
+          isOpen={showTryMeModal}
+          onClose={() => setShowTryMeModal(false)}
+          agent={agent}
+          onHire={() => {
+            setShowTryMeModal(false);
+            setShowHireModal(true);
+          }}
+        />
+      </AnimatePresence>
+
+      {/* Hire Modal */}
+      <AnimatePresence>
+        <HireModal 
+          isOpen={showHireModal}
+          onClose={() => setShowHireModal(false)}
+          agent={agent}
+        />
+      </AnimatePresence>
+    </>
+  );
+};
+
 export default function Home() {
   const [, setLocation] = useLocation();
   const { scrollY } = useScroll();
@@ -1727,6 +2085,75 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <ScrollingMarquee />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Marketplace Section */}
+      <section className="relative py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <motion.h2 
+              className="text-5xl md:text-7xl font-black mb-8"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <span className="text-white font-extralight">AI AGENT</span>
+              <br />
+              <span className="text-gradient-electric font-black">MARKETPLACE</span>
+            </motion.h2>
+            
+            <motion.p
+              className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              Discover specialized AI agents ready to transform your business. 
+              From content creation to customer support, find the perfect AI teammate.
+            </motion.p>
+          </motion.div>
+
+          {/* Marketplace Grid */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {MARKETPLACE_AGENTS.map((agent, index) => (
+              <MarketplaceCard key={agent.id} agent={agent} index={index} />
+            ))}
+          </motion.div>
+
+          {/* View All Agents Button */}
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <Button
+              onClick={() => setLocation("/custom-agent")}
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
+              size="lg"
+            >
+              <Sparkles className="w-5 h-5 mr-3" />
+              View All Agents
+              <ArrowRight className="w-5 h-5 ml-3" />
+            </Button>
           </motion.div>
         </div>
       </section>
