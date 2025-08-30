@@ -240,6 +240,7 @@ export class MemStorage implements IStorage {
       }
     ];
 
+    // First create all sub-agents
     subAgents.forEach(subAgent => {
       const id = randomUUID();
       const fullSubAgent: SubAgent = { 
@@ -257,73 +258,68 @@ export class MemStorage implements IStorage {
       this.subAgents.set(id, fullSubAgent);
     });
 
-    // Initialize sample main agents
+    // Then create main agents with proper sub-agent references
     const agents: InsertAgent[] = [
       {
-        name: "Business Growth",
-        description: "Scale your revenue with intelligent lead generation, sales automation, and growth optimization strategies.",
-        icon: "fas fa-bullhorn",
-        price: 9900,
-        rating: 49,
-        reviewCount: 127,
-        category: "growth",
-        isBundle: true,
-        subAgentIds: Array.from(this.subAgents.values())
-          .filter(sa => sa.category === "content")
-          .map(sa => sa.id),
-        tasks: [
-          "Generating qualified leads...",
-          "Optimizing conversion funnels...",
-          "Running A/B tests...",
-          "Analyzing growth metrics...",
-          "Scaling successful campaigns..."
-        ],
-        featured: true
-      },
-      {
-        name: "Operations",
-        description: "Streamline workflows, automate processes, and optimize operational efficiency across your entire organization.",
-        icon: "fas fa-cogs",
-        price: 14900,
-        rating: 47,
-        reviewCount: 89,
-        category: "operations",
-        isBundle: true,
-        subAgentIds: Array.from(this.subAgents.values())
-          .filter(sa => sa.category === "analytics")
-          .map(sa => sa.id),
-        tasks: [
-          "Automating workflows...",
-          "Managing resources...",
-          "Monitoring performance...",
-          "Optimizing processes...",
-          "Ensuring quality control..."
-        ],
-        featured: true
-      },
-      {
-        name: "People & Finance",
-        description: "Manage your team and finances with automated HR processes, payroll management, and financial planning.",
-        icon: "fas fa-users-cog",
+        name: "Content Creator",
+        description: "For businesses and individuals who need words that sell or engage. Writes blog posts, articles, newsletters, product descriptions with SEO-optimized copy and engaging headlines.",
+        icon: "fas fa-pen-fancy",
         price: 7900,
-        rating: 48,
-        reviewCount: 203,
-        category: "people-finance",
-        isBundle: true,
-        subAgentIds: Array.from(this.subAgents.values())
-          .filter(sa => sa.category === "support")
-          .map(sa => sa.id),
+        rating: 49,
+        reviewCount: 156,
+        category: "content",
+        isBundle: false,
+        subAgentIds: [],
         tasks: [
-          "Processing payroll...",
-          "Managing benefits...",
-          "Tracking expenses...",
-          "Recruiting talent...",
-          "Analyzing budgets..."
+          "Writing blog posts and articles...",
+          "Creating SEO-optimized content...",
+          "Drafting engaging newsletters...",
+          "Writing product descriptions...",
+          "Adapting tone for different contexts..."
+        ],
+        featured: true
+      },
+      {
+        name: "Social Media Manager",
+        description: "For growing and managing an online presence. Schedules and publishes posts across multiple platforms, generates captions and hashtags, provides engagement insights and response suggestions.",
+        icon: "fas fa-share-alt",
+        price: 9900,
+        rating: 47,
+        reviewCount: 203,
+        category: "social",
+        isBundle: false,
+        subAgentIds: [],
+        tasks: [
+          "Scheduling posts across platforms...",
+          "Generating engaging captions...",
+          "Creating trending hashtags...",
+          "Analyzing engagement metrics...",
+          "Providing response suggestions..."
+        ],
+        featured: true
+      },
+      {
+        name: "Business Assistant",
+        description: "Helps with productivity and operations. Drafts professional emails and replies, summarizes documents and meetings, generates reports and presentations, manages schedules and reminders.",
+        icon: "fas fa-briefcase",
+        price: 11900,
+        rating: 48,
+        reviewCount: 189,
+        category: "business",
+        isBundle: false,
+        subAgentIds: [],
+        tasks: [
+          "Drafting professional emails...",
+          "Summarizing documents...",
+          "Generating reports...",
+          "Managing schedules...",
+          "Creating presentations..."
         ],
         featured: true
       }
     ];
 
+    // Create agents after sub-agents are ready
     agents.forEach(agent => {
       this.createAgent(agent);
     });

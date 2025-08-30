@@ -14,8 +14,11 @@ import {
   MessageSquare, 
   Calendar,
   Eye,
-  Play
+  Play,
+  Briefcase
 } from "lucide-react";
+import TryMeModal from "./try-me-modal";
+import HireNowModal from "./hire-now-modal";
 import type { Agent } from "@shared/schema";
 
 interface AgentCardProps {
@@ -24,6 +27,8 @@ interface AgentCardProps {
 
 export default function AgentCard({ agent }: AgentCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isTryMeOpen, setIsTryMeOpen] = useState(false);
+  const [isHireNowOpen, setIsHireNowOpen] = useState(false);
 
   const formatRating = (rating: number) => {
     return (rating / 10).toFixed(1);
@@ -48,60 +53,45 @@ export default function AgentCard({ agent }: AgentCardProps) {
 
   const getAgentIcon = (agentName: string) => {
     const iconMap: { [key: string]: any } = {
-      "Business Growth": <TrendingUp className="w-8 h-8" />,
-      "Operations": <Zap className="w-8 h-8" />,
-      "People & Finance": <Users className="w-8 h-8" />,
-      "Marketing Agent": <Target className="w-8 h-8" />,
-      "Data Analyst": <BarChart3 className="w-8 h-8" />,
-      "Customer Support": <MessageSquare className="w-8 h-8" />
+      "Content Creator": <Target className="w-8 h-8" />,
+      "Social Media Manager": <MessageSquare className="w-8 h-8" />,
+      "Business Assistant": <Briefcase className="w-8 h-8" />
     };
     return iconMap[agentName] || <Zap className="w-8 h-8" />;
   };
 
   const getAgentColor = (agentName: string) => {
     const colorMap: { [key: string]: string } = {
-      "Business Growth": "from-emerald-500 to-teal-600",
-      "Operations": "from-blue-500 to-indigo-600",
-      "People & Finance": "from-purple-500 to-pink-600",
-      "Marketing Agent": "from-orange-500 to-red-600",
-      "Data Analyst": "from-cyan-500 to-blue-600",
-      "Customer Support": "from-green-500 to-emerald-600"
+      "Content Creator": "from-emerald-500 to-teal-600",
+      "Social Media Manager": "from-purple-500 to-pink-600",
+      "Business Assistant": "from-blue-500 to-indigo-600"
     };
     return colorMap[agentName] || "from-gray-500 to-gray-600";
   };
 
   const getAgentDescription = (agentName: string) => {
     const descMap: { [key: string]: string } = {
-      "Business Growth": "Writes high-impact blogs and articles optimized for SEO",
-      "Operations": "Streamlines workflows and automates repetitive tasks",
-      "People & Finance": "Manages HR processes and financial operations",
-      "Marketing Agent": "Creates engaging content and manages campaigns",
-      "Data Analyst": "Analyzes data and generates actionable insights",
-      "Customer Support": "Provides 24/7 intelligent customer assistance"
+      "Content Creator": "Writes blog posts, articles, newsletters, and product descriptions with SEO optimization",
+      "Social Media Manager": "Schedules posts, generates captions, and provides engagement insights across platforms",
+      "Business Assistant": "Drafts emails, summarizes documents, and manages schedules for productivity"
     };
     return descMap[agentName] || "Intelligent automation for your business";
   };
 
   const getAgentSkills = (agentName: string) => {
     const skillsMap: { [key: string]: string[] } = {
-      "Business Growth": ["✍ Writing", "📈 SEO", "📊 Analytics"],
-      "Operations": ["⚡ Automation", "🔄 Workflow", "📋 Tasks"],
-      "People & Finance": ["👥 HR", "💰 Finance", "📋 Compliance"],
-      "Marketing Agent": ["📱 Social", "📧 Email", "🎯 Campaigns"],
-      "Data Analyst": ["📊 Analytics", "📈 Insights", "🔍 Reports"],
-      "Customer Support": ["💬 Chat", "📞 Support", "🎯 Solutions"]
+      "Content Creator": ["✍ Writing", "📈 SEO", "📝 Blogging"],
+      "Social Media Manager": ["📱 Social", "📊 Analytics", "🎯 Engagement"],
+      "Business Assistant": ["📧 Email", "📋 Tasks", "📊 Reports"]
     };
     return skillsMap[agentName] || ["🤖 AI", "⚡ Automation", "📊 Data"];
   };
 
   const getAgentStats = (agentName: string) => {
     const statsMap: { [key: string]: { hired: number, active: number } } = {
-      "Business Growth": { hired: 127, active: 89 },
-      "Operations": { hired: 94, active: 67 },
-      "People & Finance": { hired: 156, active: 112 },
-      "Marketing Agent": { hired: 203, active: 145 },
-      "Data Analyst": { hired: 78, active: 56 },
-      "Customer Support": { hired: 189, active: 134 }
+      "Content Creator": { hired: 156, active: 112 },
+      "Social Media Manager": { hired: 203, active: 145 },
+      "Business Assistant": { hired: 189, active: 134 }
     };
     return statsMap[agentName] || { hired: 100, active: 75 };
   };
@@ -218,6 +208,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    onClick={() => setIsTryMeOpen(true)}
                     className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:border-gray-500"
                   >
                     <Play className="w-4 h-4 mr-2" />
@@ -230,14 +221,12 @@ export default function AgentCard({ agent }: AgentCardProps) {
               </Tooltip>
 
               <Button 
-                asChild
                 size="sm"
+                onClick={() => setIsHireNowOpen(true)}
                 className={`flex-1 bg-gradient-to-r ${getAgentColor(agent.name)} hover:opacity-90 text-white font-medium`}
               >
-                <Link href={`/agent/${agent.id}`}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Hire Now
-                </Link>
+                <Eye className="w-4 h-4 mr-2" />
+                Hire Now
               </Button>
             </div>
           </div>
@@ -255,6 +244,23 @@ export default function AgentCard({ agent }: AgentCardProps) {
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {/* Modals */}
+      <TryMeModal
+        isOpen={isTryMeOpen}
+        onClose={() => setIsTryMeOpen(false)}
+        agent={agent}
+        onHireNow={() => {
+          setIsTryMeOpen(false);
+          setIsHireNowOpen(true);
+        }}
+      />
+
+      <HireNowModal
+        isOpen={isHireNowOpen}
+        onClose={() => setIsHireNowOpen(false)}
+        agent={agent}
+      />
     </TooltipProvider>
   );
 }
