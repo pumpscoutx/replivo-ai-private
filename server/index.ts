@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import session from 'express-session';
 import passport from 'passport';
+import cors from 'cors';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { ExtensionWebSocketServer } from "./websocket-server";
@@ -12,6 +13,16 @@ const app = express();
 
 // Connect to database
 connectDB();
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
+};
+
+app.use(cors(corsOptions));
 
 // Session configuration
 app.use(session({

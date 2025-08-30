@@ -366,7 +366,6 @@ export class MemStorage implements IStorage {
       isBundle: true,
       subAgentIds: [],
       tasks: [],
-      featured: false,
       ...insertAgent, 
       id 
     };

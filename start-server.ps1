@@ -14,6 +14,7 @@ $env:MONGODB_URI = "mongodb://localhost:27017/replivo-ai"
 $env:GOOGLE_OAUTH_CLIENT_ID = "your-google-oauth-client-id"
 $env:GOOGLE_OAUTH_CLIENT_SECRET = "your-google-oauth-client-secret"
 $env:GOOGLE_OAUTH_CALLBACK_URL = "http://localhost:5000/api/auth/google/callback"
+$env:CORS_ORIGIN = "http://localhost:5173"
 $env:NODE_ENV = "development"
 $env:PORT = "5000"
 
@@ -28,6 +29,7 @@ Write-Host "Set MONGODB_URI" -ForegroundColor Gray
 Write-Host "Set GOOGLE_OAUTH_CLIENT_ID" -ForegroundColor Gray
 Write-Host "Set GOOGLE_OAUTH_CLIENT_SECRET" -ForegroundColor Gray
 Write-Host "Set GOOGLE_OAUTH_CALLBACK_URL" -ForegroundColor Gray
+Write-Host "Set CORS_ORIGIN" -ForegroundColor Gray
 Write-Host "Set NODE_ENV" -ForegroundColor Gray
 Write-Host "Set PORT" -ForegroundColor Gray
 
