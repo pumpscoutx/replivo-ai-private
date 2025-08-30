@@ -30,18 +30,6 @@ interface ChatMessage {
 }
 
 export default function TryMeModal({ isOpen, onClose, agent, onHireNow }: TryMeModalProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      type: 'agent',
-      content: `Hi! I'm your ${agent.name} AI assistant. I'm here to help you with ${getAgentCapabilities(agent.name).join(', ')}. What would you like to work on today?`,
-      timestamp: new Date()
-    }
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat');
-
   const getAgentIcon = (agentName: string) => {
     const iconMap: { [key: string]: any } = {
       "Content Creator": <Target className="w-6 h-6" />,
@@ -68,6 +56,18 @@ export default function TryMeModal({ isOpen, onClose, agent, onHireNow }: TryMeM
     };
     return capabilitiesMap[agentName] || ["AI Assistance", "Task Automation", "Content Creation"];
   };
+
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      type: 'agent',
+      content: `Hi! I'm your ${agent.name} AI assistant. I'm here to help you with ${getAgentCapabilities(agent.name).join(', ')}. What would you like to work on today?`,
+      timestamp: new Date()
+    }
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeTab, setActiveTab] = useState('chat');
 
   const getSamplePrompts = (agentName: string) => {
     const promptsMap: { [key: string]: string[] } = {
