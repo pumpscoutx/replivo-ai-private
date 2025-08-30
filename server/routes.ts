@@ -15,6 +15,7 @@ import {
 import { DeviceScanner } from "./device-scanner";
 import { ExtensionWebSocketServer } from "./websocket-server";
 import { TaskExecutor } from "./task-executor";
+import authRouter from "./routes/auth";
 
 // Extend Express Request type to include user
 declare global {
@@ -1634,6 +1635,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authentication routes
+  app.use("/api/auth", authRouter);
+  
   // Device tool detection and agent configuration routes
   app.use("/api/device-tools", deviceToolsRouter);
   app.use("/api/agent-config", agentConfigRouter);
