@@ -22,7 +22,8 @@ export default function Header() {
   const menuItems = [
     { href: "/", label: "AGENTS" },
     { href: "/marketplace", label: "MARKETPLACE" },
-    { href: "/custom-agent", label: "CUSTOM BUILDER" }
+    { href: "/custom-agent", label: "CUSTOM BUILDER" },
+    { href: "/agent-recommender", label: "RECOMMENDER" }
   ];
 
   return (

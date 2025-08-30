@@ -1,353 +1,288 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import BackgroundEffects from "@/components/background-effects";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { insertCustomRequestSchema } from "@shared/schema";
-import { TRENDING_TEMPLATES, BUDGET_RANGES, INDUSTRIES } from "@/lib/constants";
-import type { InsertCustomRequest } from "@shared/schema";
-import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Zap, 
+  Brain, 
+  Settings, 
+  Code, 
+  Palette, 
+  Rocket,
+  ArrowRight,
+  CheckCircle,
+  Sparkles,
+  Target,
+  Users,
+  TrendingUp
+} from "lucide-react";
 
-const formSchema = insertCustomRequestSchema.extend({
-  industry: z.string().optional(),
-  budgetRange: z.string().optional(),
-});
+const CUSTOMIZATION_OPTIONS = [
+  {
+    id: "personality",
+    title: "Personality & Tone",
+    description: "Define how your agent communicates and behaves",
+    icon: Brain,
+    options: ["Professional", "Friendly", "Technical", "Creative", "Casual"]
+  },
+  {
+    id: "capabilities",
+    title: "Core Capabilities",
+    description: "Select the main functions your agent will perform",
+    icon: Zap,
+    options: ["Content Creation", "Data Analysis", "Customer Support", "Sales", "Project Management"]
+  },
+  {
+    id: "integrations",
+    title: "Integrations",
+    description: "Connect with your existing tools and platforms",
+    icon: Settings,
+    options: ["Slack", "Notion", "Google Workspace", "Salesforce", "HubSpot"]
+  },
+  {
+    id: "customization",
+    title: "Custom Features",
+    description: "Add unique functionality specific to your needs",
+    icon: Code,
+    options: ["Custom API", "Specialized Training", "Unique Workflows", "Brand Voice", "Industry Knowledge"]
+  }
+];
 
-type FormData = z.infer<typeof formSchema>;
+const INDUSTRY_TEMPLATES = [
+  {
+    name: "E-commerce",
+    description: "Product recommendations, inventory management, customer support",
+    icon: "🛒",
+    color: "from-blue-500 to-cyan-600"
+  },
+  {
+    name: "SaaS",
+    description: "User onboarding, feature adoption, technical support",
+    icon: "💻",
+    color: "from-purple-500 to-pink-600"
+  },
+  {
+    name: "Marketing",
+    description: "Content creation, campaign management, analytics",
+    icon: "📈",
+    color: "from-green-500 to-emerald-600"
+  },
+  {
+    name: "Finance",
+    description: "Risk assessment, compliance monitoring, reporting",
+    icon: "💰",
+    color: "from-yellow-500 to-orange-600"
+  },
+  {
+    name: "Healthcare",
+    description: "Patient scheduling, medical records, appointment reminders",
+    icon: "🏥",
+    color: "from-red-500 to-rose-600"
+  },
+  {
+    name: "Education",
+    description: "Student support, course management, learning analytics",
+    icon: "🎓",
+    color: "from-indigo-500 to-blue-600"
+  }
+];
 
 export default function CustomAgent() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [, setLocation] = useLocation();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [customizations, setCustomizations] = useState<Record<string, string[]>>({});
+  const [currentStep, setCurrentStep] = useState(1);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: "",
-      industry: "",
-      budgetRange: "",
-      allowPooling: false,
-    },
-  });
-
-  const createRequestMutation = useMutation({
-    mutationFn: async (data: InsertCustomRequest) => {
-      const response = await apiRequest("POST", "/api/custom-requests", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/custom-requests"] });
-      toast({
-        title: "Request Submitted!",
-        description: "We'll get back to you within 24 hours with a custom agent proposal.",
-      });
-      form.reset();
-      setCurrentStep(1);
-      setSelectedTemplate(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to submit request. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: FormData) => {
-    createRequestMutation.mutate(data);
+  const handleCustomizationChange = (categoryId: string, option: string) => {
+    setCustomizations(prev => {
+      const current = prev[categoryId] || [];
+      const updated = current.includes(option)
+        ? current.filter(item => item !== option)
+        : [...current, option];
+      return { ...prev, [categoryId]: updated };
+    });
   };
 
-  const selectTemplate = (templateName: string, description: string) => {
-    setSelectedTemplate(templateName);
-    form.setValue("description", `${templateName}: ${description}`);
-    setCurrentStep(2);
-  };
-
-  const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+  const getTotalPrice = () => {
+    let basePrice = 299;
+    const customizationCount = Object.values(customizations).flat().length;
+    return basePrice + (customizationCount * 50);
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white">
       <Header />
+      <BackgroundEffects />
       
-      {/* Custom Agent Builder Section */}
-      <section className="py-32 bg-black relative">
-        <div className="absolute inset-0 opacity-15" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        }}></div>
-        
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
+      {/* Hero Section */}
+      <section className="relative py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8 }}
           >
             <motion.div
-              className="inline-block bg-gray-800/50 text-gray-300 rounded-full px-6 py-2 mb-6 font-semibold text-sm border border-gray-600/30"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-600/20 border border-purple-500/30 mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
             >
-              <i className="fas fa-magic mr-2"></i>
-              CUSTOM AI SOLUTIONS
+              <Sparkles className="w-5 h-5 text-purple-400 mr-2" />
+              <span className="text-purple-300 font-bold text-sm tracking-wider">
+                CUSTOM AI SOLUTION
+              </span>
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-neiko font-black text-white mb-6 leading-tight">
-              CREATE YOUR PERFECT
-              <br />
-              <span className="text-gradient">AI ASSISTANT</span>
-            </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              Our expert team will design and build a custom AI agent tailored specifically to your unique business requirements. 
-              From concept to deployment in just 48 hours.
-            </p>
-          </motion.div>
-          
-          <motion.div 
-            className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="flex items-center space-x-4">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex items-center">
-                    <motion.div 
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        step <= currentStep ? "bg-primary text-white" : "bg-gray-300 text-gray-600"
-                      }`}
-                      animate={step <= currentStep ? { scale: [1, 1.1, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {step}
-                    </motion.div>
-                    {step < 3 && (
-                      <div className={`w-16 h-1 rounded ml-4 ${
-                        step < currentStep ? "bg-primary" : "bg-gray-300"
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
             
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Step 1: Description or Template Selection */}
-                {currentStep === 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-semibold text-dark">
-                            What type of tasks do you need automated?
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              rows={4}
-                              placeholder="Describe the specific tasks, workflows, or processes you'd like to automate..."
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            <motion.h1 
+              className="text-5xl md:text-7xl font-black mb-8"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              <span className="text-white font-extralight">BUILD YOUR</span>
+              <br />
+              <span className="text-gradient-electric font-black">DREAM AGENT</span>
+            </motion.h1>
+            
+            <motion.p
+              className="text-xl text-gray-300 font-light max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              Create a completely customized AI agent tailored to your business needs, 
+              industry requirements, and unique workflows
+            </motion.p>
+          </motion.div>
 
-                    {/* Trending Templates */}
-                    <div>
-                      <label className="block text-sm font-semibold text-dark mb-4">
-                        Or choose from trending templates:
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {TRENDING_TEMPLATES.map((template) => (
-                          <motion.div
-                            key={template.name}
-                            className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
-                              selectedTemplate === template.name
-                                ? "border-primary bg-blue-50"
-                                : "border-gray-200 hover:border-primary"
+          {/* Industry Templates */}
+          <motion.div
+            className="mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+          >
+            <h2 className="text-3xl font-bold text-center mb-12">Choose Your Industry Template</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {INDUSTRY_TEMPLATES.map((template, index) => (
+                <motion.div
+                  key={template.name}
+                  className={`relative cursor-pointer group ${
+                    selectedTemplate === template.name ? 'ring-2 ring-purple-500' : ''
+                  }`}
+                  onClick={() => setSelectedTemplate(template.name)}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                >
+                  <Card className="bg-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-purple-500/50 transition-all">
+                    <CardContent className="p-6">
+                      <div className="text-center">
+                        <div className={`w-16 h-16 bg-gradient-to-r ${template.color} rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl`}>
+                          {template.icon}
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">{template.name}</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">{template.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Customization Options */}
+          <motion.div
+            className="mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
+          >
+            <h2 className="text-3xl font-bold text-center mb-12">Customize Your Agent</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {CUSTOMIZATION_OPTIONS.map((category, index) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9 + index * 0.1 }}
+                >
+                  <Card className="bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                          <category.icon className="w-5 h-5 text-white" />
+                        </div>
+                        <CardTitle className="text-white">{category.title}</CardTitle>
+                      </div>
+                      <p className="text-gray-400 text-sm">{category.description}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {category.options.map((option) => (
+                          <Badge
+                            key={option}
+                            variant={customizations[category.id]?.includes(option) ? "default" : "secondary"}
+                            className={`cursor-pointer transition-all ${
+                              customizations[category.id]?.includes(option)
+                                ? 'bg-purple-600 hover:bg-purple-700'
+                                : 'bg-gray-700 hover:bg-gray-600'
                             }`}
-                            onClick={() => selectTemplate(template.name, template.description)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleCustomizationChange(category.id, option)}
                           >
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg mb-3 flex items-center justify-center">
-                              <i className={`${template.icon} text-blue-600`}></i>
-                            </div>
-                            <h4 className="font-semibold text-dark mb-1">{template.name}</h4>
-                            <p className="text-xs text-secondary">{template.description}</p>
-                          </motion.div>
+                            {option}
+                          </Badge>
                         ))}
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
 
-                {/* Step 2: Industry and Budget */}
-                {currentStep === 2 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="industry"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-semibold text-dark">Industry</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your industry" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {INDUSTRIES.map((industry) => (
-                                  <SelectItem key={industry} value={industry.toLowerCase()}>
-                                    {industry}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="budgetRange"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-semibold text-dark">Budget Range</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select budget range" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {BUDGET_RANGES.map((range) => (
-                                  <SelectItem key={range} value={range.toLowerCase()}>
-                                    {range}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Step 3: Pooling and Final Options */}
-                {currentStep === 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="allowPooling"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                            <div className="flex items-start space-x-3">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div>
-                                <FormLabel className="font-semibold text-dark">Join Request Pool</FormLabel>
-                                <p className="text-sm text-secondary mt-1">
-                                  Allow others with similar requests to join and share development costs. 
-                                  This can reduce your cost by up to 70%.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </motion.div>
-                )}
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between pt-6">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={currentStep === 1}
-                    className="px-6 py-3"
-                  >
-                    {currentStep === 1 ? "Save Draft" : "Previous"}
-                  </Button>
-                  
-                  {currentStep < 3 ? (
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={currentStep === 1 && !form.getValues("description")}
-                      className="px-8 py-3 bg-primary hover:bg-primary-dark text-white"
-                    >
-                      Next
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={createRequestMutation.isPending}
-                      className="px-8 py-3 bg-primary hover:bg-primary-dark text-white"
-                    >
-                      {createRequestMutation.isPending ? "Submitting..." : "Submit Request"}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </Form>
+          {/* Pricing & CTA */}
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.8 }}
+          >
+            <div className="bg-gradient-to-r from-purple-500/10 to-pink-600/10 backdrop-blur-xl p-12 rounded-3xl border border-purple-500/20 shadow-2xl max-w-2xl mx-auto">
+              <h3 className="text-3xl font-bold text-white mb-4">Custom Agent Pricing</h3>
+              <div className="text-6xl font-black text-purple-400 mb-6">
+                ${getTotalPrice()}
+                <span className="text-2xl text-gray-400 font-normal">/month</span>
+              </div>
+              <p className="text-gray-300 mb-8">
+                Includes setup, training, and ongoing support for your custom AI solution
+              </p>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  onClick={() => setLocation("/dashboard")}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-12 py-4 rounded-2xl font-bold text-xl shadow-2xl border-0"
+                  size="lg"
+                >
+                  <Rocket className="w-5 h-5 mr-3" />
+                  START BUILDING
+                  <ArrowRight className="w-5 h-5 ml-3" />
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
