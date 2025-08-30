@@ -2027,6 +2027,11 @@ export default function Home() {
   const heroRef = useRef(null);
   const agentsRef = useRef(null);
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
+  
+  // Marketplace state
+  const [sortBy, setSortBy] = useState('rating');
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [filteredAgents, setFilteredAgents] = useState(MARKETPLACE_AGENTS);
 
   // Auto-rotate agents every 8 seconds
   useEffect(() => {
@@ -2036,6 +2041,38 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Handle sorting and filtering
+  useEffect(() => {
+    let agents = [...MARKETPLACE_AGENTS];
+    
+    // Apply filter
+    if (activeFilter !== 'All') {
+      agents = agents.filter(agent => {
+        const category = agent.specialty.toLowerCase();
+        return category.includes(activeFilter.toLowerCase()) || 
+               agent.skills.some(skill => skill.toLowerCase().includes(activeFilter.toLowerCase()));
+      });
+    }
+    
+    // Apply sort
+    agents.sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+          return b.rating - a.rating;
+        case 'price':
+          return a.price - b.price;
+        case 'reviews':
+          return b.reviews - a.reviews;
+        case 'hiringCount':
+          return b.hiringCount - a.hiringCount;
+        default:
+          return 0;
+      }
+    });
+    
+    setFilteredAgents(agents);
+  }, [sortBy, activeFilter]);
 
   const currentAgent = AGENT_TYPES[currentAgentIndex];
 
@@ -2124,18 +2161,82 @@ export default function Home() {
             </motion.p>
           </motion.div>
 
-          {/* Marketplace Grid */}
+          {/* Sort and Filter Controls */}
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-12 p-6 bg-gray-900/30 backdrop-blur-xl rounded-2xl border border-white/10"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             viewport={{ once: true }}
           >
-            {MARKETPLACE_AGENTS.map((agent, index) => (
-              <MarketplaceCard key={agent.id} agent={agent} index={index} />
-            ))}
+            {/* Sort By */}
+            <div className="flex items-center gap-3">
+              <span className="text-gray-300 font-medium">Sort by:</span>
+              <select 
+                className="bg-gray-800/50 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="rating">Rating</option>
+                <option value="price">Price</option>
+                <option value="reviews">Reviews</option>
+                <option value="hiringCount">Most Hired</option>
+              </select>
+            </div>
+
+            {/* Filter By */}
+            <div className="flex items-center gap-3">
+              <span className="text-gray-300 font-medium">Filter:</span>
+              <div className="flex flex-wrap gap-2">
+                {['All', 'Content', 'Support', 'Analytics', 'Sales'].map((filter) => (
+                  <button
+                    key={filter}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      filter === activeFilter 
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/20 hover:border-cyan-500/50'
+                    }`}
+                    onClick={() => setActiveFilter(filter)}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
           </motion.div>
+
+          {/* Marketplace Grid */}
+          {filteredAgents.length > 0 ? (
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.8 }}
+              viewport={{ once: true }}
+            >
+              {filteredAgents.map((agent, index) => (
+                <MarketplaceCard key={agent.id} agent={agent} index={index} />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              className="text-center py-16"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-bold text-white mb-2">No agents found</h3>
+              <p className="text-gray-400 mb-6">Try adjusting your filters or browse all agents</p>
+              <Button
+                onClick={() => setActiveFilter('All')}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-xl"
+              >
+                Show All Agents
+              </Button>
+            </motion.div>
+          )}
 
           {/* View All Agents Button */}
           <motion.div
@@ -2158,154 +2259,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Agents Section */}
-      <motion.section
-        ref={agentsRef}
-        className="relative py-32 px-4"
-        style={{ y: agentsY, opacity: agentsOpacity }}
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <motion.h2 
-              className="text-5xl md:text-7xl font-black mb-8"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <span className="text-white font-extralight">MEET YOUR</span>
-              <br />
-              <span className="text-gradient-electric font-black">AI TEAM</span>
-            </motion.h2>
-            
-            <motion.p
-              className="text-xl text-gray-300 font-light max-w-3xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              Deploy specialized AI agents that work together to transform your business operations
-            </motion.p>
-          </motion.div>
 
-          {/* Filter/Sort Bar */}
-          <motion.div
-            className="flex flex-col sm:flex-row items-center justify-between mb-16 bg-gray-900/50 backdrop-blur-xl p-6 rounded-2xl border border-white/10"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-              <span className="text-gray-400 font-medium">Sort by:</span>
-              <select className="bg-gray-800/50 border border-white/20 text-white px-4 py-2 rounded-xl font-bold focus:outline-none focus:border-cyan-400">
-                <option>Rating</option>
-                <option>Price</option>
-                <option>Most Popular</option>
-                <option>Recently Updated</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-400 font-medium">Filter:</span>
-              <div className="flex gap-2">
-                <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-500/30">All</Badge>
-                <Badge className="bg-gray-700 text-gray-300 hover:bg-gray-600 cursor-pointer">Content</Badge>
-                <Badge className="bg-gray-700 text-gray-300 hover:bg-gray-600 cursor-pointer">Support</Badge>
-                <Badge className="bg-gray-700 text-gray-300 hover:bg-gray-600 cursor-pointer">Analytics</Badge>
-                <Badge className="bg-gray-700 text-gray-300 hover:bg-gray-600 cursor-pointer">Sales</Badge>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Agents Grid */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            {AGENT_TYPES.map((agent, index) => (
-              <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <AgentCard agent={agent} isActive={true} />
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* CTA for Custom Agent */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="bg-gradient-to-r from-cyan-500/10 to-purple-600/10 backdrop-blur-xl p-12 rounded-3xl border border-white/10 shadow-2xl">
-              <motion.div
-                className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-600/20 border border-yellow-500/30 mb-8"
-                whileHover={{ scale: 1.05 }}
-              >
-                <span className="text-yellow-300 font-bold text-sm tracking-wider">
-                  🚀 CUSTOM SOLUTION
-                </span>
-              </motion.div>
-              
-              <h3 className="text-4xl md:text-5xl font-neiko font-black mb-6">
-                <span className="text-gradient-electric">NEED SOMETHING</span>
-                <br />
-                <span className="text-white">SPECIAL?</span>
-              </h3>
-              
-              <p className="text-xl text-gray-300 font-light max-w-3xl mx-auto mb-8">
-                Can't find the perfect agent? Let us build a custom AI solution tailored to your specific business needs and workflows.
-              </p>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  onClick={() => setLocation("/custom-agent")}
-                  className="relative overflow-hidden bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-12 py-4 rounded-2xl font-neiko font-bold text-xl shadow-2xl border-0"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <motion.i 
-                    className="fas fa-magic mr-3"
-                    animate={{ 
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-                  BUILD CUSTOM AGENT
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.section>
 
 
     </div>
