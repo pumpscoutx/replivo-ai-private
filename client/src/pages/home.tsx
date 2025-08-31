@@ -985,11 +985,11 @@ const HeroSection = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Text animation effect
+  // Text animation effect - alternating every 3 seconds
   useEffect(() => {
     const textInterval = setInterval(() => {
       setTextAlternate(prev => !prev);
-    }, 1000);
+    }, 3000);
     return () => clearInterval(textInterval);
   }, []);
 
@@ -1111,130 +1111,171 @@ const HeroSection = () => {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        {/* Left Side - Enhanced Text Content */}
+        {/* Left Side - New Design Specs */}
         <motion.div
-          className="space-y-8"
+          className="relative space-y-8"
           initial={{ opacity: 0, x: -100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, delay: 0.2 }}
         >
-          {/* Enhanced Headline with Mixed Font Weights and Text Animation */}
-          <motion.h1
-            className="text-6xl lg:text-8xl font-black leading-tight"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
+          {/* Background watermark text - alternating between BUILD and HIRE */}
+          <motion.div
+            className="absolute -top-20 -left-10 z-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.15 }}
+            transition={{ duration: 1, delay: 0.5 }}
           >
-            <motion.span
-              className="text-white font-extralight block"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
+            <AnimatePresence mode="wait">
               <motion.span
                 key={textAlternate ? "hire" : "build"}
-                initial={{ opacity: 0, x: textAlternate ? -20 : 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: textAlternate ? 20 : -20 }}
-                transition={{ duration: 0.5 }}
-                className="inline-block"
+                className="text-[120px] font-black text-white/20 select-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.15 }}
+                exit={{ opacity: 0 }}
+                transition={{ 
+                  duration: 0.8,
+                  ease: "easeInOut"
+                }}
               >
                 {textAlternate ? "HIRE" : "BUILD"}
               </motion.span>
-            </motion.span>
-            <motion.span
-              className="text-gradient-electric font-black block"
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Main Content */}
+          <div className="relative z-10 space-y-6">
+            {/* AI AGENTS with gradient text */}
+            <motion.h1
+              className="text-[64px] font-black leading-tight"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4 }}
+            >
+              <motion.span
+                className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent"
+                style={{
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                AI AGENTS
+              </motion.span>
+            </motion.h1>
+
+            {/* Main copy */}
+            <motion.div
+              className="space-y-4 max-w-[480px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
+              transition={{ duration: 1, delay: 1 }}
             >
-              AI AGENTS
-            </motion.span>
-          </motion.h1>
+              <motion.p
+                className="text-[24px] text-gray-300 font-light leading-[1.5]"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+              >
+                Skip the traditional hiring. Get specialized agents that work 24/7
+              </motion.p>
+              
+              <motion.p
+                className="text-lg text-gray-400 font-medium"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.4 }}
+              >
+                Powering 10,000+ teams worldwide
+              </motion.p>
+            </motion.div>
 
-          {/* Enhanced Subtext with Stagger Animation */}
+            {/* CTA Buttons */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.6 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={() => setLocation("/marketplace")}
+                  className="w-[140px] h-[48px] bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
+                  size="lg"
+                >
+                  <motion.i
+                    className="fas fa-rocket mr-2"
+                    animate={{ 
+                      rotate: [0, 10, -10, 0],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  BROWSE MARKETPLACE
+                </Button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={() => setLocation("/custom-agent")}
+                  variant="outline"
+                  className="w-[140px] h-[48px] border-2 border-white/20 text-white hover:border-cyan-400/50 hover:bg-white/5 font-semibold text-lg rounded-xl backdrop-blur-xl transition-all duration-300"
+                  size="lg"
+                >
+                  <motion.i
+                    className="fas fa-magic mr-2"
+                    animate={{ 
+                      rotate: [0, 360],
+                    }}
+                    transition={{ 
+                      duration: 3, 
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                  />
+                  CUSTOM BUILD
+                </Button>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Subtle geometric accents */}
           <motion.div
-            className="space-y-4"
+            className="absolute top-1/2 right-0 w-16 h-16 opacity-20"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
+            animate={{ opacity: 0.2 }}
+            transition={{ duration: 1, delay: 2 }}
           >
-            <motion.p
-              className="text-xl lg:text-2xl text-gray-300 font-light leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-            >
-              Skip the traditional hiring. Get specialized agents that work 24/7
-            </motion.p>
-            
-            <motion.p
-              className="text-lg text-gray-400 font-medium"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.4 }}
-            >
-              Powering 10,000+ teams worldwide
-            </motion.p>
+            <div className="w-full h-full border border-cyan-500/30 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-cyan-400 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
           </motion.div>
-
-          {/* Enhanced CTA Buttons with Morphing Effects */}
+          
+          {/* Additional subtle lines */}
           <motion.div
-            className="flex flex-col sm:flex-row gap-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.6 }}
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={() => setLocation("/marketplace")}
-                className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
-                size="lg"
-              >
-                <motion.i
-                  className="fas fa-rocket mr-3"
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-                BROWSE MARKETPLACE
-              </Button>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={() => setLocation("/custom-agent")}
-                variant="outline"
-                className="w-full sm:w-auto border-2 border-white/20 text-white hover:border-cyan-400/50 hover:bg-white/5 font-semibold text-lg px-8 py-4 rounded-2xl backdrop-blur-xl transition-all duration-300"
-                size="lg"
-              >
-                <motion.i
-                  className="fas fa-magic mr-3"
-                  animate={{ 
-                    rotate: [0, 360],
-                  }}
-                  transition={{ 
-                    duration: 3, 
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-                CUSTOM BUILD
-              </Button>
-            </motion.div>
-          </motion.div>
+            className="absolute bottom-1/4 left-1/4 w-8 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 1, delay: 2.5 }}
+          />
+          <motion.div
+            className="absolute top-1/3 right-1/3 w-6 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 1, delay: 2.8 }}
+          />
         </motion.div>
 
         {/* Right Side - Enhanced Dynamic Cards */}
