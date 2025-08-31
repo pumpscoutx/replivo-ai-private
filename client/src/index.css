@@ -54,6 +54,8 @@
   --radius: 1.3rem;
   --dark: hsl(210, 11%, 10%);
   --dark-lighter: hsl(210, 11%, 17%);
+  --navy-800: hsl(220, 25%, 15%);
+  --navy-900: hsl(220, 25%, 10%);
 }
 
 .dark {
@@ -225,6 +227,41 @@
 }
 
 @layer components {
+  /* Navy Color Utilities */
+  .from-navy-800 {
+    --tw-gradient-from: hsl(220, 25%, 15%);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(220, 25%, 15%, 0));
+  }
+  
+  .from-navy-900 {
+    --tw-gradient-from: hsl(220, 25%, 10%);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(220, 25%, 10%, 0));
+  }
+  
+  .to-navy-800 {
+    --tw-gradient-to: hsl(220, 25%, 15%);
+  }
+  
+  .to-navy-900 {
+    --tw-gradient-to: hsl(220, 25%, 10%);
+  }
+  
+  .bg-navy-800 {
+    background-color: hsl(220, 25%, 15%);
+  }
+  
+  .bg-navy-900 {
+    background-color: hsl(220, 25%, 10%);
+  }
+  
+  .border-navy-800 {
+    border-color: hsl(220, 25%, 15%);
+  }
+  
+  .border-navy-900 {
+    border-color: hsl(220, 25%, 10%);
+  }
+  
   /* Gradient Text Effects */
   .text-gradient-electric {
     background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #06b6d4 100%);
