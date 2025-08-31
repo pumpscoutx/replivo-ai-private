@@ -756,7 +756,7 @@ const TryMeModal = ({ isOpen, onClose, agent, onHire }: {
   );
 };
 
-// Hire Modal Component
+// Enhanced Hire Modal Component with Premium Features
 const HireModal = ({ isOpen, onClose, agent }: {
   isOpen: boolean;
   onClose: () => void;
@@ -765,24 +765,93 @@ const HireModal = ({ isOpen, onClose, agent }: {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showTestimonials, setShowTestimonials] = useState(false);
 
-  const tasks = ['Content Creation', 'SEO Optimization', 'Social Media', 'Email Marketing', 'Analytics'];
-  const integrations = ['Google Docs', 'Notion', 'WordPress', 'Mailchimp', 'Slack'];
+  const tasks = [
+    { name: 'Content Creation', icon: '✍️', description: 'Blog posts, articles, social media content' },
+    { name: 'SEO Optimization', icon: '📈', description: 'Keyword research, on-page optimization' },
+    { name: 'Social Media', icon: '📱', description: 'Platform management, engagement strategies' },
+    { name: 'Email Marketing', icon: '📧', description: 'Campaign creation, automation workflows' },
+    { name: 'Analytics', icon: '📊', description: 'Performance tracking, insights & reporting' }
+  ];
 
-  const handleTaskToggle = (task: string) => {
+  const integrations = [
+    { name: 'Google Docs', icon: '📄', description: 'Document collaboration & editing' },
+    { name: 'Notion', icon: '📝', description: 'Knowledge management & workflows' },
+    { name: 'WordPress', icon: '🌐', description: 'Website content management' },
+    { name: 'Mailchimp', icon: '📬', description: 'Email marketing automation' },
+    { name: 'Slack', icon: '💬', description: 'Team communication & notifications' }
+  ];
+
+  const pricingPlans = [
+    {
+      id: 'monthly',
+      name: 'Monthly',
+      price: agent.price || 99,
+      savings: 0,
+      popular: false
+    },
+    {
+      id: 'quarterly',
+      name: 'Quarterly',
+      price: Math.round((agent.price || 99) * 2.7),
+      savings: 10,
+      popular: false
+    },
+    {
+      id: 'yearly',
+      name: 'Yearly',
+      price: Math.round((agent.price || 99) * 10),
+      savings: 17,
+      popular: true
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: 'Sarah Chen',
+      role: 'Marketing Director',
+      company: 'TechFlow Inc.',
+      photo: '👩‍💼',
+      rating: 5,
+      text: 'This agent transformed our content strategy. ROI increased by 340% in just 3 months!'
+    },
+    {
+      name: 'Marcus Rodriguez',
+      role: 'CEO',
+      company: 'StartupXYZ',
+      photo: '👨‍💼',
+      rating: 5,
+      text: 'Incredible efficiency gains. What used to take our team days now happens in hours.'
+    }
+  ];
+
+  const handleTaskToggle = (taskName: string) => {
     setSelectedTasks(prev => 
-      prev.includes(task) 
-        ? prev.filter(t => t !== task)
-        : [...prev, task]
+      prev.includes(taskName) 
+        ? prev.filter(t => t !== taskName)
+        : [...prev, taskName]
     );
   };
 
-  const handleIntegrationToggle = (integration: string) => {
+  const handleIntegrationToggle = (integrationName: string) => {
     setSelectedIntegrations(prev => 
-      prev.includes(integration) 
-        ? prev.filter(i => i !== integration)
-        : [...prev, integration]
+      prev.includes(integrationName) 
+        ? prev.filter(i => i !== integrationName)
+        : [...prev, integrationName]
     );
+  };
+
+  const handleNextStep = async () => {
+    if (currentStep < 3) {
+      setIsProcessing(true);
+      // Simulate processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsProcessing(false);
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   if (!isOpen) return null;
@@ -794,142 +863,436 @@ const HireModal = ({ isOpen, onClose, agent }: {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      {/* Enhanced Backdrop with Particle Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-navy-900/90 via-blue-900/80 to-black/95 backdrop-blur-2xl" onClick={onClose} />
+      
+      {/* Particle Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-cyan-400/30 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              scale: [0, 1, 0],
+              opacity: [0, 0.5, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              delay: i * 0.3,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Enhanced Modal */}
       <motion.div
-        className="relative w-full max-w-2xl bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden"
-        initial={{ scale: 0.9, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 50 }}
+        className="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-gray-900/95 via-navy-800/90 to-black/95 backdrop-blur-3xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden"
+        initial={{ scale: 0.9, y: 50, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, y: 50, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-4 mb-4">
-            <div className={`w-12 h-12 bg-gradient-to-r ${agent.color} rounded-xl flex items-center justify-center text-xl`}>
-              {agent.icon}
+        {/* Enhanced Header with Glassmorphism */}
+        <div className="p-8 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-6">
+              <motion.div 
+                className={`w-16 h-16 bg-gradient-to-r ${agent.color} rounded-2xl flex items-center justify-center text-2xl shadow-2xl`}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ duration: 0.3 }}
+              >
+                {agent.icon}
+              </motion.div>
+              <div>
+                <motion.h3 
+                  className="text-3xl font-black text-white mb-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  You're hiring the {agent.name} 🚀
+                </motion.h3>
+                <p className="text-gray-300 text-lg">Let's create your perfect AI workforce</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-white">You're hiring the {agent.name} 🚀</h3>
-              <p className="text-gray-400 text-sm">Let's get everything set up</p>
+            
+            {/* Trust Badges */}
+            <div className="flex items-center gap-4">
+              <motion.div 
+                className="flex items-center gap-2 bg-green-500/20 backdrop-blur-xl border border-green-500/30 rounded-full px-4 py-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-green-400 text-sm font-medium">Secure Payment</span>
+              </motion.div>
+              <motion.div 
+                className="flex items-center gap-2 bg-blue-500/20 backdrop-blur-xl border border-blue-500/30 rounded-full px-4 py-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-blue-400 text-sm font-medium">30-Day Guarantee</span>
+              </motion.div>
             </div>
           </div>
 
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center space-x-4">
+          {/* Enhanced Progress Steps */}
+          <div className="flex items-center justify-center space-x-6">
             {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step <= currentStep ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-400'
-                }`}>
-                  {step < currentStep ? <i className="fas fa-check text-sm" /> : step}
-                </div>
+              <motion.div key={step} className="flex items-center">
+                <motion.div 
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-500 ${
+                    step <= currentStep 
+                      ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25' 
+                      : 'bg-white/10 text-gray-400 border border-white/20'
+                  }`}
+                  whileHover={{ scale: 1.1 }}
+                  animate={step === currentStep ? { scale: [1, 1.1, 1] } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {step < currentStep ? '✓' : step}
+                </motion.div>
                 {step < 3 && (
-                  <div className={`w-12 h-0.5 ${step < currentStep ? 'bg-green-600' : 'bg-gray-600'}`} />
+                  <motion.div 
+                    className={`w-16 h-1 rounded-full ${
+                      step < currentStep 
+                        ? 'bg-gradient-to-r from-cyan-500 to-purple-600' 
+                        : 'bg-white/20'
+                    }`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: step < currentStep ? 1 : 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                  />
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Enhanced Content with Glassmorphism */}
+        <div className="p-8 overflow-y-auto max-h-[60vh]">
           {currentStep === 1 && (
-            <div className="space-y-6">
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {/* Pricing Plans */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3">What tasks do you want?</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {tasks.map((task) => (
-                    <button
-                      key={task}
-                      onClick={() => handleTaskToggle(task)}
-                      className={`p-3 rounded-lg border text-left transition-colors ${
-                        selectedTasks.includes(task)
-                          ? 'border-green-500 bg-green-600/20 text-green-300'
-                          : 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <span className="text-2xl">💰</span>
+                  Choose Your Plan
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {pricingPlans.map((plan) => (
+                    <motion.div
+                      key={plan.id}
+                      className={`relative p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                        selectedPlan === plan.id
+                          ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border-cyan-400/50 shadow-2xl shadow-cyan-500/25'
+                          : 'bg-white/5 border-white/20 hover:bg-white/10 hover:border-cyan-400/30'
                       }`}
+                      onClick={() => setSelectedPlan(plan.id)}
+                      whileHover={{ scale: 1.02, y: -5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <div className="font-medium">{task}</div>
-                    </button>
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-3 py-1 rounded-full">
+                          MOST POPULAR
+                        </div>
+                      )}
+                      <div className="text-center">
+                        <h5 className="text-xl font-bold text-white mb-2">{plan.name}</h5>
+                        <div className="text-3xl font-black text-white mb-1">${plan.price}</div>
+                        {plan.savings > 0 && (
+                          <div className="text-green-400 text-sm mb-4">Save {plan.savings}%</div>
+                        )}
+                        <div className="text-gray-400 text-sm">per {plan.id === 'monthly' ? 'month' : plan.id === 'quarterly' ? 'quarter' : 'year'}</div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
-            </div>
+
+              {/* Task Selection */}
+              <div>
+                <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <span className="text-2xl">🎯</span>
+                  What tasks do you want?
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tasks.map((task) => (
+                    <motion.button
+                      key={task.name}
+                      onClick={() => handleTaskToggle(task.name)}
+                      className={`p-4 rounded-xl border text-left transition-all duration-300 ${
+                        selectedTasks.includes(task.name)
+                          ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/50 text-green-300 shadow-lg shadow-green-500/25'
+                          : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:border-cyan-400/30'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">{task.icon}</span>
+                        <div className="font-bold text-lg">{task.name}</div>
+                      </div>
+                      <p className="text-sm opacity-80">{task.description}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Real-time Statistics */}
+              <motion.div 
+                className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xl">🔥</span>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">847 businesses</div>
+                      <div className="text-cyan-400">hired this agent today</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">99.7%</div>
+                    <div className="text-green-400">success rate</div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-6">
+            <motion.div 
+              className="space-y-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {/* Integration Selection */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-3">What integrations do you need?</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <h4 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <span className="text-2xl">🔗</span>
+                  What integrations do you need?
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {integrations.map((integration) => (
-                    <button
-                      key={integration}
-                      onClick={() => handleIntegrationToggle(integration)}
-                      className={`p-3 rounded-lg border text-left transition-colors ${
-                        selectedIntegrations.includes(integration)
-                          ? 'border-green-500 bg-green-600/20 text-green-300'
-                          : 'border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    <motion.button
+                      key={integration.name}
+                      onClick={() => handleIntegrationToggle(integration.name)}
+                      className={`p-4 rounded-xl border text-left transition-all duration-300 ${
+                        selectedIntegrations.includes(integration.name)
+                          ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-400/50 text-blue-300 shadow-lg shadow-blue-500/25'
+                          : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:border-cyan-400/30'
                       }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <div className="font-medium">{integration}</div>
-                    </button>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">{integration.icon}</span>
+                        <div className="font-bold text-lg">{integration.name}</div>
+                      </div>
+                      <p className="text-sm opacity-80">{integration.description}</p>
+                    </motion.button>
                   ))}
                 </div>
               </div>
-            </div>
+
+              {/* Customer Testimonials */}
+              <motion.div 
+                className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <h5 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <span>⭐</span>
+                  What Our Customers Say
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {testimonials.map((testimonial, index) => (
+                    <motion.div
+                      key={testimonial.name}
+                      className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl p-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 + index * 0.1 }}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-2xl">{testimonial.photo}</div>
+                        <div>
+                          <div className="font-bold text-white">{testimonial.name}</div>
+                          <div className="text-sm text-gray-400">{testimonial.role} at {testimonial.company}</div>
+                        </div>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-2">{testimonial.text}</p>
+                      <div className="flex">
+                        {Array.from({ length: testimonial.rating }).map((_, i) => (
+                          <span key={i} className="text-yellow-400">★</span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {currentStep === 3 && (
-            <div className="text-center space-y-6">
+            <motion.div 
+              className="text-center space-y-8"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {/* Success Animation */}
               <motion.div
-                className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-green-500/25"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", damping: 15, stiffness: 200 }}
               >
-                <i className="fas fa-check text-2xl text-white" />
+                <span className="text-4xl text-white">🎉</span>
               </motion.div>
+              
               <div>
-                <h4 className="text-2xl font-bold text-white mb-2">Your agent is ready! 🎉</h4>
-                <p className="text-gray-400">The {agent.name} has been successfully hired and is ready to help you.</p>
+                <motion.h4 
+                  className="text-4xl font-black text-white mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  Your agent is ready! 🚀
+                </motion.h4>
+                <p className="text-xl text-gray-300 mb-6">The {agent.name} has been successfully hired and is ready to transform your business.</p>
+                
+                {/* Final Stats */}
+                <motion.div 
+                  className="grid grid-cols-3 gap-6 max-w-2xl mx-auto"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400">24/7</div>
+                    <div className="text-gray-400">Availability</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400">1.2s</div>
+                    <div className="text-gray-400">Response Time</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-400">99.7%</div>
+                    <div className="text-gray-400">Success Rate</div>
+                  </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-6 bg-gray-800/30 border-t border-white/10">
-          <div className="flex gap-3">
-            {currentStep > 1 && (
-              <Button
-                onClick={() => setCurrentStep(currentStep - 1)}
-                variant="outline"
-                className="border-gray-600 text-gray-300"
-              >
-                Back
-              </Button>
-            )}
+        {/* Enhanced Footer */}
+        <div className="p-8 bg-gradient-to-r from-white/5 to-transparent border-t border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {currentStep > 1 && (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    onClick={() => setCurrentStep(currentStep - 1)}
+                    variant="outline"
+                    className="border-white/20 text-white hover:bg-white/10 hover:border-cyan-400/50 px-8 py-3 rounded-xl"
+                    size="lg"
+                  >
+                    ← Back
+                  </Button>
+                </motion.div>
+              )}
+              
+              {/* Progress Indicator */}
+              <div className="text-sm text-gray-400">
+                Step {currentStep} of 3
+              </div>
+            </div>
             
-            {currentStep < 3 ? (
-              <Button
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                disabled={
-                  (currentStep === 1 && selectedTasks.length === 0) ||
-                  (currentStep === 2 && selectedIntegrations.length === 0)
-                }
-              >
-                {currentStep === 1 ? 'Next' : 'Continue'}
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  onClose();
-                  // Navigate to dashboard
-                }}
-                className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700"
-              >
-                Go to Dashboard
-              </Button>
-            )}
+            <div className="flex items-center gap-4">
+              {currentStep < 3 ? (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    onClick={handleNextStep}
+                    className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
+                    disabled={
+                      (currentStep === 1 && selectedTasks.length === 0) ||
+                      (currentStep === 2 && selectedIntegrations.length === 0) ||
+                      isProcessing
+                    }
+                    size="lg"
+                  >
+                    {isProcessing ? (
+                      <div className="flex items-center gap-2">
+                        <motion.div
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {currentStep === 1 ? 'Next' : 'Continue'}
+                        <motion.span
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          →
+                        </motion.span>
+                      </div>
+                    )}
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    onClick={() => {
+                      onClose();
+                      // Navigate to dashboard
+                    }}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3 rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300"
+                    size="lg"
+                  >
+                    <span className="flex items-center gap-2">
+                      Go to Dashboard
+                      <motion.span
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        🚀
+                      </motion.span>
+                    </span>
+                  </Button>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
