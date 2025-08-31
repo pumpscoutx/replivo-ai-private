@@ -999,12 +999,18 @@ const HeroSection = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: isLoaded ? 1 : 0 }}
       transition={{ duration: 1 }}
+      style={{
+        background: 'linear-gradient(to left, #1a1a1a, #0f0f0f)'
+      }}
     >
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Flowing Geometric Shapes */}
+        {/* Flowing Geometric Shapes with Enhanced Contrast */}
         <motion.div
-          className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl"
+          className="absolute top-20 left-20 w-64 h-64 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 100%)'
+          }}
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -1013,7 +1019,10 @@ const HeroSection = () => {
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-pink-500/20 to-blue-500/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-20 w-96 h-96 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 100%)'
+          }}
           animate={{
             x: [0, -80, 0],
             y: [0, 60, 0],
@@ -1022,15 +1031,16 @@ const HeroSection = () => {
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
         />
         
-        {/* Enhanced Neural Network Visualization */}
-        <div className="absolute inset-0 opacity-20">
+        {/* Enhanced Neural Network Visualization with Gradient Fade */}
+        <div className="absolute inset-0 opacity-25">
           {Array.from({ length: 30 }).map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+              className="absolute w-1 h-1 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
+                background: `radial-gradient(circle, rgba(6, 182, 212, 0.8) 0%, rgba(6, 182, 212, 0.4) 50%, transparent 100%)`
               }}
               animate={{
                 scale: [0, 1, 0],
@@ -1070,9 +1080,13 @@ const HeroSection = () => {
           ))}
         </div>
 
-        {/* Additional Geometric Shapes */}
+        {/* Additional Geometric Shapes with Enhanced Contrast */}
         <motion.div
-          className="absolute top-1/2 left-1/4 w-32 h-32 border border-cyan-500/20 rounded-full"
+          className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full"
+          style={{
+            border: '1px solid rgba(6, 182, 212, 0.25)',
+            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, transparent 70%)'
+          }}
           animate={{
             rotate: [0, 360],
             scale: [1, 1.2, 1],
@@ -1080,7 +1094,11 @@ const HeroSection = () => {
           transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute bottom-1/4 right-1/3 w-24 h-24 border border-purple-500/20 rotate-45"
+          className="absolute bottom-1/4 right-1/3 w-24 h-24 rotate-45"
+          style={{
+            border: '1px solid rgba(139, 92, 246, 0.25)',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)'
+          }}
           animate={{
             rotate: [45, 405],
             scale: [1, 0.8, 1],
@@ -1088,9 +1106,9 @@ const HeroSection = () => {
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* Interactive Grid Pattern */}
+        {/* Interactive Grid Pattern with Enhanced Contrast */}
         <motion.div 
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-15"
           onMouseMove={(e) => {
             const target = e.currentTarget as HTMLElement;
             const rect = target.getBoundingClientRect();
@@ -1102,10 +1120,10 @@ const HeroSection = () => {
         >
           <div className="w-full h-full transition-all duration-300" style={{
             backgroundImage: `
-              linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)
+              linear-gradient(rgba(6, 182, 212, 0.08) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(6, 182, 212, 0.08) 1px, transparent 1px)
             `,
-            backgroundSize: '50px 50px'
+            backgroundSize: '60px 60px'
           }} />
         </motion.div>
       </div>
@@ -2124,7 +2142,40 @@ export default function Home() {
   const agentsOpacity = useTransform(scrollY, [300, 600], [0, 1]);
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen text-white overflow-hidden relative">
+      {/* New Gradient Background with Geometric Patterns */}
+      <div className="absolute inset-0 bg-gradient-to-l from-[#1a1a1a] to-[#0f0f0f]" />
+      
+      {/* Geometric Pattern Overlay with Gradient Mask */}
+      <div className="absolute inset-0 opacity-30">
+        {/* Right to left fade pattern */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%)
+            `,
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)'
+          }}
+        />
+        
+        {/* Subtle grid pattern with fade */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent)'
+          }}
+        />
+      </div>
       <Header />
       <BackgroundEffects />
       
