@@ -1275,7 +1275,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   <Button
                     onClick={() => {
                       onClose();
-                      // Navigate to dashboard
+                      setLocation('/dashboard');
                     }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3 rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300"
                     size="lg"
