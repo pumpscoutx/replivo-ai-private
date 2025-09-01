@@ -869,7 +869,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
       {/* Particle Effects */}
       <div className="absolute inset-0 overflow-hidden">
         {Array.from({ length: 15 }).map((_, i) => (
-          <motion.div
+      <motion.div
             key={i}
             className="absolute w-1 h-1 bg-cyan-400/30 rounded-full"
             style={{
@@ -907,9 +907,9 @@ const HireModal = ({ isOpen, onClose, agent }: {
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 transition={{ duration: 0.3 }}
               >
-                {agent.icon}
+              {agent.icon}
               </motion.div>
-              <div>
+            <div>
                 <motion.h3 
                   className="text-3xl font-black text-white mb-2"
                   initial={{ opacity: 0, x: -20 }}
@@ -919,9 +919,9 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   You're hiring the {agent.name} 🚀
                 </motion.h3>
                 <p className="text-gray-300 text-lg">Let's create your perfect AI workforce</p>
-              </div>
             </div>
-            
+          </div>
+
             {/* Trust Badges */}
             <div className="flex items-center gap-4">
               <motion.div 
@@ -937,7 +937,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
               >
                 <span className="text-blue-400 text-sm font-medium">30-Day Guarantee</span>
               </motion.div>
-            </div>
+                </div>
           </div>
 
           {/* Enhanced Progress Steps */}
@@ -1059,7 +1059,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center">
                       <span className="text-white text-xl">🔥</span>
-                    </div>
+            </div>
                     <div>
                       <div className="text-2xl font-bold text-white">847 businesses</div>
                       <div className="text-cyan-400">hired this agent today</div>
@@ -1135,7 +1135,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                         <div>
                           <div className="font-bold text-white">{testimonial.name}</div>
                           <div className="text-sm text-gray-400">{testimonial.role} at {testimonial.company}</div>
-                        </div>
+            </div>
                       </div>
                       <p className="text-gray-300 text-sm mb-2">{testimonial.text}</p>
                       <div className="flex">
@@ -1151,7 +1151,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
           )}
 
           {currentStep === 3 && (
-            <motion.div 
+              <motion.div
               className="text-center space-y-8"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1188,11 +1188,11 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   <div className="text-center">
                     <div className="text-3xl font-bold text-green-400">24/7</div>
                     <div className="text-gray-400">Availability</div>
-                  </div>
+              </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-blue-400">1.2s</div>
                     <div className="text-gray-400">Response Time</div>
-                  </div>
+            </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-purple-400">99.7%</div>
                     <div className="text-gray-400">Success Rate</div>
@@ -1207,19 +1207,19 @@ const HireModal = ({ isOpen, onClose, agent }: {
         <div className="p-8 bg-gradient-to-r from-white/5 to-transparent border-t border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {currentStep > 1 && (
+            {currentStep > 1 && (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
-                    onClick={() => setCurrentStep(currentStep - 1)}
-                    variant="outline"
+              <Button
+                onClick={() => setCurrentStep(currentStep - 1)}
+                variant="outline"
                     className="border-white/20 text-white hover:bg-white/10 hover:border-cyan-400/50 px-8 py-3 rounded-xl"
                     size="lg"
-                  >
+              >
                     ← Back
-                  </Button>
+              </Button>
                 </motion.div>
               )}
               
@@ -1230,16 +1230,16 @@ const HireModal = ({ isOpen, onClose, agent }: {
             </div>
             
             <div className="flex items-center gap-4">
-              {currentStep < 3 ? (
+            {currentStep < 3 ? (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
+              <Button
                     onClick={handleNextStep}
                     className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
-                    disabled={
-                      (currentStep === 1 && selectedTasks.length === 0) ||
+                disabled={
+                  (currentStep === 1 && selectedTasks.length === 0) ||
                       (currentStep === 2 && selectedIntegrations.length === 0) ||
                       isProcessing
                     }
@@ -1256,7 +1256,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        {currentStep === 1 ? 'Next' : 'Continue'}
+                {currentStep === 1 ? 'Next' : 'Continue'}
                         <motion.span
                           animate={{ x: [0, 5, 0] }}
                           transition={{ duration: 1.5, repeat: Infinity }}
@@ -1265,23 +1265,23 @@ const HireModal = ({ isOpen, onClose, agent }: {
                         </motion.span>
                       </div>
                     )}
-                  </Button>
+              </Button>
                 </motion.div>
-              ) : (
+            ) : (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
-                    onClick={() => {
-                      onClose();
+              <Button
+                onClick={() => {
+                  onClose();
                       setLocation('/dashboard');
-                    }}
+                }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-8 py-3 rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300"
                     size="lg"
-                  >
+              >
                     <span className="flex items-center gap-2">
-                      Go to Dashboard
+                Go to Dashboard
                       <motion.span
                         animate={{ x: [0, 5, 0] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
@@ -1289,9 +1289,9 @@ const HireModal = ({ isOpen, onClose, agent }: {
                         🚀
                       </motion.span>
                     </span>
-                  </Button>
+              </Button>
                 </motion.div>
-              )}
+            )}
             </div>
           </div>
         </div>
@@ -1503,10 +1503,10 @@ const HeroSection = () => {
           {/* Background watermark text - alternating between BUILD and HIRE */}
           <motion.div
             className="absolute -top-20 -left-10 z-0"
-            initial={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
             animate={{ opacity: 0.15 }}
             transition={{ duration: 1, delay: 0.5 }}
-          >
+            >
             <AnimatePresence mode="wait">
               <motion.span
                 key={textAlternate ? "hire" : "build"}
@@ -1536,7 +1536,7 @@ const HeroSection = () => {
               {/* Individual Letter Styling for "AI AGENTS" */}
               <div className="flex items-center space-x-1 mb-4">
                 {["A", "I", " ", "A", "G", "E", "N", "T", "S"].map((letter, index) => (
-                  <motion.span
+            <motion.span
                     key={index}
                     className={`font-black ${
                       letter === " " ? "w-4" : "text-[64px] leading-none"
@@ -1573,12 +1573,12 @@ const HeroSection = () => {
                     }}
                   >
                     {letter}
-                  </motion.span>
+            </motion.span>
                 ))}
               </div>
 
               {/* Glitch Effect Overlay */}
-              <motion.div
+          <motion.div
                 className="absolute inset-0 pointer-events-none"
                 animate={{
                   x: [0, -2, 2, 0],
@@ -1599,17 +1599,17 @@ const HeroSection = () => {
             {/* Enhanced Value Proposition with Creative Typography */}
             <motion.div
               className="space-y-6 max-w-[520px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 1 }}
-            >
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1 }}
+          >
               {/* Main Headline with Mixed Fonts */}
               <motion.h2
                 className="relative"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.2 }}
-              >
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+            >
                 <motion.span
                   className="text-[32px] font-bold leading-[1.2] block"
                   style={{
@@ -1645,10 +1645,10 @@ const HeroSection = () => {
               {/* Supporting Text with Handwritten Style */}
               <motion.div
                 className="relative"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.4 }}
-              >
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+            >
                 <motion.p
                   className="text-[20px] leading-[1.6] relative"
                   style={{
@@ -1664,7 +1664,7 @@ const HeroSection = () => {
                   }}
                 >
                   From content creation to data analysis - get expert-level work done instantly
-                </motion.p>
+            </motion.p>
                 
                 {/* Hand-drawn Underline */}
                 <motion.div
@@ -1678,14 +1678,14 @@ const HeroSection = () => {
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.8, delay: 1.8 }}
                 />
-              </motion.div>
-              
+          </motion.div>
+
               {/* Statistics with Creative Layout */}
-              <motion.div
+          <motion.div
                 className="flex flex-wrap gap-4 items-center"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.6 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.6 }}
               >
                 <motion.span
                   className="text-lg font-medium"
@@ -1807,15 +1807,15 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.8 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={() => setLocation("/marketplace")}
+              <Button
+                onClick={() => setLocation("/marketplace")}
                   className="w-[180px] h-[56px] bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 border-0 relative overflow-hidden"
-                  size="lg"
+                size="lg"
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     transform: 'skew(-1deg)',
@@ -1833,52 +1833,52 @@ const HeroSection = () => {
                       ease: "linear",
                     }}
                   />
-                  <motion.i
-                    className="fas fa-rocket mr-3"
-                    animate={{ 
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-                  BROWSE MARKETPLACE
-                </Button>
-              </motion.div>
+                <motion.i
+                  className="fas fa-rocket mr-3"
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                BROWSE MARKETPLACE
+              </Button>
+            </motion.div>
 
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={() => setLocation("/custom-agent")}
-                  variant="outline"
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={() => setLocation("/custom-agent")}
+                variant="outline"
                   className="w-[160px] h-[56px] border-2 border-white/20 text-white hover:border-cyan-400/50 hover:bg-white/5 font-semibold text-lg rounded-xl backdrop-blur-xl transition-all duration-300 group"
-                  size="lg"
+                size="lg"
                   style={{
                     fontFamily: "'Space Mono', monospace",
                     transform: 'skew(1deg)',
                     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
                   }}
-                >
-                  <motion.i
+              >
+                <motion.i
                     className="fas fa-magic mr-3 group-hover:rotate-180"
-                    animate={{ 
-                      rotate: [0, 360],
-                    }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                  />
-                  CUSTOM BUILD
-                </Button>
-              </motion.div>
+                  animate={{ 
+                    rotate: [0, 360],
+                  }}
+                  transition={{ 
+                    duration: 3, 
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+                CUSTOM BUILD
+              </Button>
             </motion.div>
+          </motion.div>
 
             {/* Try Free Agent Button with Artistic Style */}
             <motion.div

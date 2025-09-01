@@ -12,7 +12,7 @@ const Dashboard = () => {
       {/* Header Navigation */}
       <header className="sticky top-0 z-50 bg-white/5 backdrop-blur-2xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
             {/* Logo and Breadcrumbs */}
             <div className="flex items-center gap-6">
               <motion.div 
@@ -26,12 +26,12 @@ const Dashboard = () => {
                 <span className="text-white capitalize">{activeTab}</span>
               </nav>
             </div>
-
+            
             {/* Right Side Actions */}
             <div className="flex items-center gap-4">
-              <Button
+                <Button
                 onClick={() => setLocation('/')}
-                variant="outline"
+                  variant="outline"
                 className="border-white/20 text-white hover:bg-white/10"
               >
                 Back to Home
