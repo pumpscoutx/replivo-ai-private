@@ -1339,6 +1339,7 @@ const HeroSection = () => {
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [textAlternate, setTextAlternate] = useState(true);
+  const [showTryMeModal, setShowTryMeModal] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -1524,62 +1525,288 @@ const HeroSection = () => {
           </motion.div>
 
           {/* Main Content */}
-          <div className="relative z-10 space-y-6">
-            {/* AI AGENTS with gradient text */}
-            <motion.h1
-              className="text-[64px] font-black leading-tight"
+          <div className="relative z-10 space-y-8">
+            {/* AI AGENTS with Creative Typography */}
+            <motion.div
+              className="relative"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4 }}
             >
-              <motion.span
-                className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent"
-                style={{
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                AI AGENTS
-              </motion.span>
-            </motion.h1>
+              {/* Individual Letter Styling for "AI AGENTS" */}
+              <div className="flex items-center space-x-1 mb-4">
+                {["A", "I", " ", "A", "G", "E", "N", "T", "S"].map((letter, index) => (
+                  <motion.span
+                    key={index}
+                    className={`font-black ${
+                      letter === " " ? "w-4" : "text-[64px] leading-none"
+                    }`}
+                    style={{
+                      fontFamily: index % 2 === 0 ? "'Bebas Neue', sans-serif" : "'Oswald', sans-serif",
+                      transform: `rotate(${Math.sin(index) * 2}deg)`,
+                      filter: `drop-shadow(0 0 20px rgba(139, 92, 246, ${0.3 + index * 0.1}))`,
+                      background: index % 2 === 0 
+                        ? 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)'
+                        : 'linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      textShadow: `0 0 30px rgba(6, 182, 212, ${0.5 + index * 0.1})`
+                    }}
+                    initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1, 
+                      rotate: Math.sin(index) * 2 
+                    }}
+                    transition={{ 
+                      duration: 0.8, 
+                      delay: 0.8 + index * 0.1,
+                      type: "spring",
+                      stiffness: 200
+                    }}
+                    whileHover={{
+                      scale: 1.2,
+                      rotate: Math.sin(index) * 5,
+                      filter: `drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))`,
+                      transition: { duration: 0.2 }
+                    }}
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </div>
 
-            {/* Main copy */}
+              {/* Glitch Effect Overlay */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                animate={{
+                  x: [0, -2, 2, 0],
+                  opacity: [0, 0.3, 0]
+                }}
+                transition={{
+                  duration: 0.1,
+                  repeat: Infinity,
+                  repeatDelay: 3
+                }}
+              >
+                <div className="text-[64px] font-black text-red-400 opacity-20">
+                  AI AGENTS
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Enhanced Value Proposition with Creative Typography */}
             <motion.div
-              className="space-y-4 max-w-[480px]"
+              className="space-y-6 max-w-[520px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 1 }}
             >
-              <motion.p
-                className="text-[24px] text-gray-300 font-light leading-[1.5]"
+              {/* Main Headline with Mixed Fonts */}
+              <motion.h2
+                className="relative"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
               >
-                Skip the traditional hiring. Get specialized agents that work 24/7
-              </motion.p>
+                <motion.span
+                  className="text-[32px] font-bold leading-[1.2] block"
+                  style={{
+                    fontFamily: "'Righteous', cursive",
+                    background: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #45B7D1 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    transform: 'skew(-2deg)',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    skew: -4,
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  Build Your AI Workforce
+                </motion.span>
+                <motion.span
+                  className="text-[24px] font-light leading-[1.3] block mt-2"
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    color: '#E2E8F0',
+                    transform: 'rotate(1deg)',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                  }}
+                >
+                  in Minutes
+                </motion.span>
+              </motion.h2>
               
-              <motion.p
-                className="text-lg text-gray-400 font-medium"
+              {/* Supporting Text with Handwritten Style */}
+              <motion.div
+                className="relative"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.4 }}
               >
-                Powering 10,000+ teams worldwide
-              </motion.p>
+                <motion.p
+                  className="text-[20px] leading-[1.6] relative"
+                  style={{
+                    fontFamily: "'Kalam', cursive",
+                    color: '#CBD5E1',
+                    transform: 'rotate(-0.5deg)',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                  }}
+                  whileHover={{
+                    scale: 1.02,
+                    rotate: 0,
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  From content creation to data analysis - get expert-level work done instantly
+                </motion.p>
+                
+                {/* Hand-drawn Underline */}
+                <motion.div
+                  className="absolute -bottom-2 left-0 w-32 h-1"
+                  style={{
+                    background: 'linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1)',
+                    borderRadius: '2px',
+                    transform: 'rotate(-1deg)'
+                  }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.8, delay: 1.8 }}
+                />
+              </motion.div>
+              
+              {/* Statistics with Creative Layout */}
+              <motion.div
+                className="flex flex-wrap gap-4 items-center"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.6 }}
+              >
+                <motion.span
+                  className="text-lg font-medium"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: '#94A3B8',
+                    transform: 'rotate(0.5deg)'
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    rotate: 1,
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  Trusted by <span className="text-green-400 font-bold">50,000+</span> businesses
+                </motion.span>
+                <motion.span
+                  className="text-2xl font-bold"
+                  style={{
+                    fontFamily: "'Fredoka One', cursive",
+                    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    transform: 'rotate(-1deg)'
+                  }}
+                >
+                  •
+                </motion.span>
+                <motion.span
+                  className="text-lg font-medium"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: '#94A3B8',
+                    transform: 'rotate(-0.5deg)'
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    rotate: -1,
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  Save <span className="text-blue-400 font-bold">80%</span> on hiring costs
+                </motion.span>
+              </motion.div>
             </motion.div>
 
-            {/* CTA Buttons */}
+            {/* Artistic Elements and Doodles */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-4"
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 2 }}
+            >
+              {/* Hand-drawn Arrow */}
+              <motion.div
+                className="absolute top-20 right-10 w-16 h-16"
+                initial={{ opacity: 0, rotate: -45 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 2.5 }}
+              >
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <motion.path
+                    d="M20 50 L80 50 M60 30 L80 50 L60 70"
+                    stroke="#FF6B6B"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: 2.8 }}
+                  />
+                </svg>
+              </motion.div>
+
+              {/* Paint Splash Effect */}
+              <motion.div
+                className="absolute bottom-40 left-20 w-24 h-24 opacity-30"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 0.3, scale: 1 }}
+                transition={{ duration: 0.8, delay: 3 }}
+              >
+                <div className="w-full h-full bg-gradient-to-br from-pink-400 to-purple-600 rounded-full blur-sm" />
+              </motion.div>
+
+              {/* Doodle Icons */}
+              <motion.div
+                className="absolute top-1/2 left-10 text-2xl"
+                initial={{ opacity: 0, rotate: -10 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 3.2 }}
+              >
+                <span className="text-yellow-400">⚡</span>
+              </motion.div>
+
+              <motion.div
+                className="absolute bottom-1/3 right-20 text-xl"
+                initial={{ opacity: 0, rotate: 10 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 3.4 }}
+              >
+                <span className="text-cyan-400">💡</span>
+              </motion.div>
+
+              {/* Sketch-like Underlines */}
+              <motion.div
+                className="absolute bottom-60 left-10 w-20 h-0.5 bg-gradient-to-r from-transparent via-yellow-400 to-transparent"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.8, delay: 3.6 }}
+                style={{ transform: 'rotate(-2deg)' }}
+              />
+            </motion.div>
+
+            {/* Enhanced CTA Buttons with Artistic Style */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-6"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.6 }}
+              transition={{ duration: 0.8, delay: 1.8 }}
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -1587,11 +1814,27 @@ const HeroSection = () => {
               >
                 <Button
                   onClick={() => setLocation("/marketplace")}
-                  className="w-[140px] h-[48px] bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300"
+                  className="w-[180px] h-[56px] bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 border-0 relative overflow-hidden"
                   size="lg"
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    transform: 'skew(-1deg)',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+                  }}
                 >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
                   <motion.i
-                    className="fas fa-rocket mr-2"
+                    className="fas fa-rocket mr-3"
                     animate={{ 
                       rotate: [0, 10, -10, 0],
                       scale: [1, 1.1, 1]
@@ -1613,11 +1856,16 @@ const HeroSection = () => {
                 <Button
                   onClick={() => setLocation("/custom-agent")}
                   variant="outline"
-                  className="w-[140px] h-[48px] border-2 border-white/20 text-white hover:border-cyan-400/50 hover:bg-white/5 font-semibold text-lg rounded-xl backdrop-blur-xl transition-all duration-300"
+                  className="w-[160px] h-[56px] border-2 border-white/20 text-white hover:border-cyan-400/50 hover:bg-white/5 font-semibold text-lg rounded-xl backdrop-blur-xl transition-all duration-300 group"
                   size="lg"
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    transform: 'skew(1deg)',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                  }}
                 >
                   <motion.i
-                    className="fas fa-magic mr-2"
+                    className="fas fa-magic mr-3 group-hover:rotate-180"
                     animate={{ 
                       rotate: [0, 360],
                     }}
@@ -1630,6 +1878,79 @@ const HeroSection = () => {
                   CUSTOM BUILD
                 </Button>
               </motion.div>
+            </motion.div>
+
+            {/* Try Free Agent Button with Artistic Style */}
+            <motion.div
+              className="mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 2.0 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  onClick={() => setShowTryMeModal(true)}
+                  className="w-full max-w-[320px] h-[52px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 border-0 relative overflow-hidden"
+                  size="lg"
+                  style={{
+                    fontFamily: "'Fredoka One', cursive",
+                    transform: 'rotate(-0.5deg)',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+                  }}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                  <motion.i
+                    className="fas fa-play mr-3"
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  TRY FREE AGENT
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            {/* Statistics Bar */}
+            <motion.div
+              className="mt-8 flex items-center justify-between max-w-[400px] text-sm text-gray-400"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 2.2 }}
+            >
+              <div className="flex items-center space-x-2">
+                <motion.div
+                  className="w-2 h-2 bg-green-400 rounded-full"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <span>50,000+ Agents Deployed</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <motion.div
+                  className="w-2 h-2 bg-blue-400 rounded-full"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                />
+                <span>80% Cost Savings</span>
+              </div>
             </motion.div>
           </div>
 
@@ -2449,6 +2770,7 @@ export default function Home() {
   const heroRef = useRef(null);
   const agentsRef = useRef(null);
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
+  const [showTryMeModal, setShowTryMeModal] = useState(false);
   
   // Marketplace state
   const [sortBy, setSortBy] = useState('rating');
@@ -2577,6 +2899,117 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <ScrollingMarquee />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Customer Logos Carousel */}
+      <section className="relative py-16 px-4 bg-gradient-to-r from-gray-900/50 to-black/50">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <motion.p
+              className="text-lg text-gray-400 font-medium mb-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              Trusted by leading companies worldwide
+            </motion.p>
+          </motion.div>
+
+          {/* Logos Grid */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center opacity-60"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 0.6, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            {[
+              { name: "Google", logo: "🔍" },
+              { name: "Microsoft", logo: "🪟" },
+              { name: "Apple", logo: "🍎" },
+              { name: "Amazon", logo: "📦" },
+              { name: "Meta", logo: "📘" },
+              { name: "Netflix", logo: "📺" },
+              { name: "Spotify", logo: "🎵" },
+              { name: "Uber", logo: "🚗" },
+              { name: "Airbnb", logo: "🏠" },
+              { name: "Slack", logo: "💬" },
+              { name: "Notion", logo: "📝" },
+              { name: "Figma", logo: "🎨" }
+            ].map((company, index) => (
+              <motion.div
+                key={company.name}
+                className="flex items-center justify-center p-4 bg-gray-800/30 rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300 group"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  scale: 1.05,
+                  backgroundColor: "rgba(6, 182, 212, 0.1)",
+                  borderColor: "rgba(6, 182, 212, 0.3)"
+                }}
+              >
+                <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                  {company.logo}
+                </div>
+                <span className="ml-2 text-sm text-gray-400 font-medium group-hover:text-white transition-colors duration-300">
+                  {company.name}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Statistics Bar */}
+          <motion.div
+            className="mt-12 flex flex-col md:flex-row items-center justify-center gap-8 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center space-x-3">
+              <motion.div
+                className="w-3 h-3 bg-green-400 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <div>
+                <div className="text-2xl font-bold text-white">50,000+</div>
+                <div className="text-sm text-gray-400">Agents Deployed</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <motion.div
+                className="w-3 h-3 bg-blue-400 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              />
+              <div>
+                <div className="text-2xl font-bold text-white">80%</div>
+                <div className="text-sm text-gray-400">Cost Savings</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <motion.div
+                className="w-3 h-3 bg-purple-400 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              />
+              <div>
+                <div className="text-2xl font-bold text-white">24/7</div>
+                <div className="text-sm text-gray-400">Availability</div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
