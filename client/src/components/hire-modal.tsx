@@ -1,0 +1,921 @@
+﻿import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  X, 
+  Check, 
+  Star, 
+  Shield, 
+  CreditCard, 
+  Zap, 
+  ArrowRight, 
+  Download, 
+  Chrome, 
+  Settings, 
+  Link, 
+  Search,
+  Filter,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Lock,
+  Clock,
+  Users,
+  TrendingUp,
+  FileText,
+  Hash,
+  Mail,
+  Share2,
+  BarChart3,
+  Target,
+  MessageSquare,
+  Globe,
+  Database,
+  Workflow,
+  Bot,
+  CheckCircle,
+  AlertCircle,
+  Loader2
+} from "lucide-react";
+
+interface HireModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  agent: any;
+}
+
+interface PricingPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  annualPrice: number;
+  features: string[];
+  popular: boolean;
+  color: string;
+}
+
+interface Task {
+  id: string;
+  name: string;
+  category: string;
+  icon: React.ReactNode;
+  description: string;
+  estimatedTime: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface Integration {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  connected: boolean;
+  oauth: boolean;
+}
+
+export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState('professional');
+  const [billingCycle, setBillingCycle] = useState('monthly');
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [extensionInstalled, setExtensionInstalled] = useState(false);
+  const [extensionConnected, setExtensionConnected] = useState(false);
+  const [pairingProgress, setPairingProgress] = useState(0);
+
+  // Pricing Plans
+  const pricingPlans: PricingPlan[] = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      description: 'Ideal for small projects',
+      price: 0,
+      annualPrice: 0,
+      features: [
+        'Unlimited personal files',
+        'Email support',
+        'CSV data export',
+        'Basic analytics dashboard',
+        '1,000 API calls per month'
+      ],
+      popular: false,
+      color: 'from-gray-500 to-gray-600'
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      description: 'For freelancers and startups',
+      price: 15,
+      annualPrice: 12,
+      features: [
+        'All starter features',
+        'Up to 5 user accounts',
+        'Team collaboration tools',
+        'Custom dashboards',
+        'Multiple data export formats',
+        'Basic custom integrations'
+      ],
+      popular: true,
+      color: 'from-blue-500 to-purple-600'
+    },
+    {
+      id: 'organization',
+      name: 'Organization',
+      description: 'For fast-growing businesses',
+      price: 30,
+      annualPrice: 24,
+      features: [
+        'All professional features',
+        'Enterprise security suite',
+        'Single Sign-On (SSO)',
+        'Custom contract terms',
+        'Dedicated phone support',
+        'Custom integration support',
+        'Compliance tools'
+      ],
+      popular: false,
+      color: 'from-purple-500 to-pink-600'
+    }
+  ];
+
+  // Task Categories
+  const taskCategories = [
+    {
+      id: 'content',
+      name: 'Content Creation',
+      icon: <FileText className="w-8 h-8" />,
+      tasks: [
+        { id: 'blog', name: 'Blog posts', description: 'SEO-optimized articles', estimatedTime: '2-4 hours' },
+        { id: 'social', name: 'Social media', description: 'Platform-specific content', estimatedTime: '1-2 hours' },
+        { id: 'email', name: 'Email campaigns', description: 'Newsletter and marketing emails', estimatedTime: '1-3 hours' }
+      ]
+    },
+    {
+      id: 'seo',
+      name: 'SEO Optimization',
+      icon: <Hash className="w-8 h-8" />,
+      tasks: [
+        { id: 'keywords', name: 'Keyword research', description: 'Target keyword analysis', estimatedTime: '1-2 hours' },
+        { id: 'onpage', name: 'On-page SEO', description: 'Content optimization', estimatedTime: '2-3 hours' },
+        { id: 'links', name: 'Link building', description: 'Backlink strategy', estimatedTime: '3-5 hours' }
+      ]
+    },
+    {
+      id: 'analytics',
+      name: 'Data Analysis',
+      icon: <BarChart3 className="w-8 h-8" />,
+      tasks: [
+        { id: 'reports', name: 'Reports & insights', description: 'Performance analytics', estimatedTime: '1-2 hours' },
+        { id: 'visualization', name: 'Data visualization', description: 'Charts and graphs', estimatedTime: '2-3 hours' },
+        { id: 'research', name: 'Market research', description: 'Competitor analysis', estimatedTime: '3-4 hours' }
+      ]
+    },
+    {
+      id: 'marketing',
+      name: 'Marketing Strategy',
+      icon: <Target className="w-8 h-8" />,
+      tasks: [
+        { id: 'campaigns', name: 'Campaign planning', description: 'Multi-channel strategies', estimatedTime: '2-4 hours' },
+        { id: 'brand', name: 'Brand strategy', description: 'Brand positioning', estimatedTime: '3-5 hours' },
+        { id: 'tracking', name: 'Performance tracking', description: 'ROI measurement', estimatedTime: '1-2 hours' }
+      ]
+    },
+    {
+      id: 'support',
+      name: 'Customer Support',
+      icon: <MessageSquare className="w-8 h-8" />,
+      tasks: [
+        { id: 'chat', name: 'Live chat support', description: 'Real-time customer service', estimatedTime: '24/7' },
+        { id: 'email', name: 'Email support', description: 'Ticket management', estimatedTime: '2-4 hours' },
+        { id: 'docs', name: 'Documentation', description: 'Help center content', estimatedTime: '3-5 hours' }
+      ]
+    },
+    {
+      id: 'business',
+      name: 'Business Operations',
+      icon: <Workflow className="w-8 h-8" />,
+      tasks: [
+        { id: 'finance', name: 'Financial analysis', description: 'Budget and forecasting', estimatedTime: '2-3 hours' },
+        { id: 'automation', name: 'Process automation', description: 'Workflow optimization', estimatedTime: '3-5 hours' },
+        { id: 'optimization', name: 'System optimization', description: 'Performance improvement', estimatedTime: '2-4 hours' }
+      ]
+    }
+  ];
+
+  // Popular Integrations
+  const popularIntegrations: Integration[] = [
+    { id: 'google', name: 'Google Workspace', icon: '', description: 'Docs, Sheets, Drive', connected: false, oauth: true },
+    { id: 'slack', name: 'Slack', icon: '', description: 'Team communication', connected: false, oauth: true },
+    { id: 'hubspot', name: 'HubSpot', icon: '', description: 'CRM and marketing', connected: false, oauth: true },
+    { id: 'shopify', name: 'Shopify', icon: '', description: 'E-commerce platform', connected: false, oauth: true },
+    { id: 'wordpress', name: 'WordPress', icon: '', description: 'Content management', connected: false, oauth: true },
+    { id: 'notion', name: 'Notion', icon: '', description: 'Knowledge management', connected: false, oauth: true },
+    { id: 'asana', name: 'Asana', icon: '', description: 'Project management', connected: false, oauth: true },
+    { id: 'mailchimp', name: 'Mailchimp', icon: '', description: 'Email marketing', connected: false, oauth: true },
+    { id: 'analytics', name: 'Google Analytics', icon: '', description: 'Website analytics', connected: false, oauth: true },
+    { id: 'zapier', name: 'Zapier', icon: '', description: 'Workflow automation', connected: false, oauth: true }
+  ];
+
+  const handleNextStep = async () => {
+    if (currentStep < 5) {
+      setIsProcessing(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsProcessing(false);
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleTaskToggle = (taskId: string) => {
+    setSelectedTasks(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const handleIntegrationToggle = (integrationId: string) => {
+    setSelectedIntegrations(prev => 
+      prev.includes(integrationId) 
+        ? prev.filter(id => id !== integrationId)
+        : [...prev, integrationId]
+    );
+  };
+
+  const simulateExtensionInstallation = async () => {
+    setExtensionInstalled(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simulate pairing process
+    for (let i = 0; i <= 100; i += 10) {
+      setPairingProgress(i);
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    setExtensionConnected(true);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0, 0, 0, 0.8)' }}
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-cyan-500/20" />
+        </div>
+
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="relative w-full max-w-7xl max-h-[90vh] overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl"
+        >
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 z-10 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700/80 transition-colors"
+          >
+            <X className="w-5 h-5 text-slate-300" />
+          </button>
+
+          <div className="overflow-y-auto max-h-[90vh]">
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-slate-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Hire {agent.name}</h2>
+                  <p className="text-slate-400">Complete your AI workforce setup</p>
+                </div>
+                
+                {/* Progress Steps */}
+                <div className="flex items-center space-x-4">
+                  {[1, 2, 3, 4, 5].map((step) => (
+                    <div key={step} className="flex items-center">
+                      <motion.div 
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                          step <= currentStep 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' 
+                            : 'bg-slate-700 text-slate-400'
+                        }`}
+                        animate={step === currentStep ? { scale: [1, 1.1, 1] } : {}}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {step < currentStep ? <Check className="w-4 h-4" /> : step}
+                      </motion.div>
+                      {step < 5 && (
+                        <div className={`w-8 h-0.5 mx-2 ${step < currentStep ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-slate-700'}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Step Content */}
+            <div className="px-8 py-6">
+              {currentStep === 1 && (
+                /* Step 1: Plan Selection */
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-white mb-4">Choose Your Plan</h3>
+                    <p className="text-slate-400 text-lg">Select the perfect plan for your needs</p>
+                  </div>
+
+                  {/* Billing Toggle */}
+                  <div className="flex items-center justify-center space-x-4">
+                    <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>
+                      Monthly
+                    </span>
+                    <button
+                      onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
+                      className={`relative w-16 h-8 rounded-full transition-colors ${
+                        billingCycle === 'annual' ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-slate-600'
+                      }`}
+                    >
+                      <motion.div
+                        className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg"
+                        animate={{ x: billingCycle === 'annual' ? 32 : 4 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    </button>
+                    <span className={`text-sm font-medium ${billingCycle === 'annual' ? 'text-white' : 'text-slate-400'}`}>
+                      Annual
+                    </span>
+                    {billingCycle === 'annual' && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-sm text-green-400 font-medium"
+                      >
+                        -15% off
+                      </motion.span>
+                    )}
+                  </div>
+
+                  {/* Pricing Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {pricingPlans.map((plan, index) => (
+                      <motion.div
+                        key={plan.id}
+                        className={`relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer ${
+                          plan.popular 
+                            ? 'border-yellow-400 bg-gradient-to-br from-yellow-400/10 to-orange-400/10' 
+                            : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                        }`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, y: -5 }}
+                        onClick={() => setSelectedPlan(plan.id)}
+                      >
+                        {plan.popular && (
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                            <motion.div
+                              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-4 py-1 rounded-full text-sm font-bold"
+                              animate={{ scale: [1, 1.05, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            >
+                              MOST POPULAR
+                            </motion.div>
+                          </div>
+                        )}
+
+                        <div className="text-center">
+                          <h4 className="text-xl font-bold text-white mb-2">{plan.name}</h4>
+                          <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
+                          
+                          <div className="mb-6">
+                            <span className="text-4xl font-bold text-white">
+                              ${billingCycle === 'annual' ? plan.annualPrice : plan.price}
+                            </span>
+                            <span className="text-slate-400">/per user</span>
+                            {billingCycle === 'annual' && (
+                              <div className="text-sm text-green-400 mt-1">
+                                Billed annually (${plan.price * 12 - plan.annualPrice * 12} savings)
+                              </div>
+                            )}
+                          </div>
+
+                          <ul className="space-y-3 text-left">
+                            {plan.features.map((feature, featureIndex) => (
+                              <motion.li
+                                key={featureIndex}
+                                className="flex items-center space-x-3 text-sm text-slate-300"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
+                              >
+                                <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                <span>{feature}</span>
+                              </motion.li>
+                            ))}
+                          </ul>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Social Proof */}
+                  <div className="text-center">
+                    <motion.div
+                      className="inline-flex items-center space-x-2 bg-slate-800/50 px-4 py-2 rounded-full"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Users className="w-4 h-4 text-blue-400" />
+                      <span className="text-slate-300 text-sm">Join 15,000+ professionals</span>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 2 && (
+                /* Step 2: Payment Integration */
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-white mb-4"> Secure Checkout</h3>
+                    <p className="text-slate-400 text-lg">Complete your purchase securely</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Order Summary */}
+                    <div className="bg-slate-800/50 rounded-2xl p-6">
+                      <h4 className="text-xl font-bold text-white mb-4">Order Summary</h4>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">
+                            {agent.icon}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-white">{agent.name} - Professional Plan</div>
+                            <div className="text-sm text-slate-400">
+                              ${billingCycle === 'annual' ? pricingPlans[1].annualPrice : pricingPlans[1].price}/month
+                              {billingCycle === 'annual' && ' (billed annually)'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-slate-700 pt-4">
+                          <div className="flex justify-between text-sm text-slate-400 mb-2">
+                            <span>Next billing: March 3, 2026</span>
+                          </div>
+                          <div className="flex justify-between text-lg font-bold text-white">
+                            <span>Total:</span>
+                            <span>
+                              ${billingCycle === 'annual' 
+                                ? pricingPlans[1].annualPrice * 12 
+                                : pricingPlans[1].price
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Payment Form */}
+                    <div className="bg-slate-800/50 rounded-2xl p-6">
+                      <h4 className="text-xl font-bold text-white mb-4">Payment Method</h4>
+                      
+                      {/* Payment Options */}
+                      <div className="flex space-x-2 mb-6">
+                        <button className="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm font-medium transition-colors">
+                           Card
+                        </button>
+                        <button className="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm font-medium transition-colors">
+                           PayPal
+                        </button>
+                        <button className="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm font-medium transition-colors">
+                           Bank
+                        </button>
+                      </div>
+
+                      {/* Stripe-like Form */}
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Card number"
+                          className="bg-slate-700 border-slate-600 text-white"
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <Input
+                            placeholder="MM/YY"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                          <Input
+                            placeholder="CVC"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </div>
+                        <Input
+                          placeholder="Cardholder name"
+                          className="bg-slate-700 border-slate-600 text-white"
+                        />
+                      </div>
+
+                      {/* Trust Elements */}
+                      <div className="mt-6 space-y-3">
+                        <div className="flex items-center space-x-2 text-sm text-slate-400">
+                          <Shield className="w-4 h-4 text-green-400" />
+                          <span>SSL encrypted & secure</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-slate-400">
+                          <Clock className="w-4 h-4 text-blue-400" />
+                          <span>30-day money-back guarantee</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 3 && (
+                /* Step 3: Task Selection */
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-white mb-4">Select Your Tasks</h3>
+                    <p className="text-slate-400 text-lg">Choose what you want your AI agent to help with</p>
+                  </div>
+
+                  {/* Search and Filter */}
+                  <div className="flex space-x-4">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        placeholder="Search tasks..."
+                        className="pl-10 bg-slate-800 border-slate-600 text-white"
+                      />
+                    </div>
+                    <Button variant="outline" className="border-slate-600 text-slate-300">
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filter
+                    </Button>
+                  </div>
+
+                  {/* Task Categories Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {taskCategories.map((category, categoryIndex) => (
+                      <motion.div
+                        key={category.id}
+                        className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: categoryIndex * 0.1 }}
+                      >
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
+                            {category.icon}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white">{category.name}</h4>
+                            <p className="text-sm text-slate-400">{category.tasks.length} tasks</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {category.tasks.map((task) => (
+                            <motion.div
+                              key={task.id}
+                              className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                                selectedTasks.includes(task.id)
+                                  ? 'border-blue-500 bg-blue-500/10'
+                                  : 'border-slate-600 bg-slate-700/50 hover:border-slate-500'
+                              }`}
+                              whileHover={{ scale: 1.02 }}
+                              onClick={() => handleTaskToggle(task.id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-medium text-white">{task.name}</div>
+                                  <div className="text-sm text-slate-400">{task.description}</div>
+                                </div>
+                                <div className="text-xs text-slate-500">{task.estimatedTime}</div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Custom Task */}
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <h4 className="font-bold text-white mb-4">Add Custom Task</h4>
+                    <div className="flex space-x-4">
+                      <Input
+                        placeholder="Describe your custom task..."
+                        className="flex-1 bg-slate-700 border-slate-600 text-white"
+                      />
+                      <Button className="bg-gradient-to-r from-blue-500 to-purple-600">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Task
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 4 && (
+                /* Step 4: Tools Integration */
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-white mb-4">Connect Your Tools</h3>
+                    <p className="text-slate-400 text-lg">Integrate with your favorite apps and services</p>
+                  </div>
+
+                  {/* Popular Integrations */}
+                  <div>
+                    <h4 className="text-xl font-bold text-white mb-4"> Quick Setup (OAuth)</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {popularIntegrations.map((integration, index) => (
+                        <motion.div
+                          key={integration.id}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                            selectedIntegrations.includes(integration.id)
+                              ? 'border-blue-500 bg-blue-500/10'
+                              : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+                          }`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.05 }}
+                          whileHover={{ scale: 1.05 }}
+                          onClick={() => handleIntegrationToggle(integration.id)}
+                        >
+                          <div className="text-center">
+                            <div className="text-2xl mb-2">{integration.icon}</div>
+                            <div className="text-sm font-medium text-white">{integration.name}</div>
+                            <div className="text-xs text-slate-400">{integration.description}</div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Integrations */}
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <h4 className="text-xl font-bold text-white mb-4"> Custom Integrations</h4>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          placeholder="Tool Name"
+                          className="bg-slate-700 border-slate-600 text-white"
+                        />
+                        <Input
+                          placeholder="API URL"
+                          className="bg-slate-700 border-slate-600 text-white"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select className="p-3 bg-slate-700 border border-slate-600 rounded-lg text-white">
+                          <option>API Key</option>
+                          <option>OAuth</option>
+                          <option>Webhook</option>
+                        </select>
+                        <Button variant="outline" className="border-slate-600 text-slate-300">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Another Tool
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Workspace Integration */}
+                  <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <h4 className="text-xl font-bold text-white mb-4"> Workspace Integration</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Website URL"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                      <Input
+                        placeholder="CRM Platform"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                      <Input
+                        placeholder="Email Platform"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                      <Input
+                        placeholder="Analytics ID"
+                        className="bg-slate-700 border-slate-600 text-white"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {currentStep === 5 && (
+                /* Step 5: Chrome Extension */
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-white mb-4"> Install Your AI Assistant</h3>
+                    <p className="text-slate-400 text-lg">Get the Chrome extension for seamless integration</p>
+                  </div>
+
+                  {!extensionInstalled ? (
+                    /* Download Extension */
+                    <div className="max-w-2xl mx-auto">
+                      <div className="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50 text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
+                          <Chrome className="w-10 h-10 text-white" />
+                        </div>
+                        
+                        <h4 className="text-2xl font-bold text-white mb-4">Content Creator Pro Extension</h4>
+                        <div className="space-y-3 text-slate-300 mb-8">
+                          <div className="flex items-center justify-center space-x-2">
+                            <Check className="w-4 h-4 text-green-400" />
+                            <span>Works on any website</span>
+                          </div>
+                          <div className="flex items-center justify-center space-x-2">
+                            <Check className="w-4 h-4 text-green-400" />
+                            <span>Right-click context menu</span>
+                          </div>
+                          <div className="flex items-center justify-center space-x-2">
+                            <Check className="w-4 h-4 text-green-400" />
+                            <span>Floating AI assistant</span>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={simulateExtensionInstallation}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 text-lg font-semibold"
+                        >
+                          <Download className="w-5 h-5 mr-2" />
+                          Download & Install
+                        </Button>
+                      </div>
+                    </div>
+                  ) : !extensionConnected ? (
+                    /* Pairing Process */
+                    <div className="max-w-2xl mx-auto">
+                      <div className="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+                        <div className="text-center mb-6">
+                          <motion.div
+                            className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Bot className="w-8 h-8 text-white" />
+                          </motion.div>
+                          <h4 className="text-xl font-bold text-white mb-2"> Connecting your agent...</h4>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-3">
+                            <CheckCircle className="w-5 h-5 text-green-400" />
+                            <span className="text-slate-300">Extension detected</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                            <span className="text-slate-300">Establishing secure connection</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                            <span className="text-slate-300">Syncing your preferences</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                            <span className="text-slate-300">Loading task configurations</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-6">
+                          <div className="w-full bg-slate-700 rounded-full h-2">
+                            <motion.div
+                              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pairingProgress}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                          <div className="text-center text-sm text-slate-400 mt-2">
+                            {pairingProgress}% complete
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Success State */
+                    <div className="max-w-2xl mx-auto">
+                      <div className="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50 text-center">
+                        <motion.div
+                          className="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                        >
+                          <Check className="w-10 h-10 text-white" />
+                        </motion.div>
+                        
+                        <h4 className="text-2xl font-bold text-white mb-4"> Content Creator Pro is ready!</h4>
+                        <p className="text-slate-400 mb-8">Your AI assistant is now connected and ready to help you create amazing content.</p>
+
+                        <div className="flex space-x-4 justify-center">
+                          <Button
+                            onClick={() => {
+                              onClose();
+                              // Navigate to dashboard
+                            }}
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3"
+                          >
+                            Launch Dashboard
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-slate-600 text-slate-300 px-6 py-3"
+                          >
+                            Take Quick Tour
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </div>
+
+            {/* Footer Navigation */}
+            <div className="px-8 py-6 border-t border-slate-700/50">
+              <div className="flex items-center justify-between">
+                <Button
+                  onClick={handlePrevStep}
+                  disabled={currentStep === 1}
+                  variant="outline"
+                  className="border-slate-600 text-slate-300 disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center space-x-2 text-sm text-slate-400">
+                  <Lock className="w-4 h-4" />
+                  <span>Secure & encrypted</span>
+                </div>
+
+                {currentStep < 5 ? (
+                  <Button
+                    onClick={handleNextStep}
+                    disabled={isProcessing}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={onClose}
+                    className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-6"
+                  >
+                    Complete Setup
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
