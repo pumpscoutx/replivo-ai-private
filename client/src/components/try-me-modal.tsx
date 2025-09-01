@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Send, MessageSquare, Zap, Star, Play, Clock, TrendingUp, CheckCircle, Sparkles, ArrowRight, Target, Users, Activity } from "lucide-react";
+import { X, Send, MessageSquare, Zap, Star, Play, Clock, TrendingUp, CheckCircle, Sparkles, ArrowRight, Target, Users, Activity, Shield, Globe, Zap as ZapIcon, Award, Eye, Heart, ThumbsUp } from "lucide-react";
 
 interface TryMeModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ interface Message {
   type: 'user' | 'agent';
   content: string;
   timestamp: Date;
+  isTyping?: boolean;
 }
 
 interface PerformanceMetric {
@@ -24,6 +25,7 @@ interface PerformanceMetric {
   value: string;
   icon: React.ReactNode;
   color: string;
+  trend?: 'up' | 'down' | 'stable';
 }
 
 export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], samplePrompts = [], onHire }: TryMeModalProps) {
@@ -34,24 +36,43 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
   const [generationProgress, setGenerationProgress] = useState(0);
   const [showMetrics, setShowMetrics] = useState(false);
   const [agentStatus, setAgentStatus] = useState<'online' | 'processing' | 'available'>('online');
+  const [currentStep, setCurrentStep] = useState(1);
+  const [demoQuality, setDemoQuality] = useState({ readability: 95, engagement: 92, seo: 89 });
 
   // Sample prompts if none provided
   const defaultPrompts = [
-    "Create a viral social media post",
-    "Write a compelling email sequence",
-    "Analyze customer feedback data",
-    "Generate content ideas for Q4",
-    "Optimize landing page copy"
+    "Write a blog post about AI trends in 2024",
+    "Create SEO product descriptions",
+    "Draft a newsletter for tech company",
+    "Generate viral social media content",
+    "Analyze customer feedback data"
   ];
 
   const prompts = samplePrompts.length > 0 ? samplePrompts : defaultPrompts;
 
-  // Performance metrics
+  // Enhanced performance metrics
   const performanceMetrics: PerformanceMetric[] = [
-    { label: "Response Time", value: "1.2s", icon: <Clock className="w-4 h-4" />, color: "text-green-400" },
-    { label: "Quality Score", value: "98%", icon: <Star className="w-4 h-4" />, color: "text-yellow-400" },
-    { label: "Success Rate", value: "99.7%", icon: <CheckCircle className="w-4 h-4" />, color: "text-blue-400" },
-    { label: "User Satisfaction", value: "4.9/5", icon: <Users className="w-4 h-4" />, color: "text-purple-400" }
+    { label: "Projects Completed", value: "2,847", icon: <CheckCircle className="w-5 h-5" />, color: "text-green-400", trend: 'up' },
+    { label: "Average Rating", value: "4.9/5", icon: <Star className="w-5 h-5" />, color: "text-yellow-400", trend: 'stable' },
+    { label: "Response Time", value: "2.3s", icon: <Clock className="w-5 h-5" />, color: "text-blue-400", trend: 'up' },
+    { label: "Success Rate", value: "97%", icon: <TrendingUp className="w-5 h-5" />, color: "text-purple-400", trend: 'up' }
+  ];
+
+  // Agent specializations
+  const specializations = [
+    "Blog posts & articles",
+    "SEO optimization", 
+    "Social media content",
+    "Email campaigns",
+    "Brand voice consistency"
+  ];
+
+  // Integration capabilities
+  const integrations = [
+    { name: "WordPress", status: "connected", color: "bg-blue-500" },
+    { name: "Shopify", status: "connected", color: "bg-green-500" },
+    { name: "Mailchimp", status: "available", color: "bg-orange-500" },
+    { name: "Google Analytics", status: "connected", color: "bg-purple-500" }
   ];
 
   useEffect(() => {
@@ -66,6 +87,7 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
       setAgentStatus('online');
       setShowMetrics(false);
       setGenerationProgress(0);
+      setCurrentStep(1);
     }
   }, [isOpen, agent]);
 
@@ -73,344 +95,361 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
     setSelectedPrompt(prompt);
     setInputValue(prompt);
     
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: prompt,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
     // Simulate agent processing
     setAgentStatus('processing');
     setIsTyping(true);
     setGenerationProgress(0);
     
-    // Simulate progressive generation
+    // Simulate progressive generation with realistic timing
     const progressInterval = setInterval(() => {
       setGenerationProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + Math.random() * 20;
+        return prev + Math.random() * 15 + 5; // More realistic progress
       });
-    }, 200);
+    }, 150);
 
-    // Simulate AI response
+    // Simulate AI response with typing animation
     setTimeout(() => {
       const responses = [
-        "I've analyzed your request and created a comprehensive solution. Here's what I've prepared for you...",
-        "Perfect! I've generated a strategic approach that will maximize your results. Let me break this down...",
-        "Excellent choice! I've crafted a solution that leverages the latest best practices. Here's my analysis...",
-        "Great question! I've prepared a detailed response with actionable insights. Let me walk you through..."
+        "I've analyzed your request and created a comprehensive solution. Here's what I've prepared for you based on current best practices and market trends...",
+        "Perfect! I've generated a strategic approach that will maximize your results. Let me break this down with actionable insights and data-driven recommendations...",
+        "Excellent choice! I've crafted a solution that leverages the latest industry insights and proven methodologies. Here's my detailed analysis...",
+        "Great question! I've prepared a detailed response with actionable insights and real-world examples. Let me walk you through the strategy..."
       ];
       
-      const agentMessage: Message = {
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      
+      // Add typing indicator
+      const typingMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'agent',
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date()
+        content: randomResponse,
+        timestamp: new Date(),
+        isTyping: true
       };
-
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        type: 'user',
-        content: prompt,
-        timestamp: new Date()
-      }, agentMessage]);
       
-      setIsTyping(false);
-      setAgentStatus('available');
-      setShowMetrics(true);
-      setGenerationProgress(100);
-    }, 3000);
-  };
-
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsTyping(true);
-    setAgentStatus('processing');
-    setGenerationProgress(0);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "I'd be happy to help with that! Let me create a comprehensive solution for you.",
-        "Great question! Here's how I can assist you with this task.",
-        "Perfect! I'll analyze this and provide you with the best approach.",
-        "Excellent! Let me break this down into actionable steps for you."
-      ];
+      setMessages(prev => [...prev, typingMessage]);
       
-      const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'agent',
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, agentMessage]);
-      setIsTyping(false);
-      setAgentStatus('available');
-      setShowMetrics(true);
+      // Simulate typing completion
+      setTimeout(() => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === typingMessage.id 
+            ? { ...msg, isTyping: false }
+            : msg
+        ));
+        setIsTyping(false);
+        setAgentStatus('available');
+        setShowMetrics(true);
+        setCurrentStep(2);
+      }, 3000);
+      
     }, 2000);
   };
 
+  const handleCustomPrompt = async () => {
+    if (!inputValue.trim()) return;
+    
+    await handleSamplePrompt(inputValue);
+    setInputValue('');
+  };
+
+  const handleHire = () => {
+    onHire();
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          className="relative w-full max-w-7xl h-[90vh] bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden"
+          initial={{ scale: 0.9, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 50 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
         >
-          {/* Glassmorphism Backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-navy-900/90 via-blue-900/80 to-black/95 backdrop-blur-2xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-
-          {/* Particle Effects */}
-          <div className="absolute inset-0 overflow-hidden">
-            {Array.from({ length: 20 }).map((_, i) => (
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
               <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-cyan-400/30 rounded-full"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  scale: [0, 1, 0],
-                  opacity: [0, 0.5, 0],
-                  y: [0, -20, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                }}
+                className="w-3 h-3 bg-red-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
               />
-            ))}
+              <motion.div
+                className="w-3 h-3 bg-yellow-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              />
+              <motion.div
+                className="w-3 h-3 bg-green-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {agent.name} - Try Me Demo
+              </span>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="sm"
+                className="hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
 
-          {/* Full Screen Modal */}
-          <motion.div
-            className="relative w-full h-full max-w-7xl max-h-[95vh] bg-gradient-to-br from-navy-800/40 via-blue-900/30 to-black/60 backdrop-blur-3xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden"
-            initial={{ scale: 0.9, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 50 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          >
-            {/* Close Button */}
-            <motion.button
-              onClick={onClose}
-              className="absolute top-6 right-6 z-50 w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 group"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <X className="w-5 h-5" />
-            </motion.button>
-
-            {/* Split Screen Layout */}
-            <div className="flex h-full">
-              {/* Left Side - Agent Info */}
-              <div className="w-1/2 p-8 border-r border-white/10 relative overflow-hidden">
-                {/* Agent Avatar Section */}
-                <div className="text-center mb-8">
-                  <motion.div
-                    className="relative mx-auto mb-6"
-                    animate={{ 
-                      scale: [1, 1.05, 1],
-                    }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <div className="w-32 h-32 bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 rounded-full flex items-center justify-center text-4xl shadow-2xl relative">
-                      {agent.icon || '🤖'}
-                      
-                      {/* Breathing/Pulse Effect */}
-                      <motion.div
-                        className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/30 to-purple-400/30"
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          opacity: [0.3, 0.6, 0.3],
-                        }}
-                        transition={{
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Status Indicator */}
-                    <motion.div
-                      className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-navy-800 flex items-center justify-center ${
-                        agentStatus === 'online' ? 'bg-green-500' :
-                        agentStatus === 'processing' ? 'bg-yellow-500' : 'bg-blue-500'
-                      }`}
-                      animate={{
-                        scale: [1, 1.2, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <div className="w-2 h-2 bg-white rounded-full" />
-                    </motion.div>
-                  </motion.div>
-
-                  <motion.h2
-                    className="text-3xl font-black mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    {agent.name}
-                  </motion.h2>
-                  
-                  <p className="text-gray-300 text-lg mb-4">{agent.specialty}</p>
-                  
-                  {/* Rating */}
-                  <div className="flex items-center justify-center space-x-2 mb-6">
-                    <div className="flex items-center">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <Star key={i} className={`w-5 h-5 ${i < Math.floor(agent.rating || 4.5) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
-                      ))}
-                    </div>
-                    <span className="text-gray-400 ml-2">({agent.reviews || 1000}+ reviews)</span>
+          {/* Main Content - Two Panel Layout */}
+          <div className="flex h-full">
+            {/* Left Panel - Agent Information (40%) */}
+            <div className="w-2/5 p-6 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+              {/* Agent Profile Section */}
+              <div className="text-center mb-8">
+                <motion.div
+                  className="relative mx-auto w-24 h-24 mb-4"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className={`w-full h-full bg-gradient-to-br ${agent.color || 'from-blue-500 to-purple-600'} rounded-2xl flex items-center justify-center text-3xl shadow-lg`}>
+                    {agent.icon}
                   </div>
+                  {/* Live Status Indicator */}
+                  <motion.div
+                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </motion.div>
+                
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {agent.name}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {agent.specialty}
+                </p>
+                
+                {/* Star Rating */}
+                <div className="flex items-center justify-center space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${i < Math.floor(agent.rating || 4.9) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                    {agent.rating || 4.9} ({agent.reviews || 1247} reviews)
+                  </span>
                 </div>
 
-                {/* Agent Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
+                {/* Status Badge */}
+                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span>Live & Available</span>
+                </div>
+              </div>
+
+              {/* Key Metrics Dashboard */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
+                  Performance Stats
+                </h3>
+                <div className="space-y-3">
                   {performanceMetrics.map((metric, index) => (
                     <motion.div
                       key={metric.label}
-                      className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 text-center"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`${metric.color}`}>
+                          {metric.icon}
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {metric.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {metric.value}
+                        </span>
+                        {metric.trend && (
+                          <motion.div
+                            className={`w-4 h-4 ${metric.trend === 'up' ? 'text-green-500' : metric.trend === 'down' ? 'text-red-500' : 'text-gray-500'}`}
+                            animate={{ y: [0, -2, 0] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          >
+                            {metric.trend === 'up' ? '↗' : metric.trend === 'down' ? '↘' : '→'}
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Specializations */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-purple-500" />
+                  Specializations
+                </h3>
+                <div className="space-y-2">
+                  {specializations.map((spec, index) => (
+                    <motion.div
+                      key={spec}
+                      className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span>{spec}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Integration Capabilities */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <Globe className="w-5 h-5 mr-2 text-indigo-500" />
+                  Integrations
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {integrations.map((integration, index) => (
+                    <motion.div
+                      key={integration.name}
+                      className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <div className={`w-3 h-3 ${integration.color} rounded-full`} />
+                      <span className="text-gray-600 dark:text-gray-300">
+                        {integration.name}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        integration.status === 'connected' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                      }`}>
+                        {integration.status}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Panel - Interactive Demo (60%) */}
+            <div className="w-3/5 p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
+              {/* Demo Header */}
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Live Demo Experience
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Try me with sample prompts or ask your own question
+                </p>
+              </div>
+
+              {/* Sample Prompts */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Sample Prompts
+                </h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {prompts.map((prompt, index) => (
+                    <motion.button
+                      key={prompt}
+                      onClick={() => handleSamplePrompt(prompt)}
+                      className="text-left p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all duration-200"
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+                      transition={{ delay: index * 0.1 }}
                     >
-                      <div className={`${metric.color} mb-2 flex justify-center`}>
-                        {metric.icon}
+                      <div className="flex items-center space-x-2">
+                        <MessageSquare className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          {prompt}
+                        </span>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">{metric.value}</div>
-                      <div className="text-sm text-gray-400">{metric.label}</div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat Interface */}
+              <div className="bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 p-4 mb-6">
+                <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
+                  {messages.map((message) => (
+                    <motion.div
+                      key={message.id}
+                      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        message.type === 'user'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200'
+                      }`}>
+                        {message.isTyping ? (
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                          </div>
+                        ) : (
+                          <p className="text-sm">{message.content}</p>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>
 
-                {/* Skill Tags */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-white mb-4">Core Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                                         {(agent.skills || ['AI', 'Automation', 'Analytics', 'Content Creation']).map((skill: string, index: number) => (
-                       <motion.span
-                         key={skill}
-                         className="px-3 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-xl border border-cyan-500/30 rounded-full text-sm text-cyan-300"
-                         initial={{ opacity: 0, scale: 0.8 }}
-                         animate={{ opacity: 1, scale: 1 }}
-                         transition={{ delay: 0.5 + index * 0.1 }}
-                         whileHover={{ 
-                           scale: 1.05,
-                           backgroundColor: "rgba(6, 182, 212, 0.3)",
-                           borderColor: "rgba(6, 182, 212, 0.6)"
-                         }}
-                       >
-                         {skill}
-                       </motion.span>
-                     ))}
-                  </div>
-                </div>
-
-                {/* CTA Buttons */}
-                <div className="absolute bottom-8 left-8 right-8 space-y-3">
-                  <Button
-                    onClick={onHire}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 group"
-                    size="lg"
-                  >
-                    <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    Hire This Agent
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                  
-                  <Button
-                    onClick={onClose}
-                    variant="outline"
-                    className="w-full bg-white/5 hover:bg-white/10 border-white/20 text-white hover:text-white transition-all duration-300"
-                    size="lg"
-                  >
-                    <Target className="w-4 h-4 mr-2" />
-                    View Full Profile
-                  </Button>
-                </div>
-              </div>
-
-              {/* Right Side - Interactive Demo */}
-              <div className="w-1/2 p-8 relative">
-                {/* Demo Header */}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-2">Try Me Now</h3>
-                  <p className="text-gray-400">Experience the power of AI-driven automation</p>
-                </div>
-
-                {/* Sample Prompts */}
-                <div className="mb-8">
-                  <h4 className="text-lg font-semibold text-white mb-4">Quick Start Prompts</h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    {prompts.map((prompt, index) => (
-                      <motion.button
-                        key={index}
-                        onClick={() => handleSamplePrompt(prompt)}
-                        className={`p-4 text-left rounded-xl border transition-all duration-300 ${
-                          selectedPrompt === prompt
-                            ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-cyan-400/50 shadow-lg shadow-cyan-500/25'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-400/30'
-                        }`}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 + index * 0.1 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-white font-medium">{prompt}</span>
-                          <Play className="w-4 h-4 text-cyan-400" />
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Generation Progress */}
-                {isTyping && (
+                {generationProgress > 0 && generationProgress < 100 && (
                   <motion.div
-                    className="mb-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-white font-medium">Generating Response...</span>
-                      <span className="text-cyan-400 font-mono">{Math.round(generationProgress)}%</span>
+                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <span>Generating response...</span>
+                      <span>{Math.round(generationProgress)}%</span>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                       <motion.div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"
+                        className="bg-blue-500 h-2 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${generationProgress}%` }}
                         transition={{ duration: 0.3 }}
@@ -419,109 +458,102 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                   </motion.div>
                 )}
 
-                {/* Chat Interface */}
-                <div className="flex-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 h-64 overflow-y-auto">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <motion.div
-                        key={message.id}
-                        className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-2xl ${
-                            message.type === 'user'
-                              ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white'
-                              : 'bg-white/10 text-white border border-white/20'
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className="text-xs opacity-70 mt-2">
-                            {message.timestamp.toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                    
-                    {isTyping && (
-                      <motion.div
-                        className="flex justify-start"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <div className="bg-white/10 text-white border border-white/20 p-3 rounded-2xl">
-                          <div className="flex space-x-1">
-                            <motion.div
-                              className="w-2 h-2 bg-cyan-400 rounded-full"
-                              animate={{ scale: [1, 1.5, 1] }}
-                              transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                            />
-                            <motion.div
-                              className="w-2 h-2 bg-cyan-400 rounded-full"
-                              animate={{ scale: [1, 1.5, 1] }}
-                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                            />
-                            <motion.div
-                              className="w-2 h-2 bg-cyan-400 rounded-full"
-                              animate={{ scale: [1, 1.5, 1] }}
-                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-
                 {/* Custom Input */}
-                <div className="mt-6">
-                  <div className="flex space-x-3">
-                    <input
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      placeholder="Or ask me anything custom..."
-                      className="flex-1 bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
-                    />
-                                          <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Button
-                          onClick={handleSendMessage}
-                          disabled={!inputValue.trim() || isTyping}
-                          className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 disabled:opacity-50 px-6 py-3 rounded-xl shadow-lg"
-                        >
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      </motion.div>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask me anything..."
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-white"
+                    onKeyPress={(e) => e.key === 'Enter' && handleCustomPrompt()}
+                  />
+                  <Button
+                    onClick={handleCustomPrompt}
+                    disabled={!inputValue.trim() || isTyping}
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Quality Metrics */}
+              {showMetrics && (
+                <motion.div
+                  className="bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 p-4 mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Response Quality Analysis
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-500">{demoQuality.readability}%</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Readability</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-500">{demoQuality.engagement}%</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Engagement</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-500">{demoQuality.seo}%</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">SEO Score</div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Trust Building Section */}
+              <div className="bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 p-4 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Trust & Security
+                  </h4>
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                    <Shield className="w-4 h-4" />
+                    <span>Enterprise-grade security</span>
                   </div>
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">1,247+</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Businesses using this agent</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">99.9%</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Uptime guarantee</div>
+                  </div>
+                </div>
+              </div>
 
-                {/* Performance Metrics Display */}
-                {showMetrics && (
-                  <motion.div
-                    className="absolute bottom-8 right-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Activity className="w-4 h-4 text-green-400" />
-                      <span className="text-sm font-medium text-white">Performance</span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Response: 1.2s • Quality: 98% • Success: 99.7%
-                    </div>
-                  </motion.div>
-                )}
+              {/* Call-to-Action */}
+              <div className="text-center">
+                <Button
+                  onClick={handleHire}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  size="lg"
+                >
+                  <ZapIcon className="w-5 h-5 mr-2" />
+                  Hire This Agent
+                </Button>
+                
+                <div className="mt-3 flex items-center justify-center space-x-4 text-sm">
+                  <button className="text-blue-500 hover:text-blue-600 transition-colors">
+                    Start Free Trial
+                  </button>
+                  <span className="text-gray-400">•</span>
+                  <button className="text-blue-500 hover:text-blue-600 transition-colors">
+                    View Full Capabilities
+                  </button>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   );
 } 

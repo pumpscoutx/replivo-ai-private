@@ -454,7 +454,7 @@ const AgentCard = ({ agent, isActive }: {
           className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent"
           animate={{ 
             x: ["-100%", "100%"],
-            opacity: [0, 0.4, 0]
+            opacity: [0, 0.3, 0]
           }}
           transition={{ 
             duration: 3, 
@@ -908,7 +908,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                 transition={{ duration: 0.3 }}
               >
                 {agent.icon}
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
               <div>
                 <motion.h3 
                   className="text-3xl font-black text-white mb-2"
@@ -930,13 +930,13 @@ const HireModal = ({ isOpen, onClose, agent }: {
               >
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-sm font-medium">Secure Payment</span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
               <motion.div 
                 className="flex items-center gap-2 bg-blue-500/20 backdrop-blur-xl border border-blue-500/30 rounded-full px-4 py-2"
                 whileHover={{ scale: 1.05 }}
               >
                 <span className="text-blue-400 text-sm font-medium">30-Day Guarantee</span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
             </div>
           </div>
 
@@ -955,7 +955,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   {step < currentStep ? '✓' : step}
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
                 {step < 3 && (
                   <motion.div 
                     className={`w-16 h-1 rounded-full ${
@@ -968,7 +968,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                     transition={{ duration: 0.8, delay: 0.3 }}
                   />
                 )}
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -977,7 +977,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
         <div className="p-8 overflow-y-auto max-h-[60vh]">
           {currentStep === 1 && (
             <motion.div 
-              className="space-y-12"
+              className="space-y-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -1010,11 +1010,11 @@ const HireModal = ({ isOpen, onClose, agent }: {
                         <h5 className="text-xl font-bold text-white mb-2">{plan.name}</h5>
                         <div className="text-3xl font-black text-white mb-1">${plan.price}</div>
                         {plan.savings > 0 && (
-                          <div className="text-green-400 text-sm mb-6">Save {plan.savings}%</div>
+                          <div className="text-green-400 text-sm mb-4">Save {plan.savings}%</div>
                         )}
                         <div className="text-gray-400 text-sm">per {plan.id === 'monthly' ? 'month' : plan.id === 'quarterly' ? 'quarter' : 'year'}</div>
                       </div>
-                      {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -1070,13 +1070,13 @@ const HireModal = ({ isOpen, onClose, agent }: {
                     <div className="text-green-400">success rate</div>
                   </div>
                 </div>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
           )}
 
           {currentStep === 2 && (
             <motion.div 
-              className="space-y-12"
+              className="space-y-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -1117,7 +1117,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                <h5 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <h5 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <span>⭐</span>
                   What Our Customers Say
                 </h5>
@@ -1143,16 +1143,16 @@ const HireModal = ({ isOpen, onClose, agent }: {
                           <span key={i} className="text-yellow-400">★</span>
                         ))}
                       </div>
-                      {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                    </motion.div>
                   ))}
                 </div>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
           )}
 
           {currentStep === 3 && (
             <motion.div 
-              className="text-center space-y-12"
+              className="text-center space-y-8"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
@@ -1165,11 +1165,11 @@ const HireModal = ({ isOpen, onClose, agent }: {
                 transition={{ type: "spring", damping: 15, stiffness: 200 }}
               >
                 <span className="text-4xl text-white">🎉</span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
               
               <div>
                 <motion.h4 
-                  className="text-4xl font-black text-white mb-6 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
+                  className="text-4xl font-black text-white mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
@@ -1197,9 +1197,9 @@ const HireModal = ({ isOpen, onClose, agent }: {
                     <div className="text-3xl font-bold text-purple-400">99.7%</div>
                     <div className="text-gray-400">Success Rate</div>
                   </div>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
               </div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           )}
         </div>
 
@@ -1220,7 +1220,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                   >
                     ← Back
                   </Button>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
               )}
               
               {/* Progress Indicator */}
@@ -1266,7 +1266,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                       </div>
                     )}
                   </Button>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
               ) : (
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -1290,7 +1290,7 @@ const HireModal = ({ isOpen, onClose, agent }: {
                       </motion.span>
                     </span>
                   </Button>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -1424,7 +1424,7 @@ const HeroSection = () => {
               key={`line-${i}`}
               className="absolute inset-0 w-full h-full pointer-events-none"
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.4, 0] }}
+              animate={{ opacity: [0, 0.3, 0] }}
               transition={{
                 duration: 4,
                 repeat: Infinity,
@@ -1495,7 +1495,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Side - New Design Specs */}
         <motion.div
-          className="relative space-y-12"
+          className="relative space-y-8"
           initial={{ opacity: 0, x: -100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, delay: 0.2 }}
@@ -1525,7 +1525,7 @@ const HeroSection = () => {
           </motion.div>
 
           {/* Main Content */}
-          <div className="relative z-10 space-y-12">
+          <div className="relative z-10 space-y-8">
             {/* AI AGENTS with Creative Typography */}
             <motion.div
               className="relative"
@@ -1534,24 +1534,24 @@ const HeroSection = () => {
               transition={{ duration: 1, delay: 0.4 }}
             >
               {/* Individual Letter Styling for "AI AGENTS" */}
-              <div className="flex items-center space-x-2 mb-6">
+              <div className="flex items-center space-x-1 mb-4">
                 {["A", "I", " ", "A", "G", "E", "N", "T", "S"].map((letter, index) => (
                   <motion.span
                     key={index}
                     className={`font-black ${
-                      letter === " " ? "w-4" : "text-[96px] leading-none"
+                      letter === " " ? "w-4" : "text-[64px] leading-none"
                     }`}
                     style={{
                       fontFamily: index % 2 === 0 ? "'Bebas Neue', sans-serif" : "'Oswald', sans-serif",
                       transform: `rotate(${Math.sin(index) * 2}deg)`,
-                      filter: `drop-shadow(0 0 30px rgba(139, 92, 246, ${0.3 + index * 0.1}))`,
+                      filter: `drop-shadow(0 0 20px rgba(139, 92, 246, ${0.3 + index * 0.1}))`,
                       background: index % 2 === 0 
-                        ? 'linear-gradient(135deg, #FF6B6B 0%, #8B5CF6 50%, #06B6D4 100%)'
-                        : 'linear-gradient(135deg, #06B6D4 0%, #3B82F6 50%, #8B5CF6 100%)',
+                        ? 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)'
+                        : 'linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
-                      textShadow: .0 0 40px rgba(6, 182, 212, ${0.5 + index * 0.1})`
+                      textShadow: `0 0 30px rgba(6, 182, 212, ${0.5 + index * 0.1})`
                     }}
                     initial={{ opacity: 0, scale: 0, rotate: -180 }}
                     animate={{ 
@@ -1566,8 +1566,8 @@ const HeroSection = () => {
                       stiffness: 200
                     }}
                     whileHover={{
-                      scale: 1.3,
-                      rotate: Math.sin(index) * 8,
+                      scale: 1.2,
+                      rotate: Math.sin(index) * 5,
                       filter: `drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))`,
                       transition: { duration: 0.2 }
                     }}
@@ -1581,20 +1581,20 @@ const HeroSection = () => {
               <motion.div
                 className="absolute inset-0 pointer-events-none"
                 animate={{
-                  x: [0, -3, 3, 0],
-                  opacity: [0, 0.4, 0]
+                  x: [0, -2, 2, 0],
+                  opacity: [0, 0.3, 0]
                 }}
                 transition={{
-                  duration: 0.15,
+                  duration: 0.1,
                   repeat: Infinity,
-                  repeatDelay: 4
+                  repeatDelay: 3
                 }}
               >
-                <div className="text-[96px] font-black text-red-400 opacity-30">
+                <div className="text-[64px] font-black text-red-400 opacity-20">
                   AI AGENTS
                 </div>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
 
             {/* Enhanced Value Proposition with Creative Typography */}
             <motion.div
@@ -1678,7 +1678,7 @@ const HeroSection = () => {
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.8, delay: 1.8 }}
                 />
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
               
               {/* Statistics with Creative Layout */}
               <motion.div
@@ -1730,8 +1730,8 @@ const HeroSection = () => {
                 >
                   Save <span className="text-blue-400 font-bold">80%</span> on hiring costs
                 </motion.span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
 
             {/* Artistic Elements and Doodles */}
             <motion.div
@@ -1760,7 +1760,7 @@ const HeroSection = () => {
                     transition={{ duration: 1, delay: 2.8 }}
                   />
                 </svg>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
 
               {/* Paint Splash Effect */}
               <motion.div
@@ -1770,7 +1770,7 @@ const HeroSection = () => {
                 transition={{ duration: 0.8, delay: 3 }}
               >
                 <div className="w-full h-full bg-gradient-to-br from-pink-400 to-purple-600 rounded-full blur-sm" />
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
 
               {/* Doodle Icons */}
               <motion.div
@@ -1780,7 +1780,7 @@ const HeroSection = () => {
                 transition={{ duration: 0.8, delay: 3.2 }}
               >
                 <span className="text-yellow-400">⚡</span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
 
               <motion.div
                 className="absolute bottom-1/3 right-20 text-xl"
@@ -1789,7 +1789,7 @@ const HeroSection = () => {
                 transition={{ duration: 0.8, delay: 3.4 }}
               >
                 <span className="text-cyan-400">💡</span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
 
               {/* Sketch-like Underlines */}
               <motion.div
@@ -1799,7 +1799,7 @@ const HeroSection = () => {
                 transition={{ duration: 0.8, delay: 3.6 }}
                 style={{ transform: 'rotate(-2deg)' }}
               />
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
 
             {/* Enhanced CTA Buttons with Artistic Style */}
             <motion.div
@@ -1847,7 +1847,7 @@ const HeroSection = () => {
                   />
                   BROWSE MARKETPLACE
                 </Button>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -1877,8 +1877,8 @@ const HeroSection = () => {
                   />
                   CUSTOM BUILD
                 </Button>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
 
             {/* Try Free Agent Button with Artistic Style */}
             <motion.div
@@ -1893,7 +1893,7 @@ const HeroSection = () => {
               >
                 <Button
                   onClick={() => setShowTryMeModal(true)}
-                  className="w-full max-w-[400px] h-[64px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 border-0 relative overflow-hidden"
+                  className="w-full max-w-[320px] h-[52px] bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 border-0 relative overflow-hidden"
                   size="lg"
                   style={{
                     fontFamily: "'Fredoka One', cursive",
@@ -1925,8 +1925,8 @@ const HeroSection = () => {
                   />
                   TRY FREE AGENT
                 </Button>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
+            </motion.div>
 
             {/* Statistics Bar */}
             <motion.div
@@ -1951,7 +1951,7 @@ const HeroSection = () => {
                 />
                 <span>80% Cost Savings</span>
               </div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           </div>
 
           {/* Subtle geometric accents */}
@@ -2114,7 +2114,7 @@ const HeroSection = () => {
                     }}
                   >
                     {['AI', 'ML', 'GPT', 'API', 'ML', 'AI'][i]}
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -2146,7 +2146,7 @@ const HeroSection = () => {
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   </div>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
 
                 {/* Agent Info */}
                 <motion.div
@@ -2175,7 +2175,7 @@ const HeroSection = () => {
                   >
                     {AGENT_TYPES[currentAgentIndex].description}
                   </motion.p>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
 
                 {/* Live Activity Indicators */}
                 <motion.div
@@ -2206,7 +2206,7 @@ const HeroSection = () => {
                   <p className="text-xs text-gray-400">
                     {AGENT_TYPES[currentAgentIndex].task}
                   </p>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
 
                 {/* Dynamic Stats */}
                 <motion.div
@@ -2224,7 +2224,7 @@ const HeroSection = () => {
                       transition={{ duration: 0.3 }}
                     >
                       {AGENT_TYPES[currentAgentIndex].rating}
-                      {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                    </motion.div>
                     <div className="text-xs text-gray-400">Rating</div>
                   </div>
                   
@@ -2237,7 +2237,7 @@ const HeroSection = () => {
                       transition={{ duration: 0.3 }}
                     >
                       ${AGENT_TYPES[currentAgentIndex].price}
-                      {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                    </motion.div>
                     <div className="text-xs text-gray-400">Monthly</div>
                   </div>
                   
@@ -2250,12 +2250,12 @@ const HeroSection = () => {
                       transition={{ duration: 0.3 }}
                     >
                       {AGENT_TYPES[currentAgentIndex].reviews.toLocaleString()}
-                      {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                    </motion.div>
                     <div className="text-xs text-gray-400">Reviews</div>
                   </div>
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
               </div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
 
             {/* Enhanced Terminal Window */}
             <motion.div
@@ -2328,7 +2328,7 @@ const HeroSection = () => {
                     transition={{ delay: 0.1 }}
                   >
                     <span className="text-cyan-400">$</span> replivo agent:deploy --type={AGENT_TYPES[currentAgentIndex].id}
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-cyan-400"
@@ -2337,7 +2337,7 @@ const HeroSection = () => {
                     transition={{ delay: 0.3 }}
                   >
                     ⚡ Initializing neural pathways...
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-green-400"
@@ -2346,7 +2346,7 @@ const HeroSection = () => {
                     transition={{ delay: 0.6 }}
                   >
                     ✓ Language models loaded (GPT-4 + Custom)
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-green-400"
@@ -2355,7 +2355,7 @@ const HeroSection = () => {
                     transition={{ delay: 0.9 }}
                   >
                     ✓ Knowledge base connected (847 documents)
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-cyan-400"
@@ -2364,7 +2364,7 @@ const HeroSection = () => {
                     transition={{ delay: 1.2 }}
                   >
                     ⚡ Agent deployed to production
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-green-400"
@@ -2373,7 +2373,7 @@ const HeroSection = () => {
                     transition={{ delay: 1.5 }}
                   >
                     <span className="text-cyan-400">$</span> agent status --live
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-green-400"
@@ -2382,7 +2382,7 @@ const HeroSection = () => {
                     transition={{ delay: 1.8 }}
                   >
                     🟢 Handling 12 conversations simultaneously
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
                   
                   <motion.div
                     className="text-green-400"
@@ -2391,7 +2391,7 @@ const HeroSection = () => {
                     transition={{ delay: 2.1 }}
                   >
                     📊 Response time: 0.3s average
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
 
                   {/* Command Suggestions that appear and disappear */}
                   <motion.div
@@ -2405,10 +2405,10 @@ const HeroSection = () => {
                     }}
                   >
                     💡 Tip: Try "agent:optimize --performance" for better results
-                    {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                  </motion.div>
 
 
-                  {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+                </motion.div>
 
                 {/* Blinking Cursor */}
                 <motion.div
@@ -2417,7 +2417,7 @@ const HeroSection = () => {
                   transition={{ duration: 1, repeat: Infinity }}
                 />
               </div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           </motion.div>
 
           {/* Interconnected Lines and Dynamic Lighting */}
@@ -2443,7 +2443,7 @@ const HeroSection = () => {
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ 
                 pathLength: [0, 1, 0], 
-                opacity: [0, 0.4, 0] 
+                opacity: [0, 0.3, 0] 
               }}
               transition={{ 
                 duration: 4, 
@@ -2561,14 +2561,14 @@ const MarketplaceCard = ({ agent, index }: {
         {/* Content */}
         <div className="relative z-10 flex-1 flex flex-col">
           {/* Header */}
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex items-start justify-between mb-4">
             <motion.div
               className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl border border-white/20 flex items-center justify-center text-3xl"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ duration: 0.3 }}
             >
               {agent.icon}
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
             
             {/* Live Hiring Counter */}
             <motion.div
@@ -2579,11 +2579,11 @@ const MarketplaceCard = ({ agent, index }: {
               <span className="text-xs text-green-400 font-semibold">
                 🔥 {agent.hiringCount} hired
               </span>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           </div>
 
           {/* Agent Info */}
-          <div className="mb-6">
+          <div className="mb-4">
             <motion.h3 
               className="text-xl font-bold text-white mb-2"
               initial={{ opacity: 0, x: -20 }}
@@ -2613,7 +2613,7 @@ const MarketplaceCard = ({ agent, index }: {
           </div>
 
           {/* Skills */}
-          <div className="mb-6 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             {agent.skills.map((skill, skillIndex) => (
               <motion.span
                 key={skill}
@@ -2629,7 +2629,7 @@ const MarketplaceCard = ({ agent, index }: {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <motion.div 
               className="text-center"
               initial={{ opacity: 0, y: 20 }}
@@ -2638,7 +2638,7 @@ const MarketplaceCard = ({ agent, index }: {
             >
               <div className="text-lg font-bold text-white">{agent.rating}</div>
               <div className="text-xs text-gray-400">Rating</div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
             
             <motion.div 
               className="text-center"
@@ -2648,7 +2648,7 @@ const MarketplaceCard = ({ agent, index }: {
             >
               <div className="text-lg font-bold text-white">{agent.responseTime}</div>
               <div className="text-xs text-gray-400">Response</div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
             
             <motion.div 
               className="text-center"
@@ -2658,20 +2658,20 @@ const MarketplaceCard = ({ agent, index }: {
             >
               <div className="text-lg font-bold text-white">{agent.availability}</div>
               <div className="text-xs text-gray-400">Available</div>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           </div>
 
           {/* Rating Stars */}
-          <div className="flex items-center gap-1 mb-6">
+          <div className="flex items-center gap-1 mb-4">
             {[...Array(5)].map((_, i) => (
               <motion.div
                 key={i}
                 className={`text-lg ${i < Math.floor(agent.rating) ? 'text-yellow-400' : 'text-gray-600'}`}
-                whileHover={{ scale: 1.3, color: "#fbbf24" }}
+                whileHover={{ scale: 1.2, color: "#fbbf24" }}
                 transition={{ duration: 0.2 }}
               >
                 ★
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
             ))}
             <span className="text-sm text-gray-400 ml-2">({agent.reviews} reviews)</span>
           </div>
@@ -2692,7 +2692,7 @@ const MarketplaceCard = ({ agent, index }: {
                 <Play className="w-4 h-4 mr-2" />
                 Try Me
               </Button>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
 
             {/* Hire Now Button */}
             <motion.div
@@ -2707,7 +2707,7 @@ const MarketplaceCard = ({ agent, index }: {
                 <Zap className="w-4 h-4 mr-2" />
                 Hire Now - ${agent.price}/mo
               </Button>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           </div>
         </div>
 
@@ -2965,7 +2965,7 @@ export default function Home() {
                 <span className="ml-2 text-sm text-gray-400 font-medium group-hover:text-white transition-colors duration-300">
                   {company.name}
                 </span>
-                {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+              </motion.div>
             ))}
           </motion.div>
 
@@ -3105,7 +3105,7 @@ export default function Home() {
               {filteredAgents.map((agent, index) => (
                 <MarketplaceCard key={agent.id} agent={agent} index={index} />
               ))}
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           ) : (
             <motion.div
               className="text-center py-16"
@@ -3114,7 +3114,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="text-6xl mb-6">🔍</div>
+              <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-2xl font-bold text-white mb-2">No agents found</h3>
               <p className="text-gray-400 mb-6">Try adjusting your filters or browse all agents</p>
               <Button
@@ -3123,7 +3123,7 @@ export default function Home() {
               >
                 Show All Agents
               </Button>
-              {/* Pulsing Background Glow */}\n              <motion.div\n                className=" absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-3xl blur-2xl\\n animate={{\n scale: [1, 1.1, 1],\n opacity: [0.3, 0.6, 0.3]\n }}\n transition={{\n duration: 3,\n repeat: Infinity,\n ease: \easeInOut\\n }}\n />\n </motion.div>
+            </motion.div>
           )}
 
           {/* View All Agents Button */}
