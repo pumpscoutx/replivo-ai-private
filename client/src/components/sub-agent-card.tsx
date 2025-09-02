@@ -123,7 +123,7 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
   return (
     <>
       <motion.div
-        className="relative bg-gray-900/90 backdrop-blur-sm rounded-2xl shadow-2xl hover:shadow-3xl transition-all overflow-hidden border border-gray-700/50 group"
+        className="group relative bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-0 hover:border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/20 overflow-hidden"
         onHoverStart={() => { 
           setIsHovered(true);
           setShowPreview(true);
@@ -132,11 +132,16 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
           setIsHovered(false);
           setShowPreview(false);
         }}
-        whileHover={{ scale: 1.02, y: -5 }}
-        transition={{ duration: 0.3 }}
+        whileHover={{ scale: 1.03, y: -12 }}
+        transition={{ duration: 0.4 }}
       >
         {/* Sub-agent Image with Companion Avatar */}
         <div className="relative h-36 overflow-hidden">
+          <motion.div
+            className="absolute inset-0"
+            animate={{ y: [0, -10, 0], rotate: [0, 1, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
           <motion.img 
             src={getSubAgentImage(subAgent.category)}
             alt={subAgent.name}
@@ -206,6 +211,14 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
         </div>
 
         <div className="p-6 space-y-4">
+          {/* Watermark */}
+          <motion.div
+            className="absolute -z-0 top-4 left-4 text-6xl font-black text-white/5 select-none"
+            animate={{ opacity: [0.08, 0.15, 0.08] }}
+            transition={{ duration: 6, repeat: Infinity }}
+          >
+            AI
+          </motion.div>
           {/* Header with Rating */}
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -268,13 +281,13 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
           </AnimatePresence>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <Button
               data-testid={`button-try-${subAgent.name.toLowerCase().replace(' ', '-')}`}
               onClick={() => setSandboxOpen(true)}
               variant="outline"
               size="sm"
-              className="flex-1 bg-blue-600/10 border-blue-600/30 text-blue-400 hover:bg-blue-600/20 hover:border-blue-500"
+              className="flex-1 bg-cyan-500/10 border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/15 hover:border-cyan-400/60"
             >
               <MessageSquare className="w-3 h-3 mr-2" />
               Try Me
@@ -285,7 +298,7 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
               onClick={() => onShowCapabilities?.(subAgent)}
               variant="outline"
               size="sm"
-              className="flex-1 bg-gray-600/10 border-gray-600/30 text-gray-400 hover:bg-gray-600/20 hover:border-gray-500"
+              className="flex-1 bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:border-white/30"
             >
               <Star className="w-3 h-3 mr-2" />
               Capabilities
@@ -301,7 +314,7 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
                 }
               }}
               size="sm"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-semibold"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg font-semibold"
               disabled={!parentAgent}
             >
               <Zap className="w-3 h-3 mr-1" />
