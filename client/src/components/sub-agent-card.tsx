@@ -124,6 +124,16 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
     <>
       <motion.div
         className="group relative bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-0 hover:border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/20 overflow-hidden"
+        initial={{ opacity: 0, y: 30, rotateY: -15 }}
+        animate={{ opacity: 1, y: 0, rotateY: 0 }}
+        transition={{ duration: 0.6 }}
+        whileHover={{ 
+          scale: 1.03,
+          y: -12,
+          rotateY: 5,
+          boxShadow: "0 30px 60px rgba(6, 182, 212, 0.25)"
+        }}
+        style={{ transformStyle: "preserve-3d", perspective: "1000px" }}
         onHoverStart={() => { 
           setIsHovered(true);
           setShowPreview(true);
@@ -132,8 +142,6 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
           setIsHovered(false);
           setShowPreview(false);
         }}
-        whileHover={{ scale: 1.03, y: -12 }}
-        transition={{ duration: 0.4 }}
       >
         {/* Sub-agent Image with Companion Avatar */}
         <div className="relative h-36 overflow-hidden">
@@ -149,7 +157,7 @@ export default function SubAgentCard({ subAgent, onAdd, showAddButton = false, o
             animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.4 }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl"></div>
           
           {/* Animated Companion Avatar */}
           <motion.div 
