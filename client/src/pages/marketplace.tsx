@@ -12,6 +12,8 @@ import { CATEGORIES } from "@/lib/constants";
 
 export default function Marketplace() {
 	const [selectedCategory, setSelectedCategory] = useState("all");
+	const [search, setSearch] = useState("");
+	const [sort, setSort] = useState<"relevance" | "rating" | "priceAsc" | "priceDesc">("relevance");
 
 	const { data: agents, isLoading } = useQuery<Agent[]>({
 		queryKey: ["/api/agents"],
@@ -23,9 +25,26 @@ export default function Marketplace() {
 		tasks: Array.isArray(a.tasks) ? a.tasks : [],
 	}));
 
-	const filteredAgents = normalizedAgents.filter((a) =>
-		selectedCategory === "all" ? true : a.category === selectedCategory
+	let filteredAgents = normalizedAgents.filter((a) =>
+		(selectedCategory === "all" ? true : a.category === selectedCategory) &&
+		(a.name.toLowerCase().includes(search.toLowerCase()) ||
+		 a.description.toLowerCase().includes(search.toLowerCase()))
 	);
+
+	// Sorting
+	switch (sort) {
+		case "rating":
+			filteredAgents = [...filteredAgents].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+			break;
+		case "priceAsc":
+			filteredAgents = [...filteredAgents].sort((a, b) => (a.price || 0) - (b.price || 0));
+			break;
+		case "priceDesc":
+			filteredAgents = [...filteredAgents].sort((a, b) => (b.price || 0) - (a.price || 0));
+			break;
+		default:
+			break;
+	}
 
 	return (
 		<div className="min-h-screen bg-black">
@@ -76,6 +95,8 @@ export default function Marketplace() {
 							<div className="relative flex-1">
 								<i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
 								<input
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
 									placeholder="Search agents, skills, or categories"
 									className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
 								/>
@@ -84,10 +105,16 @@ export default function Marketplace() {
 								<i className="fas fa-sliders-h mr-2" />
 								Filters
 							</button>
-							<button className="px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/15 transition">
-								<i className="fas fa-sort-amount-down mr-2" />
-								Sort
-							</button>
+							<select
+								value={sort}
+								onChange={(e) => setSort(e.target.value as any)}
+								className="px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/15 transition"
+							>
+								<option value="relevance">Sort: Relevance</option>
+								<option value="rating">Sort: Rating</option>
+								<option value="priceAsc">Sort: Price (Low → High)</option>
+								<option value="priceDesc">Sort: Price (High → Low)</option>
+							</select>
 						</div>
 
 						{/* Category Pills */}

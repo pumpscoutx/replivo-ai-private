@@ -131,6 +131,7 @@ export default function Header() {
             whileTap={{ scale: 0.95 }}
           >
             <Button 
+              onClick={() => { window.location.href = "/api/auth/google"; }}
               className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-neiko font-medium text-[13px] tracking-[0.5px] shadow-lg border-0 leading-[1.4]"
             >
               <motion.div
