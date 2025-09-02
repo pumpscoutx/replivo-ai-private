@@ -116,15 +116,18 @@ export default function AgentCard({ agent }: AgentCardProps) {
   return (
     <>
       <motion.div
-        className="group relative bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10"
-        initial={{ opacity: 0, y: 20 }}
+        className="group relative rounded-3xl p-7 bg-white/5 backdrop-blur-2xl border border-white/15 overflow-hidden transition-all duration-500 hover:border-cyan-400/30"
+        style={{
+          backgroundImage: "radial-gradient(1000px 400px at -20% -20%, rgba(56,189,248,0.08), transparent), radial-gradient(800px 300px at 120% 120%, rgba(99,102,241,0.08), transparent)"
+        }}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ 
           scale: 1.02,
-          y: -5,
-          boxShadow: "0 25px 50px rgba(6, 182, 212, 0.15)"
+          y: -6,
+          boxShadow: "0 35px 80px rgba(6, 182, 212, 0.25)"
         }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.35 }}
       >
         {/* Floating Activity Indicator */}
         <motion.div
@@ -141,9 +144,20 @@ export default function AgentCard({ agent }: AgentCardProps) {
           <span className="text-xs text-gray-400 font-medium">Active</span>
         </motion.div>
 
+        {/* Hired badge */}
+        <div className="absolute top-4 left-4">
+          <motion.span
+            className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30"
+            animate={{ scale: [1, 1.03, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            🔥 {Math.floor(Math.random()*1200)+400} hired
+          </motion.span>
+        </div>
+
         {/* Agent Icon */}
         <motion.div
-          className={`w-16 h-16 bg-gradient-to-br ${gradientClass} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+          className={`w-16 h-16 bg-gradient-to-br ${gradientClass} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-black/30`}
           whileHover={{ rotate: 5 }}
         >
           <div className="text-white">
@@ -161,7 +175,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
           {agent.description}
         </p>
 
-        {/* Skills Badges */}
+        {/* Category/Capabilities badges */}
         <div className="flex flex-wrap gap-2 mb-6">
           {skills.map((skill, index) => (
             <motion.span
@@ -181,143 +195,70 @@ export default function AgentCard({ agent }: AgentCardProps) {
           ))}
         </div>
 
-        {/* Rating Section */}
-        <div 
-          className="flex items-center justify-between mb-6"
-          onMouseEnter={() => setShowRatingBreakdown(true)}
-          onMouseLeave={() => setShowRatingBreakdown(false)}
-        >
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center">
-              {Array.from({ length: 5 }, (_, i) => (
-                <motion.i
-                  key={i}
-                  className={`fas fa-star text-sm ${i < Math.floor(agent.rating / 10) ? 'text-yellow-400' : 'text-gray-600'}`}
-                  animate={{ 
-                    scale: i < Math.floor(agent.rating / 10) ? [1, 1.1, 1] : 1,
-                    rotate: i < Math.floor(agent.rating / 10) ? [0, 5, -5, 0] : 0
-                  }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity,
-                    delay: i * 0.1
-                  }}
-                />
-              ))}
-            </div>
-            <span className="text-sm font-semibold text-white">
-              {agent.rating / 10}
-            </span>
-            <span className="text-xs text-gray-400">
-              ({agent.reviewCount} reviews)
-            </span>
+        {/* Prominent metrics */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="text-center">
+            <div className="text-white text-xl font-bold">{(agent.rating/10).toFixed(1)}</div>
+            <div className="text-xs text-gray-400">Rating</div>
           </div>
-
-          {/* Rating Breakdown Tooltip */}
-          {showRatingBreakdown && (
-            <motion.div
-              className="absolute bottom-full left-0 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg p-3 mb-2 z-10"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-            >
-              <div className="text-xs text-gray-300 mb-2">Rating Breakdown</div>
-              <div className="space-y-1">
-                {[5, 4, 3, 2, 1].map((star) => (
-                  <div key={star} className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-400">{star}★</span>
-                    <div className="w-16 h-1 bg-gray-700 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-yellow-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.random() * 100}%` }}
-                        transition={{ duration: 0.5, delay: star * 0.1 }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          <div className="text-center">
+            <div className="text-white text-xl font-bold">{(Math.random()*2+1.5).toFixed(1)}s</div>
+            <div className="text-xs text-gray-400">Response</div>
+          </div>
+          <div className="text-center">
+            <div className="text-white text-xl font-bold">24/7</div>
+            <div className="text-xs text-gray-400">Available</div>
+          </div>
         </div>
 
-        {/* Real-time Activity */}
-        <motion.div
-          className="flex items-center justify-between mb-6 text-xs text-gray-400"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="flex items-center space-x-1">
-            <Clock className="w-3 h-3" />
-            <span>Updated 2 hours ago</span>
+        {/* Rating + Reviews */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="flex items-center">
+            {Array.from({ length: 5 }, (_, i) => (
+              <motion.i
+                key={i}
+                className={`fas fa-star text-sm ${i < Math.floor(agent.rating / 10) ? 'text-yellow-400' : 'text-gray-600'}`}
+                animate={{ scale: i < Math.floor(agent.rating / 10) ? [1, 1.1, 1] : 1 }}
+                transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
+              />
+            ))}
           </div>
-          <div className="flex items-center space-x-1">
-            <Users className="w-3 h-3" />
-            <span>5 hired today</span>
-          </div>
-        </motion.div>
+          <span className="text-xs text-gray-400">({agent.reviewCount} reviews)</span>
+        </div>
 
         {/* CTA Buttons */}
         <div className="flex space-x-3">
           {/* Try Me Button */}
-          <motion.div
-            className="flex-1"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={() => setIsTryMeOpen(true)}
               variant="outline"
               className="w-full bg-transparent border border-white/20 text-white hover:bg-white/5 hover:border-cyan-400/50 transition-all duration-300"
             >
-              <motion.i
-                className="fas fa-play mr-2"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
+              <motion.i className="fas fa-play mr-2" animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} />
               Try Me
             </Button>
           </motion.div>
 
-          {/* Hire Now Button */}
-          <motion.div
-            className="flex-1"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          {/* Hire Now Button with price */}
+          <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={() => setIsHireNowOpen(true)}
               className={`w-full bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300`}
             >
               <motion.i
-                className="fas fa-rocket mr-2"
-                animate={{ 
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+                className="fas fa-bolt mr-2"
+                animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               />
-              Hire Now
+              Hire Now — ${(agent.price/100).toFixed(0)}/mo
             </Button>
           </motion.div>
         </div>
 
-        {/* Price Display */}
-        <motion.div
-          className="mt-4 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <span className="text-xs text-gray-400">Starting at</span>
-          <div className="text-lg font-bold text-white">
-            ${(agent.price / 100).toFixed(0)}/month
-          </div>
+        {/* Price small note */}
+        <motion.div className="mt-4 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+          <span className="text-xs text-gray-400">Premium glassmorphism card</span>
         </motion.div>
       </motion.div>
 

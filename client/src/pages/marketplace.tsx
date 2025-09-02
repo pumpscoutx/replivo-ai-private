@@ -27,16 +27,12 @@ export default function Marketplace() {
 			<CursorEffects />
 			<Header />
 			{/* Marketplace Section */}
-			<section className="py-32 bg-black relative">
-				<div
-					className="absolute inset-0 opacity-10"
-					style={{
-						backgroundImage:
-							"url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&h=1380')",
-						backgroundSize: "cover",
-						backgroundPosition: "center",
-					}}
-				></div>
+			      <section className="py-32 relative" style={{
+          background: "linear-gradient(180deg, #0b1220 0%, #0a1b2a 50%, #062a2a 100%)"
+        }}>
+				<div className="absolute inset-0 pointer-events-none" style={{
+            backgroundImage: "radial-gradient(800px 300px at 10% -10%, rgba(59,130,246,0.12), transparent), radial-gradient(900px 350px at 110% 120%, rgba(34,211,238,0.12), transparent)"
+          }} />
 				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<motion.div
 						className="text-center mb-20"
