@@ -639,6 +639,7 @@ const HeroSection = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [textAlternate, setTextAlternate] = useState(true);
   const [showTryMeModal, setShowTryMeModal] = useState(false);
+  const [builderQuery, setBuilderQuery] = useState("");
 
   useEffect(() => {
     setIsLoaded(true);
@@ -657,6 +658,7 @@ const HeroSection = () => {
   }, []);
 
   return (
+    <>
     <motion.section
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       initial={{ opacity: 0 }}
@@ -1802,653 +1804,67 @@ const HeroSection = () => {
         </motion.div>
       </div>
     </motion.section>
-  );
-};
 
-// Marketplace Card Component
-const MarketplaceCard = ({ agent, index }: { 
-  agent: typeof MARKETPLACE_AGENTS[0]; 
-  index: number;
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [showTryMeModal, setShowTryMeModal] = useState(false);
-  const [showHireModal, setShowHireModal] = useState(false);
-
-  return (
-    <>
-      <motion.div
-        className="group relative bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-2xl rounded-3xl border border-white/10 p-6 hover:border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/20 h-full flex flex-col overflow-hidden"
-        initial={{ opacity: 0, y: 30, rotateY: -15 }}
-        animate={{ opacity: 1, y: 0, rotateY: 0 }}
-        transition={{ duration: 0.6, delay: index * 0.1 }}
-        whileHover={{ 
-          scale: 1.03,
-          y: -12,
-          rotateY: 5,
-          boxShadow: "0 30px 60px rgba(6, 182, 212, 0.25)"
-        }}
-        style={{
-          transformStyle: "preserve-3d",
-          perspective: "1000px"
-        }}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-      >
-        {/* Floating Animation */}
-        <motion.div
-          className="absolute inset-0"
-          animate={{ 
-            y: [0, -10, 0],
-            rotate: [0, 1, 0]
-          }}
-          transition={{ 
-            duration: 6, 
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500">
-          <div 
-            className="w-full h-full bg-cover bg-center rounded-3xl"
-            style={{ backgroundImage: `url(${agent.image})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl" />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 flex-1 flex flex-col">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <motion.div
-              className="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl border border-white/20 flex items-center justify-center text-3xl"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ duration: 0.3 }}
-            >
-              {agent.icon}
-            </motion.div>
-            
-            {/* Live Hiring Counter */}
-            <motion.div
-              className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-xl rounded-full px-3 py-1 border border-green-500/30"
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <span className="text-xs text-green-400 font-semibold">
-                🔥 {agent.hiringCount} hired
-              </span>
-            </motion.div>
-          </div>
-
-          {/* Agent Info */}
-          <div className="mb-4">
-            <motion.h3 
-              className="text-xl font-bold text-white mb-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              {agent.name}
-            </motion.h3>
-            
-            <motion.p 
-              className="text-sm text-gray-300 mb-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              {agent.specialty}
-            </motion.p>
-            
-            <motion.p 
-              className="text-xs text-gray-400 leading-relaxed"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              {agent.description}
-            </motion.p>
-          </div>
-
-          {/* Skills */}
-          <div className="mb-4 flex flex-wrap gap-2">
-            {agent.skills.map((skill, skillIndex) => (
-              <motion.span
-                key={skill}
-                className="px-2 py-1 bg-white/10 backdrop-blur-xl rounded-full text-xs text-gray-300 border border-white/20"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + skillIndex * 0.1 }}
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
-              >
-                {skill}
-              </motion.span>
-            ))}
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <div className="text-lg font-bold text-white">{agent.rating}</div>
-              <div className="text-xs text-gray-400">Rating</div>
-            </motion.div>
-            
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-            >
-              <div className="text-lg font-bold text-white">{agent.responseTime}</div>
-              <div className="text-xs text-gray-400">Response</div>
-            </motion.div>
-            
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <div className="text-lg font-bold text-white">{agent.availability}</div>
-              <div className="text-xs text-gray-400">Available</div>
-            </motion.div>
-          </div>
-
-          {/* Rating Stars */}
-          <div className="flex items-center gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                className={`text-lg ${i < Math.floor(agent.rating) ? 'text-yellow-400' : 'text-gray-600'}`}
-                whileHover={{ scale: 1.2, color: "#fbbf24" }}
-                transition={{ duration: 0.2 }}
-              >
-                ★
-              </motion.div>
-            ))}
-            <span className="text-sm text-gray-400 ml-2">({agent.reviews} reviews)</span>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-auto space-y-3">
-            {/* Try Me Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button
-                onClick={() => setShowTryMeModal(true)}
-                variant="outline"
-                className="w-full bg-white/5 hover:bg-white/10 border-white/20 text-white hover:text-white transition-all duration-300"
-                size="sm"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Try Me
-              </Button>
-            </motion.div>
-
-            {/* Hire Now Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button
-                onClick={() => setShowHireModal(true)}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
-                size="sm"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Hire Now - ${agent.price}/mo
-              </Button>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Animated Border */}
-        <motion.div
-          className="absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20"
-          animate={{ 
-            background: [
-              "linear-gradient(45deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))",
-              "linear-gradient(45deg, rgba(147, 51, 234, 0.2), rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2))",
-              "linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2), rgba(6, 182, 212, 0.2))"
-            ]
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-        />
-
-        {/* Connecting Lines Effect */}
-        <motion.div
-          className="absolute -right-2 top-1/2 w-4 h-0.5 bg-gradient-to-r from-cyan-500/50 to-transparent"
-          animate={{ 
-            scaleX: [0, 1, 0],
-            opacity: [0, 0.5, 0]
-          }}
-          transition={{ 
-            duration: 2, 
-            repeat: Infinity,
-            delay: index * 0.2
-          }}
-        />
-      </motion.div>
-
-      {/* Try Me Modal */}
-      <AnimatePresence>
-        <TryMeModal 
-          isOpen={showTryMeModal}
-          onClose={() => setShowTryMeModal(false)}
-          agent={agent}
-          onHire={() => {
-            setShowTryMeModal(false);
-            setShowHireModal(true);
-          }}
-        />
-      </AnimatePresence>
-
-      {/* Hire Modal */}
-      <AnimatePresence>
-        <HireModal 
-          isOpen={showHireModal}
-          onClose={() => setShowHireModal(false)}
-          agent={agent}
-        />
-      </AnimatePresence>
-    </>
-  );
-};
-
-export default function Home() {
-  const [, setLocation] = useLocation();
-  const { scrollY } = useScroll();
-  const heroRef = useRef(null);
-  const agentsRef = useRef(null);
-  const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
-  const [showTryMeModal, setShowTryMeModal] = useState(false);
-  
-  // Marketplace state
-  const [sortBy, setSortBy] = useState('rating');
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [filteredAgents, setFilteredAgents] = useState(MARKETPLACE_AGENTS);
-
-  // Auto-rotate agents every 8 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentAgentIndex((prev) => (prev + 1) % AGENT_TYPES.length);
-    }, 8000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle sorting and filtering
-  useEffect(() => {
-    let agents = [...MARKETPLACE_AGENTS];
-    
-    // Apply filter
-    if (activeFilter !== 'All') {
-      agents = agents.filter(agent => {
-        const category = agent.specialty.toLowerCase();
-        return category.includes(activeFilter.toLowerCase()) || 
-               agent.skills.some(skill => skill.toLowerCase().includes(activeFilter.toLowerCase()));
-      });
-    }
-    
-    // Apply sort
-    agents.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating;
-        case 'price':
-          return a.price - b.price;
-        case 'reviews':
-          return b.reviews - a.reviews;
-        case 'hiringCount':
-          return b.hiringCount - a.hiringCount;
-        default:
-          return 0;
-      }
-    });
-    
-    setFilteredAgents(agents);
-  }, [sortBy, activeFilter]);
-
-  const currentAgent = AGENT_TYPES[currentAgentIndex];
-
-  // Scroll-based transforms
-  const heroY = useTransform(scrollY, [0, 500], [0, -100]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
-  const agentsY = useTransform(scrollY, [300, 800], [100, 0]);
-  const agentsOpacity = useTransform(scrollY, [300, 600], [0, 1]);
-
-  return (
-    <div className="min-h-screen text-white overflow-hidden relative">
-      {/* New Gradient Background with Geometric Patterns */}
-      <div className="absolute inset-0 bg-gradient-to-l from-[#1a1a1a] to-[#0f0f0f]" />
-      
-      {/* Geometric Pattern Overlay with Gradient Mask */}
-      <div className="absolute inset-0 opacity-30">
-        {/* Right to left fade pattern */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%)
-            `,
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)'
-          }}
-        />
-        
-        {/* Subtle grid pattern with fade */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent)',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent)'
-          }}
-        />
-      </div>
-      <Header />
-      <BackgroundEffects />
-      
-      {/* Hero Section */}
-      <HeroSection />
-
-      {/* Trusted By Section */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
+      {/* AI Agent Builder Section */}
+      <section className="relative py-24 px-4 bg-gradient-to-b from-transparent to-black/40">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h2
+            className="text-4xl md:text-5xl font-extrabold text-white"
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <motion.h2 
-              className="text-4xl lg:text-5xl font-black mb-6"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <span className="text-white font-extralight">TRUSTED BY</span>
-              <br />
-              <span className="text-gradient-electric font-black">FORWARD-THINKING TEAMS</span>
-            </motion.h2>
-          </motion.div>
-
-          {/* Scrolling Marquee */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
-          >
-            <ScrollingMarquee />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Customer Logos Carousel */}
-      <section className="relative py-16 px-4 bg-gradient-to-r from-gray-900/50 to-black/50">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
+            Build Custom Agent
+          </motion.h2>
+          <motion.p
+            className="mt-3 text-lg text-gray-300"
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <motion.p
-              className="text-lg text-gray-400 font-medium mb-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Trusted by leading companies worldwide
-            </motion.p>
-          </motion.div>
+            Describe your ideal AI agent and we'll build it for you
+          </motion.p>
 
-          {/* Logos Grid */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center opacity-60"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 0.6, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             viewport={{ once: true }}
           >
-            {[
-              { name: "Google", logo: "🔍" },
-              { name: "Microsoft", logo: "🪟" },
-              { name: "Apple", logo: "🍎" },
-              { name: "Amazon", logo: "📦" },
-              { name: "Meta", logo: "📘" },
-              { name: "Netflix", logo: "📺" },
-              { name: "Spotify", logo: "🎵" },
-              { name: "Uber", logo: "🚗" },
-              { name: "Airbnb", logo: "🏠" },
-              { name: "Slack", logo: "💬" },
-              { name: "Notion", logo: "📝" },
-              { name: "Figma", logo: "🎨" }
-            ].map((company, index) => (
-              <motion.div
-                key={company.name}
-                className="flex items-center justify-center p-4 bg-gray-800/30 rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300 group"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ 
-                  scale: 1.05,
-                  backgroundColor: "rgba(6, 182, 212, 0.1)",
-                  borderColor: "rgba(6, 182, 212, 0.3)"
+            <div className="relative">
+              <Input
+                placeholder="Describe the AI agent you want to build..."
+                className="w-full h-16 pl-5 pr-40 rounded-2xl bg-white/5 border border-white/15 text-white placeholder-gray-400 shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/40"
+                value={builderQuery}
+                onChange={(e) => setBuilderQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setLocation(`/custom-agent?desc=${encodeURIComponent(builderQuery.trim())}`);
+                  }
                 }}
-              >
-                <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                  {company.logo}
-                </div>
-                <span className="ml-2 text-sm text-gray-400 font-medium group-hover:text-white transition-colors duration-300">
-                  {company.name}
-                </span>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Statistics Bar */}
-          <motion.div
-            className="mt-12 flex flex-col md:flex-row items-center justify-center gap-8 text-center"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex items-center space-x-3">
-              <motion.div
-                className="w-3 h-3 bg-green-400 rounded-full"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
               />
-              <div>
-                <div className="text-2xl font-bold text-white">50,000+</div>
-                <div className="text-sm text-gray-400">Agents Deployed</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <motion.div
-                className="w-3 h-3 bg-blue-400 rounded-full"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              />
-              <div>
-                <div className="text-2xl font-bold text-white">80%</div>
-                <div className="text-sm text-gray-400">Cost Savings</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <motion.div
-                className="w-3 h-3 bg-purple-400 rounded-full"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              />
-              <div>
-                <div className="text-2xl font-bold text-white">24/7</div>
-                <div className="text-sm text-gray-400">Availability</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Marketplace Section */}
-      <section className="relative py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <motion.h2 
-              className="text-5xl md:text-7xl font-black mb-8"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <span className="text-white font-extralight">AI AGENT</span>
-              <br />
-              <span className="text-gradient-electric font-black">MARKETPLACE</span>
-            </motion.h2>
-            
-            <motion.p
-              className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              Discover specialized AI agents ready to transform your business. 
-              From content creation to customer support, find the perfect AI teammate.
-            </motion.p>
-          </motion.div>
-
-          {/* Sort and Filter Controls */}
-          <motion.div
-            className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-12 p-6 bg-gray-900/30 backdrop-blur-xl rounded-2xl border border-white/10"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            viewport={{ once: true }}
-          >
-            {/* Sort By */}
-            <div className="flex items-center gap-3">
-              <span className="text-gray-300 font-medium">Sort by:</span>
-              <select 
-                className="bg-gray-800/50 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="rating">Rating</option>
-                <option value="price">Price</option>
-                <option value="reviews">Reviews</option>
-                <option value="hiringCount">Most Hired</option>
-              </select>
-            </div>
-
-            {/* Filter By */}
-            <div className="flex items-center gap-3">
-              <span className="text-gray-300 font-medium">Filter:</span>
-              <div className="flex flex-wrap gap-2">
-                {['All', 'Content', 'Support', 'Analytics', 'Sales'].map((filter) => (
-                  <button
-                    key={filter}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                      filter === activeFilter 
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
-                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/20 hover:border-cyan-500/50'
-                    }`}
-                    onClick={() => setActiveFilter(filter)}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Marketplace Grid */}
-          {filteredAgents.length > 0 ? (
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.8 }}
-              viewport={{ once: true }}
-            >
-              {filteredAgents.map((agent, index) => (
-                <MarketplaceCard key={agent.id} agent={agent} index={index} />
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              className="text-center py-16"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-white mb-2">No agents found</h3>
-              <p className="text-gray-400 mb-6">Try adjusting your filters or browse all agents</p>
               <Button
-                onClick={() => setActiveFilter('All')}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-xl"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg"
+                onClick={() => setLocation(`/custom-agent?desc=${encodeURIComponent(builderQuery.trim())}`)}
+                disabled={!builderQuery.trim()}
               >
-                Show All Agents
+                Build Agent
               </Button>
-            </motion.div>
-          )}
+            </div>
 
-          {/* View All Agents Button */}
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <Button
-              onClick={() => setLocation("/custom-agent")}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
-              size="lg"
+            <button
+              className="mt-4 text-sm text-gray-300 hover:text-white inline-flex items-center gap-2"
+              onClick={() => setLocation('/custom-agent')}
             >
-              <Sparkles className="w-5 h-5 mr-3" />
-              View All Agents
-              <ArrowRight className="w-5 h-5 ml-3" />
-            </Button>
+              Need advanced customization? Try our custom builder →
+            </button>
           </motion.div>
         </div>
       </section>
 
-
-
-
-    </div>
+    </>
   );
 }
