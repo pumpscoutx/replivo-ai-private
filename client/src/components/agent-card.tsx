@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Star, Clock, Users, TrendingUp, PenTool, Share2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TryMeModal from "./try-me-modal";
-import HireModal from "./hire-modal";
+import HireNowModal from "./hire-now-modal";
 
 interface Agent {
   id: string;
@@ -275,11 +275,12 @@ export default function AgentCard({ agent }: AgentCardProps) {
         }}
       />
 
-      {/* Hire Now Modal (Original 5-step) */}
-      <HireModal
+      {/* Hire Now Modal (Previous design) */}
+      <HireNowModal
         isOpen={isHireNowOpen}
         onClose={() => setIsHireNowOpen(false)}
         agent={agent}
+        gradientClass={gradientClass}
       />
     </>
   );
