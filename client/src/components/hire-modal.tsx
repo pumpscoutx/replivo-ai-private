@@ -80,12 +80,15 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
   const [selectedPlan, setSelectedPlan] = useState('professional');
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [taskSearch, setTaskSearch] = useState("");
+  const [taskPriority, setTaskPriority] = useState<'high' | 'medium' | 'low'>("medium");
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [extensionInstalled, setExtensionInstalled] = useState(false);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [pairingProgress, setPairingProgress] = useState(0);
   const recommendedPlanId = 'professional';
+  const [integrationStatus, setIntegrationStatus] = useState<Record<string, 'disconnected' | 'connected' | 'testing'>>({});
 
   // Pricing Plans
   const pricingPlans: PricingPlan[] = [
@@ -149,9 +152,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'Content Creation',
       icon: <FileText className="w-8 h-8" />,
       tasks: [
-        { id: 'blog', name: 'Blog posts', description: 'SEO-optimized articles', estimatedTime: '2-4 hours' },
-        { id: 'social', name: 'Social media', description: 'Platform-specific content', estimatedTime: '1-2 hours' },
-        { id: 'email', name: 'Email campaigns', description: 'Newsletter and marketing emails', estimatedTime: '1-3 hours' }
+        { id: 'blog', name: 'Blog posts', description: 'SEO-optimized articles', estimatedTime: '2-4 hours', priority: 'medium' },
+        { id: 'social', name: 'Social media', description: 'Platform-specific content', estimatedTime: '1-2 hours', priority: 'medium' },
+        { id: 'email', name: 'Email campaigns', description: 'Newsletter and marketing emails', estimatedTime: '1-3 hours', priority: 'medium' }
       ]
     },
     {
@@ -159,9 +162,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'SEO Optimization',
       icon: <Hash className="w-8 h-8" />,
       tasks: [
-        { id: 'keywords', name: 'Keyword research', description: 'Target keyword analysis', estimatedTime: '1-2 hours' },
-        { id: 'onpage', name: 'On-page SEO', description: 'Content optimization', estimatedTime: '2-3 hours' },
-        { id: 'links', name: 'Link building', description: 'Backlink strategy', estimatedTime: '3-5 hours' }
+        { id: 'keywords', name: 'Keyword research', description: 'Target keyword analysis', estimatedTime: '1-2 hours', priority: 'medium' },
+        { id: 'onpage', name: 'On-page SEO', description: 'Content optimization', estimatedTime: '2-3 hours', priority: 'medium' },
+        { id: 'links', name: 'Link building', description: 'Backlink strategy', estimatedTime: '3-5 hours', priority: 'high' }
       ]
     },
     {
@@ -169,9 +172,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'Data Analysis',
       icon: <BarChart3 className="w-8 h-8" />,
       tasks: [
-        { id: 'reports', name: 'Reports & insights', description: 'Performance analytics', estimatedTime: '1-2 hours' },
-        { id: 'visualization', name: 'Data visualization', description: 'Charts and graphs', estimatedTime: '2-3 hours' },
-        { id: 'research', name: 'Market research', description: 'Competitor analysis', estimatedTime: '3-4 hours' }
+        { id: 'reports', name: 'Reports & insights', description: 'Performance analytics', estimatedTime: '1-2 hours', priority: 'medium' },
+        { id: 'visualization', name: 'Data visualization', description: 'Charts and graphs', estimatedTime: '2-3 hours', priority: 'medium' },
+        { id: 'research', name: 'Market research', description: 'Competitor analysis', estimatedTime: '3-4 hours', priority: 'high' }
       ]
     },
     {
@@ -179,9 +182,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'Marketing Strategy',
       icon: <Target className="w-8 h-8" />,
       tasks: [
-        { id: 'campaigns', name: 'Campaign planning', description: 'Multi-channel strategies', estimatedTime: '2-4 hours' },
-        { id: 'brand', name: 'Brand strategy', description: 'Brand positioning', estimatedTime: '3-5 hours' },
-        { id: 'tracking', name: 'Performance tracking', description: 'ROI measurement', estimatedTime: '1-2 hours' }
+        { id: 'campaigns', name: 'Campaign planning', description: 'Multi-channel strategies', estimatedTime: '2-4 hours', priority: 'medium' },
+        { id: 'brand', name: 'Brand strategy', description: 'Brand positioning', estimatedTime: '3-5 hours', priority: 'high' },
+        { id: 'tracking', name: 'Performance tracking', description: 'ROI measurement', estimatedTime: '1-2 hours', priority: 'medium' }
       ]
     },
     {
@@ -189,9 +192,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'Customer Support',
       icon: <MessageSquare className="w-8 h-8" />,
       tasks: [
-        { id: 'chat', name: 'Live chat support', description: 'Real-time customer service', estimatedTime: '24/7' },
-        { id: 'email', name: 'Email support', description: 'Ticket management', estimatedTime: '2-4 hours' },
-        { id: 'docs', name: 'Documentation', description: 'Help center content', estimatedTime: '3-5 hours' }
+        { id: 'chat', name: 'Live chat support', description: 'Real-time customer service', estimatedTime: '24/7', priority: 'high' },
+        { id: 'email', name: 'Email support', description: 'Ticket management', estimatedTime: '2-4 hours', priority: 'medium' },
+        { id: 'docs', name: 'Documentation', description: 'Help center content', estimatedTime: '3-5 hours', priority: 'medium' }
       ]
     },
     {
@@ -199,9 +202,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
       name: 'Business Operations',
       icon: <Workflow className="w-8 h-8" />,
       tasks: [
-        { id: 'finance', name: 'Financial analysis', description: 'Budget and forecasting', estimatedTime: '2-3 hours' },
-        { id: 'automation', name: 'Process automation', description: 'Workflow optimization', estimatedTime: '3-5 hours' },
-        { id: 'optimization', name: 'System optimization', description: 'Performance improvement', estimatedTime: '2-4 hours' }
+        { id: 'finance', name: 'Financial analysis', description: 'Budget and forecasting', estimatedTime: '2-3 hours', priority: 'medium' },
+        { id: 'automation', name: 'Process automation', description: 'Workflow optimization', estimatedTime: '3-5 hours', priority: 'high' },
+        { id: 'optimization', name: 'System optimization', description: 'Performance improvement', estimatedTime: '2-4 hours', priority: 'medium' }
       ]
     }
   ];
@@ -402,14 +405,8 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                         onClick={() => setSelectedPlan(plan.id)}
                       >
                         {plan.popular && (
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                            <motion.div
-                              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-4 py-1 rounded-full text-sm font-bold"
-                              animate={{ scale: [1, 1.05, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            >
-                              MOST POPULAR
-                            </motion.div>
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+                            MOST POPULAR
                           </div>
                         )}
 
@@ -595,6 +592,8 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         placeholder="Search tasks..."
+                        value={taskSearch}
+                        onChange={(e) => setTaskSearch(e.target.value)}
                         className="pl-10 bg-slate-800 border-slate-600 text-white"
                       />
                     </div>
@@ -602,6 +601,24 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                       <Filter className="w-4 h-4 mr-2" />
                       Filter
                     </Button>
+                  </div>
+
+                  {/* Priority Slider */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-400 text-sm">Priority:</span>
+                    <div className="flex gap-2">
+                      {(['low','medium','high'] as const).map(p => (
+                        <button
+                          key={p}
+                          onClick={() => setTaskPriority(p)}
+                          className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                            taskPriority === p ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300' : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-500'
+                          }`}
+                        >
+                          {p.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Task Categories Grid */}
@@ -625,7 +642,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                         </div>
 
                         <div className="space-y-3">
-                          {category.tasks.map((task) => (
+                          {category.tasks
+                            .filter(t => t.name.toLowerCase().includes(taskSearch.toLowerCase()))
+                            .map((task) => (
                             <motion.div
                               key={task.id}
                               className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
@@ -640,6 +659,7 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                                 <div>
                                   <div className="font-medium text-white">{task.name}</div>
                                   <div className="text-sm text-slate-400">{task.description}</div>
+                                  <div className="text-xs text-slate-500 mt-1">Est. {task.estimatedTime} • Priority: {taskPriority.toUpperCase()}</div>
                                 </div>
                                 <div className="text-xs text-slate-500">{task.estimatedTime}</div>
                               </div>
@@ -701,6 +721,24 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                             <div className="text-2xl mb-2">{integration.icon}</div>
                             <div className="text-sm font-medium text-white">{integration.name}</div>
                             <div className="text-xs text-slate-400">{integration.description}</div>
+                            <div className="mt-2">
+                              {selectedIntegrations.includes(integration.id) ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-slate-600 text-slate-300"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIntegrationStatus(prev => ({ ...prev, [integration.id]: 'testing' }));
+                                    setTimeout(() => setIntegrationStatus(prev => ({ ...prev, [integration.id]: 'connected' })), 800);
+                                  }}
+                                >
+                                  {integrationStatus[integration.id] === 'testing' ? 'Testing…' : integrationStatus[integration.id] === 'connected' ? 'Connected' : 'Test Connection'}
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-slate-500">OAuth quick setup</span>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       ))}
