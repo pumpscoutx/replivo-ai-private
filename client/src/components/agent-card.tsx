@@ -213,15 +213,15 @@ export default function AgentCard({ agent }: AgentCardProps) {
 
         {/* Rating + Reviews */}
         <div className="flex items-center gap-2 mb-6">
-          <div className="flex items-center">
-            {Array.from({ length: 5 }, (_, i) => (
-              <motion.i
-                key={i}
-                className={`fas fa-star text-sm ${i < Math.floor(agent.rating / 10) ? 'text-yellow-400' : 'text-gray-600'}`}
+            <div className="flex items-center">
+              {Array.from({ length: 5 }, (_, i) => (
+                <motion.i
+                  key={i}
+                  className={`fas fa-star text-sm ${i < Math.floor(agent.rating / 10) ? 'text-yellow-400' : 'text-gray-600'}`}
                 animate={{ scale: i < Math.floor(agent.rating / 10) ? [1, 1.1, 1] : 1 }}
                 transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
-              />
-            ))}
+                />
+              ))}
           </div>
           <span className="text-xs text-gray-400">({agent.reviewCount} reviews)</span>
         </div>

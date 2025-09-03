@@ -1810,22 +1810,22 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
             className="text-4xl md:text-5xl font-extrabold text-white"
-            initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
             Build Custom Agent
-          </motion.h2>
-          <motion.p
+            </motion.h2>
+            <motion.p
             className="mt-3 text-lg text-gray-300"
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            viewport={{ once: true }}
-          >
+              viewport={{ once: true }}
+            >
             Describe your ideal AI agent and we'll build it for you
-          </motion.p>
+            </motion.p>
 
           <motion.div
             className="mt-8"
@@ -1855,16 +1855,25 @@ const HeroSection = () => {
               </Button>
             </div>
 
-            <button
+                  <button
               className="mt-4 text-sm text-gray-300 hover:text-white inline-flex items-center gap-2"
               onClick={() => setLocation('/custom-agent')}
             >
               Need advanced customization? Try our custom builder →
-            </button>
+                  </button>
           </motion.div>
         </div>
       </section>
 
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-black">
+      <Header />
+      <HeroSection />
+    </div>
   );
 }

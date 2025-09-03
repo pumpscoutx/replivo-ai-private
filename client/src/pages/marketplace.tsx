@@ -11,7 +11,7 @@ import type { Agent } from "@shared/schema";
 import { CATEGORIES } from "@/lib/constants";
 
 export default function Marketplace() {
-	const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 	const [search, setSearch] = useState("");
 	const [sort, setSort] = useState<"relevance" | "rating" | "priceAsc" | "priceDesc">("relevance");
 
@@ -46,25 +46,25 @@ export default function Marketplace() {
 			break;
 	}
 
-	return (
-		<div className="min-h-screen bg-black">
-			<BackgroundEffects />
-			<CursorEffects />
-			<Header />
-			{/* Marketplace Section */}
+  return (
+    <div className="min-h-screen bg-black">
+      <BackgroundEffects />
+      <CursorEffects />
+      <Header />
+      {/* Marketplace Section */}
 			      <section className="py-32 relative" style={{
           background: "linear-gradient(180deg, #0b1220 0%, #0a1b2a 50%, #062a2a 100%)"
         }}>
 				<div className="absolute inset-0 pointer-events-none" style={{
             backgroundImage: "radial-gradient(800px 300px at 10% -10%, rgba(59,130,246,0.12), transparent), radial-gradient(900px 350px at 110% 120%, rgba(34,211,238,0.12), transparent)"
           }} />
-				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<motion.div
-						className="text-center mb-20"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6 }}
-					>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
 						{/* Animated background elements */}
 						<div className="absolute inset-0 -z-10 overflow-hidden">
 							<div className="absolute left-1/4 -top-24 w-72 h-72 rounded-full bg-cyan-500/20 blur-3xl animate-pulse" />
@@ -72,20 +72,20 @@ export default function Marketplace() {
 							<div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(transparent 95%, rgba(255,255,255,0.15) 95%), linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.15) 95%)", backgroundSize: '24px 24px' }} />
 						</div>
 
-						<motion.div
+            <motion.div
 							className="inline-block bg-white/10 backdrop-blur-md text-gray-200 rounded-full px-6 py-2 mb-6 font-semibold text-sm border border-white/20 shadow-lg"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.6, delay: 0.1 }}
-						>
-							<i className="fas fa-store mr-2"></i>
-							AI SPECIALIST MARKETPLACE
-						</motion.div>
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <i className="fas fa-store mr-2"></i>
+              AI SPECIALIST MARKETPLACE
+            </motion.div>
 
 						<h2 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
 							<span className="block drop-shadow-[0_0_15px_rgba(59,130,246,0.35)]">BUILD YOUR DREAM</span>
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 drop-shadow-[0_0_18px_rgba(99,102,241,0.35)]">AI TEAM</span>
-						</h2>
+            </h2>
 						<p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
 							Launch a high‑performing AI workforce in minutes. Proven specialists that create, analyze, and automate — 24/7.
 						</p>
@@ -118,27 +118,27 @@ export default function Marketplace() {
 						</div>
 
 						{/* Category Pills */}
-						<motion.div
-							className="flex flex-wrap justify-center gap-4"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.6, delay: 0.2 }}
-						>
-							{CATEGORIES.map((category) => (
+            <motion.div 
+              className="flex flex-wrap justify-center gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              {CATEGORIES.map((category) => (
 								<button
-									key={category.id}
-									onClick={() => setSelectedCategory(category.id)}
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
 									className={`px-5 py-2.5 rounded-2xl backdrop-blur-md border transition-all text-sm font-medium flex items-center gap-2 shadow ${
-										selectedCategory === category.id
+                    selectedCategory === category.id
 											? 'bg-gradient-to-r from-cyan-500/25 to-indigo-500/25 border-cyan-400/40 text-white ring-2 ring-cyan-400/30'
 											: 'bg-white/10 border-white/20 text-gray-200 hover:bg-white/15'
-									}`}
-								>
+                  }`}
+                >
 									<i className={`text-xs ${category.id === 'content' ? 'fas fa-pen' : category.id === 'analytics' ? 'fas fa-chart-line' : category.id === 'support' ? 'fas fa-headset' : 'fas fa-robot'}`} />
-									{category.name}
+                  {category.name}
 								</button>
-							))}
-						</motion.div>
+              ))}
+            </motion.div>
 
 						{/* Social proof / stats */}
 						<div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-300">
@@ -146,28 +146,28 @@ export default function Marketplace() {
 							<div className="flex items-center gap-2"><i className="fas fa-bolt text-yellow-300" /> Avg. 2.1s response</div>
 							<div className="flex items-center gap-2"><i className="fas fa-shield-alt text-emerald-300" /> Enterprise‑grade security</div>
 						</div>
-					</motion.div>
+          </motion.div>
 
-					{isLoading ? (
+          {isLoading ? (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 							{[1, 2, 3, 4, 5, 6].map((i) => (
 								<div key={i} className="bg-white/5 rounded-2xl border border-white/10 p-6 animate-pulse h-64" />
-							))}
-						</div>
-					) : (
+              ))}
+            </div>
+          ) : (
 						<motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" layout>
-							<AnimatePresence>
+              <AnimatePresence>
 								{filteredAgents.map((agent) => (
 									<motion.div key={agent.id} layout>
 										<AgentCard agent={agent} />
-									</motion.div>
-								))}
-							</AnimatePresence>
-						</motion.div>
-					)}
-				</div>
-			</section>
-			<Footer />
-		</div>
-	);
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </div>
+      </section>
+      <Footer />
+    </div>
+  );
 }

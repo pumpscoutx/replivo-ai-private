@@ -149,10 +149,10 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         style={{ background: 'rgba(0, 0, 0, 0.8)' }}
       >
@@ -221,7 +221,7 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                     <div className="w-full h-full rounded-3xl bg-slate-800 flex items-center justify-center text-4xl">
                       {agent.icon}
                     </div>
-                  </div>
+                </div>
                   
                   {/* Status Indicator */}
                   <motion.div
@@ -239,7 +239,7 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                     <h2 className="text-4xl font-black text-white">
                       {agent.name}
                     </h2>
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                       <Star className="w-6 h-6 text-yellow-400 fill-current" />
                       <span className="text-2xl font-bold text-white">4.9</span>
                     </div>
@@ -284,11 +284,11 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {promptCards.map((card, index) => (
-                      <motion.div
+                        <motion.div
                         key={card.id}
                         className="group cursor-pointer"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handlePromptSelect(card)}
                         whileHover={{ scale: 1.05, y: -5 }}
@@ -312,9 +312,9 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                               <span>{card.estimatedTime}</span>
                             </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                          </div>
+                        </motion.div>
+                      ))}
                   </div>
                 </div>
               ) : (
@@ -446,9 +446,9 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                                 <p>
                                   Looking ahead, we can expect to see even more integration of AI into our daily workflows, with tools becoming more intuitive and powerful. The key to success in this AI-driven world will be learning to work alongside these technologies rather than being replaced by them.
                                 </p>
-                              </motion.div>
-                            </div>
-                            
+                        </motion.div>
+                    </div>
+
                             {/* Quality Metrics */}
                             <div className="flex space-x-4 pt-4 border-t border-slate-700">
                               <div className="text-center">
@@ -463,15 +463,15 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                                 <div className="text-lg font-bold text-purple-400">{demoQuality.seo}%</div>
                                 <div className="text-xs text-slate-500">SEO Score</div>
                               </div>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
                         )}
                       </div>
                     </div>
                   </div>
                 </motion.div>
               )}
-            </div>
+                            </div>
 
             {/* Bottom Action Zone */}
             <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700/50 px-8 py-6">
@@ -480,7 +480,7 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-sm text-slate-400">12 people hired this agent today</span>
-                  </div>
+                          </div>
                   
                   <div className="flex items-center space-x-4">
                     <div className="flex -space-x-2">
@@ -489,25 +489,25 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
                       ))}
                     </div>
                     <span className="text-sm text-slate-400">Trusted by 1,247+ businesses</span>
-                  </div>
-                </div>
-                
+              </div>
+            </div>
+
                 <div className="flex items-center space-x-4">
-                  <Button
-                    variant="outline"
+              <Button
+                variant="outline"
                     className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                  >
+              >
                     <Eye className="w-4 h-4 mr-2" />
                     View Portfolio
-                  </Button>
+              </Button>
                   
-                  <Button
-                    onClick={onHire}
+              <Button
+                onClick={onHire}
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
+              >
                     <Zap className="w-5 h-5 mr-2" />
                     Hire This Agent
-                  </Button>
+              </Button>
                 </div>
               </div>
             </div>
@@ -516,4 +516,4 @@ export default function TryMeModal({ isOpen, onClose, agent, capabilities = [], 
       </motion.div>
     </AnimatePresence>
   );
-}
+} 
