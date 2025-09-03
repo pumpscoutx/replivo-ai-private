@@ -85,6 +85,7 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
   const [extensionInstalled, setExtensionInstalled] = useState(false);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [pairingProgress, setPairingProgress] = useState(0);
+  const recommendedPlanId = 'professional';
 
   // Pricing Plans
   const pricingPlans: PricingPlan[] = [
@@ -300,8 +301,21 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                 <div>
                   <h2 className="text-2xl font-bold text-white">Hire {agent.name}</h2>
                   <p className="text-slate-400">Complete your AI workforce setup</p>
+                  <div className="text-xs text-slate-400 mt-1">Step {currentStep} of 5</div>
                 </div>
-                
+
+                {/* Trust Badges */}
+                <div className="hidden md:flex items-center gap-3 mr-6">
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-emerald-500/15 border border-emerald-400/20">
+                    <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-300 text-xs font-medium">Secure Payment</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-blue-500/15 border border-blue-400/20">
+                    <Clock className="w-3.5 h-3.5 text-blue-300" />
+                    <span className="text-blue-300 text-xs font-medium">30‑Day Guarantee</span>
+                  </div>
+                </div>
+
                 {/* Progress Steps */}
                 <div className="flex items-center space-x-4">
                   {[1, 2, 3, 4, 5].map((step) => (
@@ -423,12 +437,18 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
+                                title={`More about ${feature}`}
                               >
                                 <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
                                 <span>{feature}</span>
                               </motion.li>
                             ))}
                           </ul>
+                          {plan.id === recommendedPlanId && (
+                            <div className="mt-4 text-center">
+                              <span className="px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-300 border border-blue-400/30 animate-pulse">Recommended for you</span>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     ))}
@@ -457,8 +477,8 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                   className="space-y-8"
                 >
                   <div className="text-center">
-                    <h3 className="text-3xl font-bold text-white mb-4"> Secure Checkout</h3>
-                    <p className="text-slate-400 text-lg">Complete your purchase securely</p>
+                    <h3 className="text-3xl font-bold text-white"> Secure Checkout</h3>
+                    <p className="text-slate-400 text-lg">Complete your purchase securely • Step 2 of 5</p>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -548,6 +568,12 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                       </div>
                     </div>
                   </div>
+
+                  <div className="text-center">
+                    <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3">
+                      Complete Purchase
+                    </Button>
+                  </div>
                 </motion.div>
               )}
 
@@ -559,8 +585,8 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                   className="space-y-8"
                 >
                   <div className="text-center">
-                    <h3 className="text-3xl font-bold text-white mb-4">Select Your Tasks</h3>
-                    <p className="text-slate-400 text-lg">Choose what you want your AI agent to help with</p>
+                    <h3 className="text-3xl font-bold text-white">Select Your Tasks</h3>
+                    <p className="text-slate-400 text-lg">Choose what you want your AI agent to help with • Step 3 of 5</p>
                   </div>
 
                   {/* Search and Filter */}
@@ -650,7 +676,7 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                 >
                   <div className="text-center">
                     <h3 className="text-3xl font-bold text-white mb-4">Connect Your Tools</h3>
-                    <p className="text-slate-400 text-lg">Integrate with your favorite apps and services</p>
+                    <p className="text-slate-400 text-lg">Integrate with your favorite apps and services • Step 4 of 5</p>
                   </div>
 
                   {/* Popular Integrations */}
@@ -743,7 +769,7 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                 >
                   <div className="text-center">
                     <h3 className="text-3xl font-bold text-white mb-4"> Install Your AI Assistant</h3>
-                    <p className="text-slate-400 text-lg">Get the Chrome extension for seamless integration</p>
+                    <p className="text-slate-400 text-lg">Get the Chrome extension for seamless integration • Step 5 of 5</p>
                   </div>
 
                   {!extensionInstalled ? (
