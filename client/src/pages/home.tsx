@@ -1858,7 +1858,7 @@ const HeroSection = () => {
                   <button
               className="mt-4 text-sm text-gray-300 hover:text-white inline-flex items-center gap-2"
               onClick={() => setLocation('/custom-agent')}
-            >
+                  >
               Need advanced customization? Try our custom builder →
                   </button>
           </motion.div>

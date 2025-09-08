@@ -38,6 +38,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
+import { useHiringFlow } from "@/HiringFlow/hooks/useHiringFlow";
 
 interface HireModalProps {
   isOpen: boolean;
@@ -76,6 +77,7 @@ interface Integration {
 }
 
 export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
+  const flow = useHiringFlow({ id: agent?.id || agent?.name || 'agent', name: agent?.name });
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState('professional');
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -93,55 +95,38 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
   // Pricing Plans
   const pricingPlans: PricingPlan[] = [
     {
-      id: 'starter',
-      name: 'Starter',
-      description: 'Ideal for small projects',
-      price: 0,
-      annualPrice: 0,
+      id: 'monthly',
+      name: 'Monthly',
+      description: 'Billed monthly',
+      price: 99,
+      annualPrice: 99,
       features: [
-        'Unlimited personal files',
-        'Email support',
-        'CSV data export',
-        'Basic analytics dashboard',
-        '1,000 API calls per month'
+        'Real-time browser automation',
+        'Secure command execution',
+        '24/7 agent availability',
+        'Task completion reporting',
+        'Premium support',
+        'Chrome extension access'
       ],
       popular: false,
-      color: 'from-gray-500 to-gray-600'
-    },
-    {
-      id: 'professional',
-      name: 'Professional',
-      description: 'For freelancers and startups',
-      price: 15,
-      annualPrice: 12,
-      features: [
-        'All starter features',
-        'Up to 5 user accounts',
-        'Team collaboration tools',
-        'Custom dashboards',
-        'Multiple data export formats',
-        'Basic custom integrations'
-      ],
-      popular: true,
       color: 'from-blue-500 to-purple-600'
     },
     {
-      id: 'organization',
-      name: 'Organization',
-      description: 'For fast-growing businesses',
-      price: 30,
-      annualPrice: 24,
+      id: 'yearly',
+      name: 'Yearly',
+      description: 'Save 15%',
+      price: 990,
+      annualPrice: 990,
       features: [
-        'All professional features',
-        'Enterprise security suite',
-        'Single Sign-On (SSO)',
-        'Custom contract terms',
-        'Dedicated phone support',
-        'Custom integration support',
-        'Compliance tools'
+        'Real-time browser automation',
+        'Secure command execution',
+        '24/7 agent availability',
+        'Task completion reporting',
+        'Premium support',
+        'Chrome extension access'
       ],
-      popular: false,
-      color: 'from-purple-500 to-pink-600'
+      popular: true,
+      color: 'from-amber-400 to-orange-500'
     }
   ];
 
@@ -224,9 +209,25 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
   ];
 
   const handleNextStep = async () => {
+    if (currentStep === 1) {
+      try {
+        await flow.startHiring(flow.state.selectedAgent?.id || agent.id, billingCycle === 'annual' ? 'yearly' : 'monthly');
+      } catch (e) { /* noop for demo */ }
+    }
+    if (currentStep === 2) {
+      try {
+        const price = billingCycle === 'annual' ? pricingPlans[1].annualPrice * 12 : pricingPlans[1].price;
+        await flow.processPayment(price);
+      } catch (e) { /* noop */ }
+    }
+    if (currentStep === 4) {
+      try {
+        await flow.saveConfiguration(agent.id, selectedTasks.map(id => ({ id })), selectedIntegrations.map(id => ({ id, name: id })));
+      } catch (e) { /* noop */ }
+    }
     if (currentStep < 5) {
       setIsProcessing(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 300));
       setIsProcessing(false);
       setCurrentStep(currentStep + 1);
     }
@@ -318,7 +319,7 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                     <span className="text-blue-300 text-xs font-medium">30‑Day Guarantee</span>
                   </div>
                 </div>
-
+                
                 {/* Progress Steps */}
                 <div className="flex items-center space-x-4">
                   {[1, 2, 3, 4, 5].map((step) => (
@@ -353,115 +354,59 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                   className="space-y-8"
                 >
                   <div className="text-center">
-                    <h3 className="text-3xl font-bold text-white mb-4">Choose Your Plan</h3>
-                    <p className="text-slate-400 text-lg">Select the perfect plan for your needs</p>
+                    <h3 className="text-3xl font-bold text-white mb-2">Choose Your Plan</h3>
+                    <p className="text-slate-400 text-lg">Simple pricing. Powerful agents.</p>
                   </div>
 
-                  {/* Billing Toggle */}
-                  <div className="flex items-center justify-center space-x-4">
-                    <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>
-                      Monthly
-                    </span>
-                    <button
-                      onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
-                      className={`relative w-16 h-8 rounded-full transition-colors ${
-                        billingCycle === 'annual' ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-slate-600'
-                      }`}
-                    >
-                      <motion.div
-                        className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg"
-                        animate={{ x: billingCycle === 'annual' ? 32 : 4 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    </button>
-                    <span className={`text-sm font-medium ${billingCycle === 'annual' ? 'text-white' : 'text-slate-400'}`}>
-                      Annual
-                    </span>
-                    {billingCycle === 'annual' && (
-                      <motion.span
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-sm text-green-400 font-medium"
-                      >
-                        -15% off
-                      </motion.span>
-                    )}
-                  </div>
-
-                  {/* Pricing Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {pricingPlans.map((plan, index) => (
+                  {/* Two-card layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    {pricingPlans.map((plan, index) => {
+                      const active = (plan.id === 'yearly' && billingCycle === 'annual') || (plan.id === 'monthly' && billingCycle === 'monthly');
+                      return (
                       <motion.div
                         key={plan.id}
-                        className={`relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer ${
-                          plan.popular 
-                            ? 'border-yellow-400 bg-gradient-to-br from-yellow-400/10 to-orange-400/10' 
-                            : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                          className={`relative p-6 rounded-2xl border transition-all duration-300 cursor-pointer backdrop-blur-md bg-white/5 ${
+                            active ? 'border-cyan-400/60 shadow-[0_0_40px_-10px_rgba(34,211,238,.6)]' : 'border-white/10 hover:border-white/20'
                         }`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ scale: 1.02, y: -5 }}
-                        onClick={() => setSelectedPlan(plan.id)}
-                      >
-                        {plan.popular && (
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-3 py-1 rounded-full animate-pulse">
-                            MOST POPULAR
+                          transition={{ delay: index * 0.05 }}
+                          whileHover={{ y: -4, scale: 1.01 }}
+                          onClick={() => setBillingCycle(plan.id === 'yearly' ? 'annual' : 'monthly')}
+                        >
+                          {plan.popular && plan.id === 'yearly' && (
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-300 to-orange-400 text-black text-xs font-bold px-3 py-1 rounded-full">
+                              MOST POPULAR
                           </div>
                         )}
 
                         <div className="text-center">
-                          <h4 className="text-xl font-bold text-white mb-2">{plan.name}</h4>
+                            <h4 className="text-2xl font-bold text-white mb-1">{plan.name}</h4>
                           <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
                           
                           <div className="mb-6">
-                            <span className="text-4xl font-bold text-white">
-                              ${billingCycle === 'annual' ? plan.annualPrice : plan.price}
-                            </span>
-                            <span className="text-slate-400">/per user</span>
-                            {billingCycle === 'annual' && (
-                              <div className="text-sm text-green-400 mt-1">
-                                Billed annually (${plan.price * 12 - plan.annualPrice * 12} savings)
-                              </div>
-                            )}
+                              <span className="text-5xl font-extrabold text-white">${plan.price}</span>
+                              <span className="ml-1 text-slate-400 text-sm">{plan.id === 'yearly' ? '/year' : '/month'}</span>
                           </div>
 
-                          <ul className="space-y-3 text-left">
-                            {plan.features.map((feature, featureIndex) => (
-                              <motion.li
-                                key={featureIndex}
-                                className="flex items-center space-x-3 text-sm text-slate-300"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
-                                title={`More about ${feature}`}
-                              >
-                                <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            <ul className="space-y-3 text-left max-w-sm mx-auto">
+                              {plan.features.map((feature, i) => (
+                                <li key={i} className="flex items-center space-x-3 text-sm text-slate-300">
+                                  <Check className="w-4 h-4 text-green-400" />
                                 <span>{feature}</span>
-                              </motion.li>
+                                </li>
                             ))}
                           </ul>
-                          {plan.id === recommendedPlanId && (
-                            <div className="mt-4 text-center">
-                              <span className="px-2 py-1 rounded-full text-xs bg-blue-500/15 text-blue-300 border border-blue-400/30 animate-pulse">Recommended for you</span>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
 
-                  {/* Social Proof */}
-                  <div className="text-center">
-                    <motion.div
-                      className="inline-flex items-center space-x-2 bg-slate-800/50 px-4 py-2 rounded-full"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      <Users className="w-4 h-4 text-blue-400" />
-                      <span className="text-slate-300 text-sm">Join 15,000+ professionals</span>
+                            <Button
+                              className={`mt-6 w-full bg-gradient-to-r ${active ? 'from-cyan-500 to-blue-600' : 'from-white/10 to-white/5'} text-white`}
+                            >
+                              {active ? 'Selected' : 'Select Plan'}
+                            </Button>
+                          </div>
                     </motion.div>
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}
@@ -566,8 +511,9 @@ export default function HireModal({ isOpen, onClose, agent }: HireModalProps) {
                     </div>
                   </div>
 
+                  {/* Payment CTA */}
                   <div className="text-center">
-                    <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3">
+                    <Button onClick={handleNextStep} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3">
                       Complete Purchase
                     </Button>
                   </div>

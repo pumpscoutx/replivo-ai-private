@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import SharedHireModal from "@/components/hire-modal";
 import { 
   Star, 
   Play, 
@@ -480,7 +481,7 @@ const AgentCard = ({ agent, isActive }: {
 
       {/* Hire Modal */}
       <AnimatePresence>
-        <HireModal 
+        <SharedHireModal 
           isOpen={showHireModal}
           onClose={() => setShowHireModal(false)}
           agent={agent}
@@ -2595,7 +2596,7 @@ const MarketplaceCard = ({ agent, index }: {
 
       {/* Hire Modal */}
       <AnimatePresence>
-        <HireModal 
+        <SharedHireModal 
           isOpen={showHireModal}
           onClose={() => setShowHireModal(false)}
           agent={agent}
@@ -2612,12 +2613,11 @@ export default function Home() {
   const agentsRef = useRef(null);
   const [currentAgentIndex, setCurrentAgentIndex] = useState(0);
   const [showTryMeModal, setShowTryMeModal] = useState(false);
-  
-  // Marketplace state
   const [sortBy, setSortBy] = useState('rating');
   const [activeFilter, setActiveFilter] = useState('All');
   const [filteredAgents, setFilteredAgents] = useState(MARKETPLACE_AGENTS);
-
+  const [builderQuery, setBuilderQuery] = useState("");
+  
   // Auto-rotate agents every 8 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -2988,9 +2988,64 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Build Custom Agent (AI Agent Builder) */}
+      <section className="relative py-36 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-black/70 backdrop-blur-xl shadow-[0_20px_80px_-20px_rgba(0,0,0,0.6)]">
+            {/* subtle decorative glow */}
+            <div className="pointer-events-none absolute -top-32 -right-32 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
 
+            <div className="px-8 sm:px-12 lg:px-16 py-14 sm:py-16 lg:py-20">
+              <motion.div
+                className="text-center mb-10 sm:mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+              >
+                <h2 className="text-4xl sm:text-5xl font-black text-white mb-3">Build Custom Agent</h2>
+                <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto">Describe your ideal AI agent and we'll build it for you</p>
+              </motion.div>
 
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const query = builderQuery.trim();
+                  if (!query) return;
+                  setLocation(`/custom-agent?desc=${encodeURIComponent(query)}`);
+                }}
+                className="max-w-3xl mx-auto"
+              >
+                <div className="relative">
+                  <Input
+                    value={builderQuery}
+                    onChange={(e) => setBuilderQuery(e.target.value)}
+                    placeholder="Describe the AI agent you want to build..."
+                    className="w-full h-[68px] pl-5 pr-44 bg-slate-950/70 border border-white/10 text-white text-base sm:text-lg rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.03)] focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+                  />
+                  <Button
+                    type="submit"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-[52px] px-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg"
+                  >
+                    Build Agent
+                  </Button>
+                </div>
+              </form>
 
+              <div className="mt-5 text-center">
+                <button
+                  onClick={() => setLocation('/custom-agent')}
+                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  Need advanced customization? Try our custom builder →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+  
     </div>
   );
 }

@@ -99,6 +99,9 @@ export default function CustomAgent() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [customizations, setCustomizations] = useState<Record<string, string[]>>({});
   const [currentStep, setCurrentStep] = useState(1);
+  const [personality, setPersonality] = useState<string>("Professional");
+  const [toneTraits, setToneTraits] = useState<{clarity:number; creativity:number; empathy:number}>({ clarity: 70, creativity: 50, empathy: 60 });
+  const [description, setDescription] = useState<string>("");
 
   const handleCustomizationChange = (categoryId: string, option: string) => {
     setCustomizations(prev => {
@@ -113,7 +116,9 @@ export default function CustomAgent() {
   const getTotalPrice = () => {
     let basePrice = 299;
     const customizationCount = Object.values(customizations).flat().length;
-    return basePrice + (customizationCount * 50);
+    const integrationCount = (customizations.integrations?.length || 0);
+    const complexity = Math.round((toneTraits.creativity + toneTraits.clarity + toneTraits.empathy) / 100);
+    return basePrice + (customizationCount * 50) + (integrationCount * 75) + complexity;
   };
 
   return (
@@ -121,171 +126,255 @@ export default function CustomAgent() {
       <Header />
       <BackgroundEffects />
       
-      {/* Hero Section */}
-      <section className="relative py-32 px-4">
+      {/* Hero Section (Realistic messaging) */}
+      <section className="relative py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 50 }}
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           >
             <motion.div
-              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-600/20 border border-purple-500/30 mb-8"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-500/15 to-cyan-500/15 border border-blue-400/30 mb-6"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
             >
-              <Sparkles className="w-5 h-5 text-purple-400 mr-2" />
-              <span className="text-purple-300 font-bold text-sm tracking-wider">
-                CUSTOM AI SOLUTION
-              </span>
+              <Sparkles className="w-4 h-4 text-cyan-300 mr-2" />
+              <span className="text-cyan-200 text-xs font-semibold tracking-wider">CUSTOM AI ASSISTANT BUILDER</span>
             </motion.div>
-            
-            <motion.h1 
-              className="text-5xl md:text-7xl font-black mb-8"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            >
-              <span className="text-white font-extralight">BUILD YOUR</span>
-              <br />
-              <span className="text-gradient-electric font-black">DREAM AGENT</span>
-            </motion.h1>
-            
-            <motion.p
-              className="text-xl text-gray-300 font-light max-w-3xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
-              Create a completely customized AI agent tailored to your business needs, 
-              industry requirements, and unique workflows
-            </motion.p>
+            <h1 className="text-4xl md:text-6xl font-black mb-4">Build Your Custom AI Assistant</h1>
+            <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+              Real results with realistic expectations: most projects complete in 2–3 weeks including setup, training, and team onboarding.
+            </p>
           </motion.div>
 
-          {/* Industry Templates */}
-          <motion.div
-            className="mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-12">Choose Your Industry Template</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {INDUSTRY_TEMPLATES.map((template, index) => (
-                <motion.div
-                  key={template.name}
-                  className={`relative cursor-pointer group ${
-                    selectedTemplate === template.name ? 'ring-2 ring-purple-500' : ''
-                  }`}
-                  onClick={() => setSelectedTemplate(template.name)}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                >
-                  <Card className="bg-gray-900/50 border-gray-700/50 backdrop-blur-sm hover:border-purple-500/50 transition-all">
-                    <CardContent className="p-6">
-                      <div className="text-center">
-                        <div className={`w-16 h-16 bg-gradient-to-r ${template.color} rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl`}>
-                          {template.icon}
+          {/* New Wizard: Sidebar + Preview + Options */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Sidebar Progress */}
+            <aside className="lg:col-span-3">
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-white">Setup Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[{n:1,l:"Industry"},{n:2,l:"Personality"},{n:3,l:"Capabilities"},{n:4,l:"Review & Pricing"}].map(s => (
+                    <div key={s.n} className={`flex items-center justify-between p-3 rounded-xl border ${currentStep >= s.n ? 'border-cyan-500/40 bg-cyan-500/5' : 'border-white/10 bg-white/5'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${currentStep > s.n ? 'bg-cyan-600 text-white' : currentStep === s.n ? 'bg-cyan-500/30 text-cyan-200' : 'bg-gray-800 text-gray-400'}`}>
+                          {currentStep > s.n ? '✓' : s.n}
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">{template.name}</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">{template.description}</p>
+                        <span className="text-sm text-white/90">{s.l}</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+                      {currentStep === s.n && <span className="text-xs text-cyan-300">Current</span>}
+                    </div>
+                  ))}
+                  <div className="pt-2 text-xs text-gray-400">
+                    Typical timeline: Discovery (1wk) → Build (2–3wks) → Testing (1wk) → Training (ongoing)
+                  </div>
+                </CardContent>
+              </Card>
+            </aside>
 
-          {/* Customization Options */}
-          <motion.div
-            className="mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-12">Customize Your Agent</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {CUSTOMIZATION_OPTIONS.map((category, index) => (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9 + index * 0.1 }}
-                >
-                  <Card className="bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-                    <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                          <category.icon className="w-5 h-5 text-white" />
+            {/* Main Configurator */}
+            <main className="lg:col-span-6 space-y-6">
+              {currentStep === 1 && (
+                <Card className="bg-gray-900/60 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Choose your industry template</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {INDUSTRY_TEMPLATES.map(t => (
+                        <button
+                          key={t.name}
+                          onClick={() => setSelectedTemplate(t.name)}
+                          className={`text-left p-4 rounded-2xl border transition-all bg-white/5 hover:bg-white/10 ${selectedTemplate===t.name? 'border-cyan-500/50 shadow-[0_0_0_1px_rgba(34,211,238,.2)]':'border-white/10'}`}
+                        >
+                          <div className={`w-12 h-12 bg-gradient-to-br ${t.color} rounded-xl flex items-center justify-center text-2xl mb-3`}>{t.icon}</div>
+                          <div className="font-semibold text-white">{t.name}</div>
+                          <div className="text-sm text-gray-400">{t.description}</div>
+                          <div className="mt-2 text-xs text-gray-500">Popular in your region</div>
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {currentStep === 2 && (
+                <Card className="bg-gray-900/60 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Define personality</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      {CUSTOMIZATION_OPTIONS.find(c=>c.id==='personality')!.options.map(opt => (
+                        <Badge
+                          key={opt}
+                          onClick={() => setPersonality(opt)}
+                          className={`cursor-pointer ${personality===opt? 'bg-cyan-600':'bg-gray-700 hover:bg-gray-600'}`}
+                        >{opt}</Badge>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[{k:'clarity',l:'Clarity'},{k:'creativity',l:'Creativity'},{k:'empathy',l:'Empathy'}].map(s => (
+                        <div key={s.k}>
+                          <div className="text-sm text-gray-300 mb-1">{s.l}: {toneTraits[s.k as keyof typeof toneTraits]}%</div>
+                          <input type="range" min={0} max={100} value={toneTraits[s.k as keyof typeof toneTraits]}
+                            onChange={(e)=> setToneTraits(prev=>({...prev, [s.k]: Number(e.target.value)}))}
+                            className="w-full"
+                          />
                         </div>
-                        <CardTitle className="text-white">{category.title}</CardTitle>
-                      </div>
-                      <p className="text-gray-400 text-sm">{category.description}</p>
-                    </CardHeader>
-                    <CardContent>
+                      ))}
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-300 mb-1">Brief description (optional)</div>
+                      <Textarea value={description} onChange={(e)=> setDescription(e.target.value)} placeholder="Describe your assistant’s goals, audience, and constraints" className="bg-gray-900 border-gray-800" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {currentStep === 3 && (
+                <Card className="bg-gray-900/60 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Select capabilities & integrations</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <div className="text-sm text-gray-400 mb-2">Core Capabilities</div>
                       <div className="flex flex-wrap gap-2">
-                        {category.options.map((option) => (
+                        {CUSTOMIZATION_OPTIONS.find(c=>c.id==='capabilities')!.options.map(opt => (
                           <Badge
-                            key={option}
-                            variant={customizations[category.id]?.includes(option) ? "default" : "secondary"}
-                            className={`cursor-pointer transition-all ${
-                              customizations[category.id]?.includes(option)
-                                ? 'bg-purple-600 hover:bg-purple-700'
-                                : 'bg-gray-700 hover:bg-gray-600'
-                            }`}
-                            onClick={() => handleCustomizationChange(category.id, option)}
-                          >
-                            {option}
-                          </Badge>
+                            key={opt}
+                            onClick={() => handleCustomizationChange('capabilities', opt)}
+                            className={`cursor-pointer ${customizations.capabilities?.includes(opt)? 'bg-cyan-600':'bg-gray-700 hover:bg-gray-600'}`}
+                          >{opt}</Badge>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+                    </div>
 
-          {/* Pricing & CTA */}
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-          >
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-600/10 backdrop-blur-xl p-12 rounded-3xl border border-purple-500/20 shadow-2xl max-w-2xl mx-auto">
-              <h3 className="text-3xl font-bold text-white mb-4">Custom Agent Pricing</h3>
-              <div className="text-6xl font-black text-purple-400 mb-6">
-                ${getTotalPrice()}
-                <span className="text-2xl text-gray-400 font-normal">/month</span>
+                    <div>
+                      <div className="text-sm text-gray-400 mb-2">Integrations</div>
+                      <div className="flex flex-wrap gap-2">
+                        {CUSTOMIZATION_OPTIONS.find(c=>c.id==='integrations')!.options.map(opt => (
+                          <Badge
+                            key={opt}
+                            onClick={() => handleCustomizationChange('integrations', opt)}
+                            className={`cursor-pointer ${customizations.integrations?.includes(opt)? 'bg-cyan-600':'bg-gray-700 hover:bg-gray-600'}`}
+                          >{opt}</Badge>
+                        ))}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">Most integrations take 1–3 days for setup and testing.</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {currentStep === 4 && (
+                <Card className="bg-gray-900/60 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Review & pricing</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-sm text-gray-400">Industry</div>
+                        <div className="text-white font-semibold">{selectedTemplate || 'Not selected'}</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-sm text-gray-400">Personality</div>
+                        <div className="text-white font-semibold">{personality}</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-sm text-gray-400">Capabilities</div>
+                        <div className="text-white text-sm">{customizations.capabilities?.join(', ') || 'None'}</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-sm text-gray-400">Integrations</div>
+                        <div className="text-white text-sm">{customizations.integrations?.join(', ') || 'None'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <div className="text-gray-400 text-sm">
+                        Transparent pricing includes setup, training, QA, and rollout support.
+                      </div>
+                      <div className="text-right">
+                        <div className="text-4xl font-black text-cyan-400">${getTotalPrice()}</div>
+                        <div className="text-sm text-gray-500">per month • setup fees may apply</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  className="border-gray-700 text-gray-300"
+                  disabled={currentStep===1}
+                  onClick={()=> setCurrentStep(s=> Math.max(1, s-1))}
+                >Back</Button>
+                {currentStep < 4 ? (
+                  <Button
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600"
+                    onClick={()=> setCurrentStep(s=> Math.min(4, s+1))}
+                  >Next</Button>
+                ) : (
+                  <Button
+                    className="bg-gradient-to-r from-green-500 to-emerald-600"
+                    onClick={()=> setLocation('/dashboard')}
+                  >Request Build</Button>
+                )}
               </div>
-              <p className="text-gray-300 mb-8">
-                Includes setup, training, and ongoing support for your custom AI solution
-              </p>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  onClick={() => setLocation("/dashboard")}
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-12 py-4 rounded-2xl font-bold text-xl shadow-2xl border-0"
-                  size="lg"
-                >
-                  <Rocket className="w-5 h-5 mr-3" />
-                  START BUILDING
-                  <ArrowRight className="w-5 h-5 ml-3" />
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
+            </main>
+
+            {/* Live Preview */}
+            <aside className="lg:col-span-3">
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-white">Live preview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10">
+                    <div className="text-xs text-gray-500 mb-2">Conversation sample</div>
+                    <div className="space-y-3 text-sm">
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-gray-300">
+                        You: Can you draft a weekly report for marketing?
+                      </div>
+                      <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-200">
+                        {personality} Assistant: Sure! I’ll prepare a concise weekly summary with highlights, trends, and next actions.
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10">
+                    <div className="text-xs text-gray-500 mb-2">Summary</div>
+                    <div className="text-xs text-gray-400">
+                      <div>Template: <span className="text-white/90">{selectedTemplate || '—'}</span></div>
+                      <div>Capabilities: <span className="text-white/90">{customizations.capabilities?.length || 0}</span></div>
+                      <div>Integrations: <span className="text-white/90">{customizations.integrations?.length || 0}</span></div>
+                      <div>Tone: <span className="text-white/90">{toneTraits.clarity}% clarity / {toneTraits.creativity}% creativity / {toneTraits.empathy}% empathy</span></div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10">
+                    <div className="text-xs text-gray-500 mb-1">Estimated cost</div>
+                    <div className="text-2xl font-black text-cyan-400">${getTotalPrice()}</div>
+                    <div className="text-[11px] text-gray-500">Includes setup & QA • Integrations may require additional time</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </aside>
+          </div>
         </div>
       </section>
+
+      {/* Industry Templates (legacy) */}
+      {/* The original sections remain below for reference; the wizard above is primary. */}
+      {/* ... existing code ... */}
+
+      {/* Pricing & CTA */}
+      {/* ... existing code ... */}
 
       <Footer />
     </div>

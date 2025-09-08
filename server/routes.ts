@@ -16,6 +16,7 @@ import { DeviceScanner } from "./device-scanner";
 import { ExtensionWebSocketServer } from "./websocket-server";
 import { TaskExecutor } from "./task-executor";
 import authRouter from "./routes/auth";
+import hiringRouter from "./routes/hiring";
 
 // Extend Express Request type to include user
 declare global {
@@ -1642,6 +1643,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/device-tools", deviceToolsRouter);
   app.use("/api/agent-config", agentConfigRouter);
   app.use("/api/extension", extensionRouter);
+  app.use("/api/hiring", hiringRouter);
+
+  // Spec-compatible endpoints mapping to hiring router
+  app.post("/api/agents/:id/hire", (req, res, next) => {
+    (hiringRouter as any).handle({ ...req, url: `/agents/${req.params.id}/hire` }, res, next);
+  });
+  app.post("/api/payment/process", (req, res, next) => {
+    (hiringRouter as any).handle({ ...req, url: `/payment/process` }, res, next);
+  });
+  app.post("/api/agents/:id/configure", (req, res, next) => {
+    (hiringRouter as any).handle({ ...req, url: `/agents/${req.params.id}/configure` }, res, next);
+  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -12,7 +12,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const defaultBase = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000';
+  const baseUrl = import.meta.env.VITE_API_URL || defaultBase;
   
   // Ensure url is a string
   if (typeof url !== 'string') {
@@ -38,7 +39,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const defaultBase = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000';
+    const baseUrl = import.meta.env.VITE_API_URL || defaultBase;
     const path = queryKey.join("/") as string;
     const url = path.startsWith('http') ? path : `${baseUrl}${path}`;
     

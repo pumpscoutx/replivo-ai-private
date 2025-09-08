@@ -30,6 +30,7 @@ export default function AgentHiring() {
   const [detectedTools, setDetectedTools] = useState<any[]>([]);
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>("monthly");
 
   const { data: agent, isLoading } = useQuery<Agent>({
     queryKey: ["/api/agents", params?.agentId],
@@ -43,7 +44,7 @@ export default function AgentHiring() {
 
   const { data: extensionStatusData } = useQuery({
     queryKey: ["/api/extension/status", "demo-user"],
-    refetchInterval: 5000,
+    refetchInterval: 2000,
     select: (data: any) => ({
       paired: data.hasPairedExtension,
       online: data.extensions?.[0]?.isOnline || false
@@ -268,6 +269,64 @@ export default function AgentHiring() {
           {step === 1 && (
             <motion.div
               key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                {[
+                  { id: 'monthly', name: 'Monthly', price: 99, note: 'Billed monthly' },
+                  { id: 'annual', name: 'Yearly', price: 990, note: 'Save 15%' }
+                ].map((plan) => {
+                  const active = (plan.id === 'annual' && billingCycle === 'annual') || (plan.id === 'monthly' && billingCycle === 'monthly');
+                  return (
+                    <motion.div
+                      key={plan.id}
+                      className={`relative p-6 rounded-2xl border transition-all duration-300 cursor-pointer backdrop-blur-md bg-white/5 ${
+                        active ? 'border-cyan-400/60 shadow-[0_0_40px_-10px_rgba(34,211,238,.6)]' : 'border-white/10 hover:border-white/20'
+                      }`}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      onClick={() => setBillingCycle(plan.id as 'monthly' | 'annual')}
+                    >
+                      {plan.id === 'annual' && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-300 to-orange-400 text-black text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
+                      )}
+                      <div className="text-center">
+                        <h4 className="text-2xl font-bold text-white mb-1">{plan.name}</h4>
+                        <p className="text-gray-400 text-sm mb-4">{plan.note}</p>
+                        <div className="mb-6">
+                          <span className="text-5xl font-extrabold text-white">${plan.price}</span>
+                          <span className="ml-1 text-gray-400 text-sm">{plan.id === 'annual' ? '/year' : '/month'}</span>
+                        </div>
+                        <ul className="space-y-2 text-left max-w-sm mx-auto">
+                          {[
+                            'Real-time browser automation',
+                            'Secure command execution',
+                            '24/7 agent availability',
+                            'Task completion reporting',
+                            'Premium support',
+                            'Chrome extension access'
+                          ].map((f) => (
+                            <li key={f} className="flex items-center space-x-3 text-sm text-gray-300">
+                              <Check className="w-4 h-4 text-green-400" />
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <Button className={`mt-6 w-full bg-gradient-to-r ${active ? 'from-cyan-500 to-blue-600' : 'from-white/10 to-white/5'} text-white`} onClick={() => setStep(2)}>
+                          {active ? 'Selected' : 'Select Plan'}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}

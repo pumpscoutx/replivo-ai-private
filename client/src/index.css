@@ -2,13 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.cdnfonts.com/css/neiko');
 
-@font-face {
-  font-family: 'Neiko';
-  src: url('https://fonts.cdnfonts.com/s/76854/Neiko.woff2') format('woff2'),
-       url('https://fonts.cdnfonts.com/s/76854/Neiko.woff') format('woff');
-  font-weight: 400;
-  font-display: swap;
-}
+/* Removed explicit @font-face to prevent 404s from direct woff requests. The CDN stylesheet above will handle sources and fallbacks. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
